@@ -8,7 +8,7 @@ sudo apt-get install goaccess
 ```
 
 ## Log Format
-* goaccess --log-format='[%d:%t %^] %h %^ - %v "%r" %s %b "%R" "%u"' --date-format=%d/%b/%Y --time-format=%H:%M:%S %Z
+* goaccess --log-format='[%d:%t %^] %h %^ - %v "%r" %s %b "%R" "%u"' --date-format='%d/%b/%Y' --time-format='%H:%M:%S %Z'
 
 ## Configuration
 * Edit /etc/goaccess/goaccess.conf
