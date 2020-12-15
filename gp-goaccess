@@ -1,1 +1,4 @@
+#/usr/bin/env bash
+# Run gp-go-access <domain.com>
+# Example gp-goaccess testing.com
 cat /var/log/nginx/$1*access.log | goaccess --log-format='[%d:%t %^] %h %^ - %v "%r" %s %b "%R" "%u"' --date-format='%d/%b/%Y' --time-format='%H:%M:%S %Z'
