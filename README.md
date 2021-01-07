@@ -2,6 +2,7 @@
 The goal of this project is to make it easy to manage and maintain GridPane servers.
 
 # Resources
+* [WP Info](https://wpinfo.net) - WordPress Articles and more!
 * [GridPane Facebook Group](https://www.facebook.com/groups/selfmanagedwordpress) - Managed by GridPane and full of customers and WordPress community members.
 * [Managing WordPress](https://www.facebook.com/groups/managingwordpress) - Created by me.
 * [Managing WordPress Discord](https://discord.gg/QCsHM234zh) - Come and chat about WordPress
