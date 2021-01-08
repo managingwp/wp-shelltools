@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# Wrapper
+
+# -- Ingest Variables
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -s|--script)
+    SCRIPT="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -c|--command)
+    COMMAND="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+if [[ -n $1 ]]; then
+    echo "Last line of file specified as non-opt/last argument:"
+    tail -1 "$1"
+fi
+
+# -- Variables
+scriptdir=`dirname $0`
+scripts=`find $scriptdir -maxdepth 1 -executable -type f`
+
+# -- Functions
+help () {
+        echo "Syntax: gpcli -s <script> | -c <command> (parameters)"
+        echo ""
+        echo "Available scripts"
+        echo ""
+        echo "$scripts"
+        echo ""
+        echo "Available commands"
+        echo ""
+        echo "update - update this script!"
+}
+
+# -- Main Loop
+if [ ! -z $SCRIPT ]; then
+	if [ -f "$scriptdir/$SCRIPT" ]; then
+               exec $scriptdir/$SCRIPT
+	else
+		echo "$SCRIPT script doesn't exist"
+	fi
+elif [ ! -z $COMMAND ]; then
+	echo $COMMAND
+else
+	help
+fi
+
+
+#elfi [ ! -z $SCRIPT ]; then
+#	if [ -f "$scriptdir/$1" ]; then
+#		exec $scriptdir/$1
+#	else
+#		echo "$1 scrupt doesn't exist"
+#	fi
+#fi

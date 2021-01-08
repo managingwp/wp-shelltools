@@ -26,5 +26,5 @@ cd ~;git clone https://github.com/jordantrizz/gpcli.git;ln -s /root/gpcli/gpcli 
 # Tools
 Below are the tools and their respective README's.
 
-## [gp-goaccess](gp-goaccess.md)
+## [gpgoaccess](gpgoaccess.md)
 * Provides the appropriate commands to run goaccess on GridPane Nginx log files.

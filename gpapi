@@ -4,6 +4,37 @@
 # Created by jordantrizz v0.1
 # 
 
+# -- Variable Ingestion
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -s|--script)
+    SCRIPT="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -c|--command)
+    COMMAND="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+if [[ -n $1 ]]; then
+    echo "Last line of file specified as non-opt/last argument:"
+    tail -1 "$1"
+fi
+
 # -- Variables
 gp_api_url="https://my.gridpane.com/oauth/api/v1/$gp_api_endpoint"
 gp_api_token=.gptoken
