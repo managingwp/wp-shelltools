@@ -12,6 +12,17 @@ Coffee, Beer and steaped Tea help me through the day, so feel free to buy me one
 
 <a href="https://www.buymeacoffee.com/jordantrask" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+# Install
+## Requirements
+* You need root, otherwise this makes no sense.
+* You need git (apt-get install git)
+
+It's simple, make sure you have git installed (apt-get install git) and then run the following
+```
+cd ~;git clone https://github.com/jordantrizz/gpcli.git;ln -s /root/gpcli/gpcli /usr/local/sbin/gpcli
+
+```
+
 # Tools
 Below are the tools and their respective README's.
 
