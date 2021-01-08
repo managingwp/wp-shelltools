@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# -- Command to set profiles for specific server sizes
+# -- Usage: gptunemysql (small|medium|large)
