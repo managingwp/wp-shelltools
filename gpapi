@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+# -- Intro
+# Created by jordantrizz v0.1
+# 
+
+# -- Variables
+gp_api_url="https://my.gridpane.com/oauth/api/v1/$gp_api_endpoint"
+gp_api_token=.gptoken
+gp_api_cmd=$(curl -s $gp_api_url --header 'Authorization: Bearer $gp_api_access_token')
+
+## - Color
+RED='\033[97;41m'
+GREEN='\033[97;42m'
+NC='\033[0m' # No Color
+SUCCESS="${GREEN}* SUCCESS *${NC}"
+ERROR="${RED}* ERROR *${NC}"
+
+# -- Functions
+check_gptoken () {
+
+	if [ -f "$gp_api_token" ]; then
+		echo -e "$SUCCESS GP Token file found $gp_api_access_token"
+	else
+		echo -e "$ERROR GP Token file missing, please place your GridPane API Token in the file named .gptoken"
+	fi
+
+}
+
+help () {
+
+}
+
+check_variables () {
+	
+}
+
+send_command () {
+}
+
+# -- Init
+check_gptoken
