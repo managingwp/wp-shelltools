@@ -19,7 +19,7 @@ Coffee, Beer and steaped Tea help me through the day, so feel free to buy me one
 
 It's simple, make sure you have git installed (apt-get install git) and then run the following
 ```
-cd ~;git clone https://github.com/jordantrizz/gpcli.git;ln -s /root/gpcli/gpcli /usr/local/sbin/gpcli
+git clone https://github.com/jordantrizz/gpcli.git ~/gpcli;~/gpcli/gpcli -c install
 
 ```
 

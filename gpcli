@@ -40,16 +40,15 @@ if [[ -n $1 ]]; then
 fi
 
 # -- Variables
-scriptdir=`dirname $0`
-scripts=`find $scriptdir -maxdepth 1 -executable -type f | tr -d './' | grep -v 'gpcli'`
-
+SCRIPTPATH="$(dirname "$(readlink -f "$0")")"
+SCRIPTS=`find $SCRIPTPATH -maxdepth 1 -type f -executable -printf "%f\n"`
 # -- Functions
 help () {
         echo "Syntax: gpcli -s <script> | -c <command> (parameters)"
         echo ""
         echo "Available scripts"
         echo ""
-        echo "$scripts"
+	echo "$SCRIPTS"
         echo ""
         echo "Available commands"
         echo ""
@@ -57,22 +56,22 @@ help () {
 	echo "update   - update this script!"
 	echo "install  - symlink script system wide"
 	echo ""
-	echo ""
+	echo "Running from $SCRIPTPATH"
 	
 }
 
 update () {
-	git -C $scriptdir pull
+	git -C $SCRIPTPATH pull
 }
 
 install () {
-	ln -s /root/gpcli/gpcli /usr/local/sbin/gpcli
+	ln -s $SCRIPTPATH/gpcli /usr/local/sbin/gpcli
 }
 
 # -- Main Loop
 if [ ! -z $SCRIPT ]; then
-	if [ -f "$scriptdir/$SCRIPT" ]; then
-               exec $scriptdir/$SCRIPT
+	if [ -f "$SCRIPTPATH/$SCRIPT" ]; then
+               exec $SCRIPTPATH/$SCRIPT
 	else
 		echo "$SCRIPT script doesn't exist"
 	fi
@@ -86,8 +85,8 @@ fi
 
 
 #elfi [ ! -z $SCRIPT ]; then
-#	if [ -f "$scriptdir/$1" ]; then
-#		exec $scriptdir/$1
+#	if [ -f "$SCRIPTPATH/$1" ]; then
+#		exec $SCRIPTPATH/$1
 #	else
 #		echo "$1 scrupt doesn't exist"
 #	fi
