@@ -7,7 +7,7 @@ The goal of this project is to make it easy to manage and maintain GridPane serv
 * [Managing WordPress](https://www.facebook.com/groups/managingwordpress) - Created by me.
 * [Managing WordPress Discord](https://discord.gg/QCsHM234zh) - Come and chat about WordPress
 
-# Support
+# Donate
 Coffee, Beer and steaped Tea help me through the day, so feel free to buy me one :0
 
 <a href="https://www.buymeacoffee.com/jordantrask" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
@@ -26,7 +26,10 @@ git clone https://github.com/jordantrizz/gpcli.git ~/gpcli;~/gpcli/gpcli -c inst
 # Tools
 Below are the tools and their respective README's.
 
-Test
-
 ## [gpgoaccess](gpgoaccess.md)
 * Provides the appropriate commands to run goaccess on GridPane Nginx log files.
+## [gpapi](gpapi.md)
+* Wrapper to the GP API.
+
+# Support
+Add a .debug file to any directory to get debug information.
