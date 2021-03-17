@@ -65,8 +65,7 @@ help () {
 	echo "d2s 	- Domain to Server value=domain.com"
 }
 
-check_variables () {
-	
+check_variables () {	
 }
 
 send_command () {
