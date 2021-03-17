@@ -59,7 +59,7 @@ check_gptoken () {
 }
 
 help () {
-	echo "Syntax: gpapi -c <command> -v <value>
+	echo "Syntax: gpapi -c <command> -v <value>"
 	echo ""
 	echo "Commands:"
 	echo "d2s 	- Domain to Server value=domain.com"
