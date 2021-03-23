@@ -1,9 +1,21 @@
 #!/bin/bash
+# Variables
+GP_WWW_PATH="/var/www/"
+WP_CLI_OPTIONS="--allow-root --skip-plugins"
+
 help () {
-	echo "Usage: gpplugin -a <plugin>"
+	echo "Lists WordPress plugins on all websites on a GridPane Server"
 	echo ""
-	echo "-Find out which sites have which plugins + search for specific plugins and print wp-cli plugin status"
-	echo "-Excludes canary + staging + 22222 + nginx + *.gridpanevps.com sites"
+	echo "Syntax: gpplugin -a <plugin>"
+	echo "  options"
+	echo "  -a	List all plugins"
+	echo "  -p	Status on specific plugin"
+	echo ""
+	echo "Notes:"
+	echo "  * Find out which sites have which plugins + search for specific plugins and print wp-cli plugin status"
+	echo "  * Excludes canary + staging + 22222 + nginx + *.gridpanevps.com sites"
+	echo "	* --skip-plugins is run as to not fail potentially due to an error with a plugin"
+	exit
 }
 
 POSITIONAL=()
@@ -13,12 +25,12 @@ key="$1"
 
 case $key in
     -a|--all)
-    ALL="$2"
+    ALL="YES"
     shift # past argument
     shift # past value
     ;;
-    -c|--command)
-    COMMAND="$2"
+    -p|--plugin)
+    PLUGIN="$2"
     shift # past argument
     shift # past value
     ;;
@@ -30,5 +42,12 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-PLUGIN=$1
-ls -1 | grep -vE 'canary|staging' | grep -vE '22222|nginx|gridpanevps.com' | xargs -i sh -c "echo '\033[1;42m{}\e[0m';wp --allow-root --path=/var/www/{}/htdocs plugin status $PLUGIN"
+if [ ! -z $PLUGIN ]; then
+	echo "Searching for $PLUGIN on all sites"
+	ls -1 $GP_WWW_PATH | grep -vE 'canary|staging' | grep -vE '22222|nginx|gridpanevps.com' | xargs -i sh -c "echo '\033[1;42m$GP_WWW_PATH{}\e[0m';wp $WP_CLI_OPTIONS --path=$GP_WWW_PATH{}/htdocs plugin status $PLUGIN"
+elif [ ! -z $ALL ]; then
+	echo "Searching for all plugins on all sites!"
+	ls -1 $GP_WWW_PATH | grep -vE 'canary|staging' | grep -vE '22222|nginx|gridpanevps.com' | xargs -i sh -c "echo '\033[1;42m$GP_WWW_PATH{}\e[0m';wp $WP_CLI_OPTIONS --path=$GP_WWW_PATH{}/htdocs plugin status"
+else
+	help
+fi
