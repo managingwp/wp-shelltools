@@ -6,7 +6,7 @@ The following plugin will allow you accomplish two tasks
 # Donate
 Coffee, Beer or steaped Tea! Feel free to buy me one :0
 
-<a href="https://wpinfo.net/sponsor/" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-ora     13 nge.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+<a href="https://wpinfo.net/sponsor/" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
 # Install
 You can refer to [README.md](README.md) to install all the tools.
