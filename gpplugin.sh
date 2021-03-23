@@ -1,9 +1,11 @@
 #!/bin/bash
 # Last updated 2021-03-23 v0.1
+
 # Variables
 GP_WWW_PATH="/var/www/"
 WP_CLI_OPTIONS="--allow-root --skip-plugins --skip-themes --skip-packages"
 
+# Functions
 help () {
 	echo "Lists WordPress plugins on all websites on a GridPane Server"
 	echo ""
@@ -13,9 +15,12 @@ help () {
 	echo "  -p	Status on specific plugin"
 	echo ""
 	echo "Notes:"
-	echo "  * Find out which sites have which plugins + search for specific plugins and print wp-cli plugin status"
-	echo "  * Excludes canary + staging + 22222 + nginx + *.gridpanevps.com sites"
+	echo "	* Find out which sites have which plugins + search for specific plugins and print wp-cli plugin status"
+	echo "	* Excludes canary + staging + 22222 + nginx + *.gridpanevps.com sites"
 	echo "	* --skip-plugins is run as to not fail potentially due to an error with a plugin"
+	echo ""
+	echo "Updates: https://github.com/jordantrizz/gpcli"
+	echo ""
 	exit
 }
 
