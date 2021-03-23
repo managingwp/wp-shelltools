@@ -1,7 +1,8 @@
 #!/bin/bash
+# Last updated 2021-03-23 v0.1
 # Variables
 GP_WWW_PATH="/var/www/"
-WP_CLI_OPTIONS="--allow-root --skip-plugins"
+WP_CLI_OPTIONS="--allow-root --skip-plugins --skip-themes --skip-packages"
 
 help () {
 	echo "Lists WordPress plugins on all websites on a GridPane Server"
