@@ -69,6 +69,7 @@ check_gptoken () {
 	if [ -f "$gp_api_token" ]; then
 		echo -e "$SUCCESS GP Token file found $gp_api_access_token"
 		source $gp_api_token
+		_debug "GP Token: $gp_api_access_token"
 	else
 		echo -e "$ERROR GP Token file missing, please place your GridPane API Token in the file named .gptoken"
 		exit
@@ -93,13 +94,26 @@ help () {
 	echo "Syntax: gpapi -c <command> -v <value>"
 	echo ""
 	echo "Commands:"
-	echo "d2s 	- Domain to Server value=domain.com"
+	echo "test	- Test if your token works"
+	echo "d2s 	- Domain to Server -v domain.com"
+	echo "s2d	- Server to Domains -v server"
 }
 
 send_command () {
 	echo "Send command"
 }
 
-# -- Init
-check_gptoken
-test_gptoken
+# -- Start
+
+if [[ -z $COMMAND ]]; then help;exit;fi
+if [[ $COMMAND == 'test' ]]; then check_gptoken;test_gptoken; fi
+if [[ -z $VALUE ]]; then echo "Specify a value"; exit; fi
+
+
+if [[ $COMMAND == 'd2s' ]]; then
+	check_gptoken
+	run_api "GET https://my.gridpane.com/oauth/api/v1/site"
+	_debug $api_output
+#	d2s_domain_id=$(echo $d2s_list)
+#	_debug $d2s_domain_id
+fi
