@@ -30,8 +30,13 @@ Below are the tools and their respective README's.
 * Provides the appropriate commands to run goaccess on GridPane Nginx log files.
 ## [gpapi](gpapi.md)
 * Wrapper to the GP API.
+<<<<<<< HEAD
 ## [gpplugin](gpplugin.md)
 * Traverses all sites on a server (excluding system sites) and lists plugins or gets status on a single plugin
+
+=======
+## [gpbksite](gpbksite.md)
+* A script to backup your gp websites, WIP.
 
 # Support
 Add a .debug file to any directory to get debug information.
