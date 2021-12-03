@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 ram_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
 ram_MB=$(echo "scale=0; ${ram_KB} / 1000" | bc)
   ten_percent_ram_MB=$(echo "scale=0; ${ram_KB} / 10000" | bc)
