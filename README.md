@@ -1,4 +1,4 @@
-# gpcli
+# gp-tools
 The goal of this project is to make it easy to manage and maintain GridPane servers.
 
 # Resources
