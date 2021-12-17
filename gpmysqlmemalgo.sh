@@ -37,9 +37,15 @@ if [[ ${ram_MB} -ge 16000 ]]; then
 fi
 
 echo "gpmonit mysql would set the restart threshold at ${mysqlRAM}MB memory usage for MySQL"
-echo "=="
+echo ""
 echo "Suggested Changes"
 echo "--"
 echo "If ram_MB =< 4000 then kill at ${fifty_percent_ram_MB} (50% Memory in MB)"
 echo "or"
 echo "Regardless of memory kill at ${fifty_percent_ram_MB} (50% Memory in MB)"
+echo "--"
+echo ""
+echo "To fix this issue run the following command:"
+echo " 50% memory - gpmonit mysql -mem-high-mb ${fifty_percent_ram_MB} -mem-restart-mb ${fifty_percent_ram_MB}"
+echo " 60% memory - gpmonit mysql -mem-high-mb ${sixty_percent_ram_MB} -mem-restart-mb ${sixty_percent_ram_MB}"
+echo " 705 memory - gpmonit mysql -mem-high-mb ${seventy_percent_ram_MB} -mem-restart-mb ${seventy_percent_ram_MB}"
