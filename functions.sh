@@ -23,10 +23,10 @@ exec_log () {
 	LOG_FILES="$LOG_FILES $GPLP/gpclone.log"
 	LOG_FILES="$LOG_FILES $GPLP/gpdailyworker.log $GPLP/gphourlyworker.log $GPLP/gpworker.log"
 	LOG_FILES="$LOG_FILES "
-	if [ $2 = 'tail' ]; then		
+	if [ $1 = 'tail' ]; then		
 		echo " -- Tailing files $LOG_FILES"
 		tail -f $LOG_FILES
-	elif [ $2 = 'last' ]; then
+	elif [ $1 = 'last' ]; then
 		echo " -- Tailing last 50 lines of files $LOG_FILES"
 		tail -50 $LOG_FILES	
 	else
