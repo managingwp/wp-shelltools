@@ -17,16 +17,6 @@ echo "-- Loading $SCRIPT_NAME - v$VERSION"
 help () {
         if [ ! $1 ]; then
         	help_intro
-        else
-        	echo "** $SCRIPT Commands **"
-		echo "-----------------------"
-                if [ "$1" = "all" ]; then 
-                	echo "-- core --"
-                	help_topic core
-                	echo "-- log --"
-                	help_topic log
-                fi
-		help_topic $1
         fi
 }
 
@@ -35,19 +25,24 @@ help_intro () {
 	echo ""
         echo "** General help for $SCRIPT_NAME **"
         echo "-----------------------------------"
-	echo " help all		- List all commands"
-	echo " help core	- List all core commands"
-	echo " help log		- List all log commands"
+	echo " all		- List all commands"
+	echo " core		- List all core commands"
+	echo " log		- List all log commands"
 	echo ""
         echo "Examples:"
         echo " --"
-        echo " help all"
+        echo " gp-tools all"
+	echo " gp-tools log"
+	echo " gp-tools log tail"
 	echo ""
 
 }
 
 # -- core commands
 help_topic () {
+	echo ""
+	echo " ** Help for $1"
+	echo "----------------"
 	if [ $1 = 'core' ]; then
 		echo "version		- Script version"
 	fi
