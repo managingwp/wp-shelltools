@@ -53,6 +53,7 @@ help_topic () {
 	fi
 	if [ $1 = 'log' ]; then
 		echo "log tail		- Tail all log files"
+		echo "log last		- Last 50 lines of all log files."
 	fi
 }
 
