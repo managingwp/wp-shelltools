@@ -4,7 +4,7 @@
 # 
 # Lazy way to provide help and a wrapper to related tools.
 # -------------------------
-
+source functions.sh
 VERSION=0.0.1
 SCRIPT=gp-tools
 
@@ -54,11 +54,13 @@ help_topic () {
 	fi
 }
 
-exec_tool () {
+exec_tool () {	
 	if [ $1 = 'log' ]; then
 		if [ $2 = 'tail' ]; then
-			
-		
+			exec_log $2
+		else
+			help_topic log
+		fi
 	else
 		help_topic log
 	fi
