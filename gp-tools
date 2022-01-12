@@ -9,9 +9,21 @@ VERSION=0.0.1
 echo "-- Loading $SCRIPT_NAME - v$VERSION"
 . $(dirname "$0")/functions.sh
 
+declare CMD
+declare ACTION
+CMD=${1:null}
+ACTION=${2:null}
+
 # ----------------------------------------------
 # -- Help function and it's associated functions
 # ----------------------------------------------
+
+# -- debug
+_debug () {
+	if [ -f .debug ];then
+		echo " **** DEBUG $1"
+	fi
+}
 
 # -- Help
 help () {
@@ -53,10 +65,10 @@ help_topic () {
 }
 
 exec_tool () {	
-	if [ $1 = 'log' ]; then
-		if [ ! $2 ]; then
+	if [[ $CMD == 'log' ]]; then
+		if [ ! $ACTION ]; then
 			help_topic log
-		elif [ $2 = 'tail' ]; then
+		elif [[ $ACTION == 'tail' ]]; then
                         exec_log $2
 		fi
 	else
@@ -68,10 +80,10 @@ exec_tool () {
 # -- Main script
 # --------------
 
+_debug "command: $CMD action: $ACTION"
 if [ ! $1 ]; then
         help_intro
 else
-
 	if [ $1 = 'help' ]; then
 		if [ $2 ]; then 
 			help $2

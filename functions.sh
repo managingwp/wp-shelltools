@@ -10,7 +10,7 @@ exec_log () {
 	GPLP="/opt/gridpane/logs"
 	LSWSP="/usr/local/lsws/"
 	NGINXP="/var/log/nginx"
-	echo  "  -- Running $1"
+	echo  " -- Running $1"
 		
 	# System log files
 	LOG_FILES="/var/log/syslog"
