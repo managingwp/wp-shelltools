@@ -8,15 +8,20 @@ echo "-- Loading functions"
 
 exec_log () {
 	GPLP="/var/opt/gridpane/logs"
+	LSWSP="/usr/local/lsws/"
+	NGINXP="/var/log/nginx"
 	echo  "  -- Running $1"
 		
 	# System log files
-	LOG_FILES="/var/log/syslog.log"
+	LOG_FILES="/var/log/syslog"
 
 	# OLS Log files
-	if [ -f /usr/local/lsws/stderr.log ]; then LOG_FILES="$LOG_FILES /usr/local/lsws/stderr.log"; fi
-	if [ -f /usr/local/lsws/.log ]; then LOG_FILES="$LOG_FILES /usr/local/lsws/error.log"; fi
-	if [ -f /usr/local/lsws/.log ]; then LOG_FILES="$LOG_FILES /usr/local/lsws/lsrestart.log"; fi
+	if [ -f $LSWSP/stderr.log ]; then LOG_FILES="$LOG_FILES $LSWSP/stderr.log"; fi
+	if [ -f $LSWSP/lsws/.log ]; then LOG_FILES="$LOG_FILES $LSWSP/error.log"; fi
+	if [ -f $LSWSP/lsws/.log ]; then LOG_FILES="$LOG_FILES $LSWSP/lsrestart.log"; fi
+	
+	# Nginx log files
+	if [ -f $NGINXP/error.log ]; then LOG_FILES="$LOG_FILES $NGINXP/error_log"; fi
 
 	# GridPane specific log files
 	LOG_FILES="$LOG_FILES $GPLP/backup.log $GPLP/backup.error.log"
