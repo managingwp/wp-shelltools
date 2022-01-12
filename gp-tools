@@ -1,0 +1,86 @@
+#!/bin/env bash
+# --------------------------
+# -- gp-tools wrapper script v0.0.1
+# 
+# Lazy way to provide help and a wrapper to related tools.
+# -------------------------
+
+VERSION=0.0.1
+SCRIPT=gp-tools
+
+# ----------------------------------------------
+# -- Help function and it's associated functions
+# ----------------------------------------------
+
+# -- Help
+help () {
+        if [ ! $1 ]; then
+        	help_intro
+        else
+        	echo "** $SCRIPT Commands **"
+		echo "-----------------------"
+                if [ "$1" = "all" ]; then 
+                	echo "-- core --"
+                	help_topic core
+                	echo "-- log --"
+                	help_topic log
+                fi
+		help_topic $1
+        fi
+}
+
+# -- Help introduction
+help_intro () {
+        echo "** General help for $SCRIPT_NAME **"
+        echo "-----------------------------------"
+	echo " help all		- List all commands"
+	echo " help core	- List all core commands"
+	echo " help log		- List all log commands"
+	echo ""
+        echo "Examples:"
+        echo " --"
+        echo " help all"
+	echo ""
+
+}
+
+# -- core commands
+help_topic () {
+	if [ $1 = 'core' ]; then
+		echo "version		- Script version"
+	fi
+	if [ $1 = 'log' ]; then
+		echo "log tail		- Tail all log files"
+	fi
+}
+
+exec_tool () {
+	if [ $1 = 'log' ]; then
+		if [ $2 = 'tail' ]; then
+			
+		
+	else
+		help_topic log
+	fi
+}
+
+# --------------
+# -- Main script
+# --------------
+
+echo " -- Start gp-tools --"
+
+if [ ! $1 ]; then
+        help_intro
+else
+
+	if [ $1 = 'help' ]; then
+		if [ $2 ]; then 
+			help $2
+		else
+			help_intro
+		fi
+	else
+		exec_tool $@
+	fi
+fi
