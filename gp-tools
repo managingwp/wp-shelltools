@@ -4,9 +4,10 @@
 # 
 # Lazy way to provide help and a wrapper to related tools.
 # -------------------------
-source functions.sh
+SCRIPT_NAME=gp-tools
 VERSION=0.0.1
-SCRIPT=gp-tools
+echo "-- Loading $SCRIPT_NAME - v$VERSION"
+. ./functions.sh
 
 # ----------------------------------------------
 # -- Help function and it's associated functions
@@ -31,6 +32,7 @@ help () {
 
 # -- Help introduction
 help_intro () {
+	echo ""
         echo "** General help for $SCRIPT_NAME **"
         echo "-----------------------------------"
 	echo " help all		- List all commands"
@@ -56,10 +58,10 @@ help_topic () {
 
 exec_tool () {	
 	if [ $1 = 'log' ]; then
-		if [ $2 = 'tail' ]; then
-			exec_log $2
-		else
+		if [ ! $2 ]; then
 			help_topic log
+		elif [ $2 = 'tail' ]; then
+                        exec_log $2
 		fi
 	else
 		help_topic log
@@ -69,8 +71,6 @@ exec_tool () {
 # --------------
 # -- Main script
 # --------------
-
-echo " -- Start gp-tools --"
 
 if [ ! $1 ]; then
         help_intro
