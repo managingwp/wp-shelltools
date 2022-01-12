@@ -7,7 +7,7 @@ echo "-- Loading functions"
 # - exec_log - execute log functions
 
 exec_log () {
-	GPLP="/var/opt/gridpane/logs"
+	GPLP="/opt/gridpane/logs"
 	LSWSP="/usr/local/lsws/"
 	NGINXP="/var/log/nginx"
 	echo  "  -- Running $1"
@@ -22,6 +22,9 @@ exec_log () {
 	
 	# Nginx log files
 	if [ -f $NGINXP/error.log ]; then LOG_FILES="$LOG_FILES $NGINXP/error_log"; fi
+	
+	# php-fpm logs
+	if [ -d /var/log/php ]; then LOG_FILES="$LOG_FILES /var/log/php/*/fpm.log"; fi
 
 	# GridPane specific log files
 	LOG_FILES="$LOG_FILES $GPLP/backup.log $GPLP/backup.error.log"
