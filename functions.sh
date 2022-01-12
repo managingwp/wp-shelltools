@@ -9,7 +9,7 @@ echo "-- Loading functions"
 exec_log () {
 	GPLP="/var/opt/gridpane/logs"
 	echo  "  -- Running $1"
-	
+		
 	# System log files
 	LOG_FILES="/var/log/syslog.log"
 
@@ -23,8 +23,14 @@ exec_log () {
 	LOG_FILES="$LOG_FILES $GPLP/gpclone.log"
 	LOG_FILES="$LOG_FILES $GPLP/gpdailyworker.log $GPLP/gphourlyworker.log $GPLP/gpworker.log"
 	LOG_FILES="$LOG_FILES "
+	if [ $2 = 'tail' ]; then		
+		echo " -- Tailing files $LOG_FILES"
+		tail -f $LOG_FILES
+	elif [ $2 = 'last' ]; then
+		echo " -- Tailing last 50 lines of files $LOG_FILES"
+		tail -50 $LOG_FILES	
+	else
+		help_intro log
+	fi		
 	
-	
-	echo " -- Tailing files $LOG_FILES"
-	tail -10 $LOG_FILES
 }
