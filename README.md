@@ -2,13 +2,13 @@
 The goal of this project is to make it easy to manage and maintain GridPane servers.
 
 # Resources
-* [WP Info](https://wpinfo.net) - WordPress Articles and more!
+* [Managing WP](https://mangingwp.io) - WordPress Articles and more!
+* [Managing WordPress](https://www.facebook.com/groups/managingwordpress) - Created and managed by me.
+* * [Managing WordPress Discord](https://discord.gg/QCsHM234zh) - Come and chat about WordPress
 * [GridPane Facebook Group](https://www.facebook.com/groups/selfmanagedwordpress) - Managed by GridPane and full of customers and WordPress community members.
-* [Managing WordPress](https://www.facebook.com/groups/managingwordpress) - Created by me.
-* [Managing WordPress Discord](https://discord.gg/QCsHM234zh) - Come and chat about WordPress
 
 # Donate
-Coffee, Beer and steaped Tea help me through the day, so feel free to buy me one :0
+Stepped Tea, ocasional Coffee, Beer, Scotch, Chicken Wings help me through the day, so feel free to buy me one :0
 
 <a href="https://wpinfo.net/sponsor/" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
@@ -38,5 +38,11 @@ Below are the tools and their respective README's.
 ## [gpbksite](gpbksite.md)
 * A script to backup your gp websites, WIP.
 
-# Support
+# Debugging
 Add a .debug file to any directory to get debug information.
+
+# Future Features
+* Check Log Sizes - debug.log is a culprit in disk usage. Find all occurances and print out size.
+* MySQL Database Checks - Check for anomiles, myisam, large table sizes, large databases. 
+* MySQL Database Report - Largest Databases + more.
+* CLI to API - A CLI to the GridPane API.
