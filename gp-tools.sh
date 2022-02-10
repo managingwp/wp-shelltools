@@ -66,19 +66,11 @@ help_topic () {
 }
 
 exec_tool () {	
-<<<<<<< HEAD
-	if [ $1 = 'log' ]; then
-		if [ $2 = 'tail' ]; then
-			exec_log $2
-		else
-			help_topic log
-=======
 	if [[ $CMD == 'log' ]]; then
 		if [ ! $ACTION ]; then
 			help_topic log
 		elif [[ $ACTION == 'tail' ]]; then
                         exec_log $2
->>>>>>> f1d35f706a389c981f9c9853a67a573048475dae
 		fi
 	else
 		help_topic log
