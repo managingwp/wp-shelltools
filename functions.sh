@@ -33,7 +33,7 @@ exec_log () {
 		echo -n "  -- Checking $OLS_LOGS"
 		if [ -f $OLS_LOGS ]; then
 			_success " - Found $OLS_LOGS"
-			LOG_FILES+=("$OLS_LOGS")			
+			LOG_FILES+=("$OLS_LOGS")
 		else 
 			_error " - Didn't find $OLS_LOGS"
 		fi
@@ -70,7 +70,7 @@ exec_log () {
 	fi
 	
         if [ $1 = 'tail' ]; then
-                echo " -- Tailing files $LOG_FILES"
+                echo " -- Tailing files ${LOG_FILES[*]}"
                 tail -f "$LOG_FILES"
         elif [ $1 = 'last' ]; then
                 echo " -- Tailing last 50 lines of files $LOG_FILES"
