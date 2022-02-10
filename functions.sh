@@ -8,7 +8,6 @@ echo "-- Loading functions"
 
 exec_log () {
         GPLP="/opt/gridpane/logs"
-        LSWSP="/usr/local/lsws/"
         NGINXP="/var/log/nginx"
         echo  " -- Running $1"
 
@@ -16,10 +15,19 @@ exec_log () {
         LOG_FILES="/var/log/syslog"
 
         # OLS Log files
-        if [ -f $LSWSP/stderr.log ]; then LOG_FILES="$LOG_FILES $LSWSP/stderr.log"; fi
-        if [ -f $LSWSP/lsws/.log ]; then LOG_FILES="$LOG_FILES $LSWSP/error.log"; fi
-        if [ -f $LSWSP/lsws/.log ]; then LOG_FILES="$LOG_FILES $LSWSP/lsrestart.log"; fi
-
+        LSWSP="/usr/local/lsws/logs"
+        LSWS_LOGS=("$LSWSP/stderr.log" "$LSWSP/error.log" "$LSWSP/lsrestart.log")
+        LSWS_LOGS_CHECK=("")
+	for LOGS in "${LSWS_LOGS[@]}"; do
+		echo "-- Checking $LOGS"
+		if [ -f $LOGS ]; then
+			echo "-- Found $LOGS"
+			LSWS_LOGS_CEHCK+=("$LOGS")			
+		else 
+			echo "-- No $LOGS"
+		fi
+	done
+	return
         # Nginx log files
         if [ -f $NGINXP/error.log ]; then LOG_FILES="$LOG_FILES $NGINXP/error_log"; fi
 
