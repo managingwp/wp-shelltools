@@ -18,47 +18,47 @@ exec_log () {
         echo  " -- Running $1"
 
         # System log files
-        for LOGS in "${SYSTEM_LOGS[@]}"; do
-                echo -n "  -- Checking $LOGS"
-                if [ -f $LOGS ]; then
-                        _success " - Found $LOGS"
-                        LOG_FILES+=("$LOGS")
+        for SYS_LOGS in "${SYSTEM_LOGS[@]}"; do
+                echo -n "  -- Checking $SYS_LOGS"
+                if [ -f $SYS_LOGS ]; then
+                        _success " - Found $SYS_LOGS"
+                        LOG_FILES+=("$SYS_LOGS")
                 else
-                        _error " - Didn't find $LOGS"
+                        _error " - Didn't find $SYS_LOGS"
                 fi
         done
 
         # OLS Log files
-	for LOGS in "${LSWS_LOGS[@]}"; do
-		echo -n "  -- Checking $LOGS"
-		if [ -f $LOGS ]; then
-			_success " - Found $LOGS"
-			LOG_FILES+=("$LOGS")			
+	for OLS_LOGS in "${LSWS_LOGS[@]}"; do
+		echo -n "  -- Checking $OLS_LOGS"
+		if [ -f $OLS_LOGS ]; then
+			_success " - Found $OLS_LOGS"
+			LOG_FILES+=("$OLS_LOGS")			
 		else 
-			_error " - Didn't find $LOGS"
+			_error " - Didn't find $OLS_LOGS"
 		fi
 	done
 
         # Nginx log files
-	for LOGS in "${NGINX_LOGS[@]}"; do
-		echo -n "  -- Checking $LOGS"
-                if [ -f $LOGS ]; then
-                        _success " - Found $LOGS"
-                        LOG_FILES+=("$LOGS")
+	for NX_LOGS in "${NGINX_LOGS[@]}"; do
+		echo -n "  -- Checking $NX_LOGS"
+                if [ -f $NX_LOGS ]; then
+                        _success " - Found $NX_LOGS"
+                        LOG_FILES+=("$NX_LOGS")
                 else
-                        _error " - Didn't find $LOGS"
+                        _error " - Didn't find $NX_LOGS"
                 fi
 	done
 
         # GridPane specific log files
-        GP_LOGS=("$GPLP/backup.log" "$GPLP/backup.error.log" "$GPLP/gpclone.log" "$GPLP/gpdailyworker.log" "$GPLP/gphourlyworker.log" "$GPLP/gpworker.log")	
-	for LOGS in "${GP_LOGS[@]}"; do
-                echo -n "  -- Checking $LOGS"
-                if [ -f $LOGS ]; then
-                        _success " - Found $LOGS"
-                        LOG_FILES+=("$LOGS")
+        GRIDPANE_LOGS=("$GPLP/backup.log" "$GPLP/backup.error.log" "$GPLP/gpclone.log" "$GPLP/gpdailyworker.log" "$GPLP/gphourlyworker.log" "$GPLP/gpworker.log")	
+	for GP_LOGS in "${GRIDPANE_LOGS[@]}"; do
+                echo -n "  -- Checking $GP_LOGS"
+                if [ -f $GP_LOGS ]; then
+                        _success " - Found $GP_LOGS"
+                        LOG_FILES+=("$GP_LOGS")
                 else
-                        _error " - Didn't find $LOGS"
+                        _error " - Didn't find $GP_LOGS"
                 fi
         done
 	
