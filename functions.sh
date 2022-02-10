@@ -36,7 +36,7 @@ exec_log () {
                 tail -f $LOG_FILES
         elif [ $1 = 'last' ]; then
                 echo " -- Tailing last 50 lines of files $LOG_FILES"
-                tail -50 $LOG_FILES | less
+                tail -n 50 $LOG_FILES | less
         else
                 help_intro log
         fi
