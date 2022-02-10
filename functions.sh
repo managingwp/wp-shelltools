@@ -9,42 +9,72 @@ echo "-- Loading functions"
 exec_log () {
         GPLP="/opt/gridpane/logs"
         NGINXP="/var/log/nginx"
+        LSWSP="/usr/local/lsws/logs"
+        
+        SYSTEM_LOGS=("/var/log/syslog")
+        LSWS_LOGS=("$LSWSP/stderr.log" "$LSWSP/error.log" "$LSWSP/lsrestart.log")
+	NGINX_LOGS=("$NGINXP/error_log" "/var/log/php/*/fpm.log")
+	GP_LOGS=("$GPLP/backup.log" "$GPLP/backup.error.log" "$GPLP/gpclone.log" "$GPLP/gpdailyworker.log" "$GPLP/gphourlyworker.log" "$GPLP/gpworker.log")        
         echo  " -- Running $1"
 
         # System log files
-        LOG_FILES="/var/log/syslog"
+        for LOGS in "${SYSTEM_LOGS[@]}"; do
+                echo -n "  -- Checking $LOGS"
+                if [ -f $LOGS ]; then
+                        _success " - Found $LOGS"
+                        LOG_FILES+=("$LOGS")
+                else
+                        _error " - Didn't find $LOGS"
+                fi
+        done
 
         # OLS Log files
-        LSWSP="/usr/local/lsws/logs"
-        LSWS_LOGS=("$LSWSP/stderr.log" "$LSWSP/error.log" "$LSWSP/lsrestart.log")
-        LSWS_LOGS_CHECK=("")
 	for LOGS in "${LSWS_LOGS[@]}"; do
-		echo "-- Checking $LOGS"
+		echo -n "  -- Checking $LOGS"
 		if [ -f $LOGS ]; then
-			echo "-- Found $LOGS"
-			LSWS_LOGS_CEHCK+=("$LOGS")			
+			_success " - Found $LOGS"
+			LOG_FILES+=("$LOGS")			
 		else 
-			echo "-- No $LOGS"
+			_error " - Didn't find $LOGS"
 		fi
 	done
-	return
-        # Nginx log files
-        if [ -f $NGINXP/error.log ]; then LOG_FILES="$LOG_FILES $NGINXP/error_log"; fi
 
-        # php-fpm logs
-        if [ -d /var/log/php ]; then LOG_FILES="$LOG_FILES /var/log/php/*/fpm.log"; fi
+        # Nginx log files
+	for LOGS in "${NGINX_LOGS[@]}"; do
+		echo -n "  -- Checking $LOGS"
+                if [ -f $LOGS ]; then
+                        _success " - Found $LOGS"
+                        LOG_FILES+=("$LOGS")
+                else
+                        _error " - Didn't find $LOGS"
+                fi
+	done
 
         # GridPane specific log files
-        LOG_FILES="$LOG_FILES $GPLP/backup.log $GPLP/backup.error.log"
-        LOG_FILES="$LOG_FILES $GPLP/gpclone.log"
-        LOG_FILES="$LOG_FILES $GPLP/gpdailyworker.log $GPLP/gphourlyworker.log $GPLP/gpworker.log"
-        LOG_FILES="$LOG_FILES "
+        GP_LOGS=("$GPLP/backup.log" "$GPLP/backup.error.log" "$GPLP/gpclone.log" "$GPLP/gpdailyworker.log" "$GPLP/gphourlyworker.log" "$GPLP/gpworker.log")	
+	for LOGS in "${GP_LOGS[@]}"; do
+                echo -n "  -- Checking $LOGS"
+                if [ -f $LOGS ]; then
+                        _success " - Found $LOGS"
+                        LOG_FILES+=("$LOGS")
+                else
+                        _error " - Didn't find $LOGS"
+                fi
+        done
+	
+	if [[ -z $LOG_FILES ]]; then
+		_error "-- No log files found"
+		return
+	else
+		_debug "Found log files - ${LOG_FILES[*]}"
+	fi
+	
         if [ $1 = 'tail' ]; then
                 echo " -- Tailing files $LOG_FILES"
-                tail -f $LOG_FILES
+                tail -f "$LOG_FILES"
         elif [ $1 = 'last' ]; then
                 echo " -- Tailing last 50 lines of files $LOG_FILES"
-                tail -n 50 $LOG_FILES | less
+                tail -n 50 $LSWS_LOGS_CHECK $LOG_FILES | less
         else
                 help_intro log
         fi

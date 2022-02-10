@@ -15,6 +15,31 @@ declare ACTION
 CMD=${1:null}
 ACTION=${2:null}
 
+# -- colors
+# -- Colors
+export TERM=xterm-color
+export GREP_OPTIONS='--color=auto' GREP_COLOR='1;32'
+export CLICOLOR=1
+export LSCOLORS=ExFxCxDxBxegedabagacad
+
+export NC='\e[0m' # No Color
+export CBLACK='\e[0;30m'
+export CGRAY='\e[1;30m'
+export CRED='\e[0;31m'
+export CLIGHT_RED='\e[1;31m'
+export CGREEN='\e[0;32m'
+export CLIGHT_GREEN='\e[1;32m'
+export CBROWN='\e[0;33m'
+export CYELLOW='\e[1;33m'
+export CBLUE='\e[0;34m'
+export CLIGHT_BLUE='\e[1;34m'
+export CPURPLE='\e[0;35m'
+export CLIGHT_PURPLE='\e[1;35m'
+export CCYAN='\e[0;36m'
+export CLIGHT_CYAN='\e[1;36m'
+export CLIGHT_GRAY='\e[0;37m'
+export CWHITE='\e[1;37m'
+
 # ----------------------------------------------
 # -- Help function and it's associated functions
 # ----------------------------------------------
@@ -22,8 +47,16 @@ ACTION=${2:null}
 # -- debug
 _debug () {
 	if [ -f .debug ];then
-		echo " **** DEBUG $1"
+		echo -e "${CCYAN}**** DEBUG $1${NC}"
 	fi
+}
+
+_error () {
+	echo -e "${CRED}$@${NC}";
+}
+
+_success () {
+	echo -e "${CGREEN}$@${NC}";
 }
 
 # -- Help
