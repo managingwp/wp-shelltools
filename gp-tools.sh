@@ -69,9 +69,9 @@ exec_tool () {
 	if [[ $CMD == 'log' ]]; then
 		if [ ! $ACTION ]; then
 			help_topic log
-		elif [[ $ACTION == 'tail' ]]; then
+		elif [[ $ACTION == 'tail' ]] || [[ $ACTION == 'last' ]]; then
                         exec_log $2
-		fi
+                fi
 	else
 		help_topic log
 	fi
