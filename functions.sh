@@ -1,12 +1,26 @@
 # ---------------
 # -- functions.sh
 # ---------------
+# ------------
+# -- Variables
+# ------------
+
+# -- help_cmd associative array
+declare -A help_cmd
+
+# -----------
+# -- Functions
+# ------------
 
 echo "-- Loading functions"
 
 # - exec_log - execute log functions
+help_cmd[log]='tail or print last 50 lines of all GridPane logs'
+declare -A help_log
+help_log[tail]='tail all logs'
+help_log[last]='last 50 lines of all logs'
 
-exec_log () {
+qgp-tools_log () {
         GPLP="/opt/gridpane/logs"
         NGINXP="/var/log/nginx"
         LSWSP="/usr/local/lsws/logs"

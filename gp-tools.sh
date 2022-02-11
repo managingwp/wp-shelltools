@@ -40,9 +40,10 @@ export CLIGHT_CYAN='\e[1;36m'
 export CLIGHT_GRAY='\e[0;37m'
 export CWHITE='\e[1;37m'
 
-# ----------------------------------------------
-# -- Help function and it's associated functions
-# ----------------------------------------------
+
+# ------------
+# -- Functions
+# ------------
 
 # -- debug
 _debug () {
@@ -69,33 +70,31 @@ help () {
 # -- Help introduction
 help_intro () {
 	echo ""
-        echo "** General help for $SCRIPT_NAME **"
+        echo "$SCRIPT_NAME help"
         echo "-----------------------------------"
-	echo " all		- List all commands"
-	echo " core		- List all core commands"
-	echo " log		- List all log commands"
+	printf '  %-20s - %-15s\n' "all" "List all commands"
+	for key in "${!help_cmd[@]}"; do
+		 printf '  help %-15s - %-15s\n' "$key" "${help_cmd[$key]}"
+	done
 	echo ""
         echo "Examples:"
         echo " --"
-        echo " gp-tools all"
-	echo " gp-tools log"
-	echo " gp-tools log tail"
+        echo "  gp-tools all"
+	echo "  gp-tools log"
+	echo "  gp-tools log tail"
 	echo ""
 
 }
 
 # -- core commands
 help_topic () {
+	help_topic="help_$1"
 	echo ""
-	echo " ** Help for $1"
+	echo "$1 help"
 	echo "----------------"
-	if [ $1 = 'core' ]; then
-		echo "version		- Script version"
-	fi
-	if [ $1 = 'log' ]; then
-		echo "log tail		- Tail all log files"
-		echo "log last		- Last 50 lines of all log files."
-	fi
+	for key in "${!help_topic[@]}"; do
+		printf '  %-15s - %-15s\n' "$key" "${help_topic[$key]}"
+	done
 }
 
 exec_tool () {	
@@ -120,7 +119,7 @@ if [ ! $1 ]; then
 else
 	if [ $1 = 'help' ]; then
 		if [ $2 ]; then 
-			help $2
+			help_topic $2
 		else
 			help_intro
 		fi
