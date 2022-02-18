@@ -88,7 +88,9 @@ help_intro () {
 
 # -- core commands
 help_topic () {
-	help_topic="help_$1"
+	declare -A help_topic
+	help_topic=help_${1}
+	_debug ""
 	echo ""
 	echo "$1 help"
 	echo "----------------"
