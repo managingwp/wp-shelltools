@@ -1,12 +1,26 @@
 # ---------------
 # -- functions.sh
 # ---------------
+# ------------
+# -- Variables
+# ------------
 
-echo "-- Loading functions"
+# -- help_cmd associative array
+declare -A help_cmd
+
+# -----------
+# -- Functions
+# ------------
+
+_debug "Loading functions"
 
 # - exec_log - execute log functions
+help_cmd[log]='tail or print last 50 lines of all GridPane logs'
+declare -A help_log
+help_log[tail]='tail all logs'
+help_log[last]='last 50 lines of all logs'
 
-exec_log () {
+gp-tools_log () {
         GPLP="/opt/gridpane/logs"
         NGINXP="/var/log/nginx"
         LSWSP="/usr/local/lsws/logs"
@@ -79,4 +93,32 @@ exec_log () {
                 help_intro log
         fi
 
+}
+
+
+# - exec_log - execute log functions
+help_cmd[goaccess]='Process GridPane logs with goaccess'
+declare -A help_goaccess
+help_goaccess[usage]='usage: gp-goaccess [<domain.com>|-a]'
+help_goaccess[test]='testing'
+
+gp-tools_goaccess () {
+	LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b \"%R\" \"%u\"\'
+	DATE_FORMAT='%d/%b/%Y\'
+	TIME_FORMAT='%H:%M:%S %Z\'
+
+
+	# -- Check args.
+	if [ -v $1 ]; then
+	        echo "Usage: gp-tools goaccess [<domain.com>|-a]"
+	        echo "	-a will go through all the logs versus a single domain"
+	        return
+	fi
+
+	# Main
+	if [ $1 = "-a" ]; then
+	        zcat /var/log/nginx/$2.access.log.*.gz | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+	else
+	        cat /var/log/nginx/$1.access.log | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+	fi
 }
