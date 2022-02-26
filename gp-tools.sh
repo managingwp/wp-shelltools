@@ -4,9 +4,30 @@
 # 
 # Lazy way to provide help and a wrapper to related tools.
 # -------------------------
-source functions.sh
 SCRIPT_NAME=gp-tools
 VERSION=0.0.1
+
+# ----------------
+# -- Key Functions
+# ----------------
+
+_debug () {
+        if [ -f .debug ];then
+                echo -e "${CCYAN}**** DEBUG $1${NC}"
+        fi
+}
+
+_error () {
+        echo -e "${CRED}$@${NC}";
+}
+
+_success () {
+        echo -e "${CGREEN}$@${NC}";
+}
+
+# -------
+# -- Init
+# -------
 echo "-- Loading $SCRIPT_NAME - v$VERSION"
 . $(dirname "$0")/functions.sh
 
@@ -15,7 +36,6 @@ declare ACTION
 CMD=${1:null}
 ACTION=${2:null}
 
-# -- colors
 # -- Colors
 export TERM=xterm-color
 export GREP_OPTIONS='--color=auto' GREP_COLOR='1;32'
@@ -102,12 +122,15 @@ help_topic () {
 exec_tool () {	
 	if [[ $CMD == 'log' ]]; then
 		if [ ! $ACTION ]; then
+			_debug "Help for log command"
 			help_topic log
 		elif [[ $ACTION == 'tail' ]] || [[ $ACTION == 'last' ]]; then
+			_debug "Executing log $2"
                         exec_log $2
                 fi
 	else
-		help_topic log
+		_debug "Executing $1"
+		gp-tools_$1
 	fi
 }
 

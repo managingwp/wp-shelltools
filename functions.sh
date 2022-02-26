@@ -12,7 +12,7 @@ declare -A help_cmd
 # -- Functions
 # ------------
 
-echo "-- Loading functions"
+_debug "Loading functions"
 
 # - exec_log - execute log functions
 help_cmd[log]='tail or print last 50 lines of all GridPane logs'
@@ -110,7 +110,7 @@ gp-tools_goaccess () {
 
 	# -- Check args.
 	if [ -v $1 ]; then
-	        echo "usage: gp-goaccess [<domain.com>|-a]"
+	        echo "Usage: gp-tools goaccess [<domain.com>|-a]"
 	        echo "	-a will go through all the logs versus a single domain"
 	        return
 	fi
