@@ -108,6 +108,7 @@ gp-tools_goaccess () {
 	TIME_FORMAT='%H:%M:%S %Z\'
 
 	_debug "goaccess arguments - $ACTION"
+	_debug "goaccess LOG_FORMAT = $LOG_FORMAT ## DATE_FORMAT = $DATE_FORMAT ## TIME_FORMAT = $TIME_FORMAT"
 	# -- Check args.
 	if [ -v $ACTION ]; then
 	        echo "Usage: gp-tools goaccess [<domain.com>|-a]"
