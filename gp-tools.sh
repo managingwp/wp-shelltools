@@ -129,8 +129,8 @@ exec_tool () {
                         exec_log $2
                 fi
 	else
-		_debug "Executing $1"
-		gp-tools_$1
+		_debug "Executing $@"
+		gp-tools_$1 $@
 	fi
 }
 
@@ -149,6 +149,7 @@ else
 			help_intro
 		fi
 	else
-		exec_tool $@
+		_debug "exec_tool \$CMD=$CMD \$ACTION=$ACTION"
+		exec_tool $CMD $ACTION
 	fi
 fi
