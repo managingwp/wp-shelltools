@@ -107,16 +107,16 @@ gp-tools_goaccess () {
 	DATE_FORMAT='%d/%b/%Y\'
 	TIME_FORMAT='%H:%M:%S %Z\'
 
-
+	_debug "goaccess arguments - $ACTION"
 	# -- Check args.
-	if [ -v $1 ]; then
+	if [ -v $ACTION ]; then
 	        echo "Usage: gp-tools goaccess [<domain.com>|-a]"
 	        echo "	-a will go through all the logs versus a single domain"
 	        return
 	fi
 
 	# Main
-	if [ $1 = "-a" ]; then
+	if [ $ACTION = "-a" ]; then
 	        zcat /var/log/nginx/$2.access.log.*.gz | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 	else
 	        cat /var/log/nginx/$1.access.log | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
