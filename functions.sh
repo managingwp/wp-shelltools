@@ -140,10 +140,10 @@ tool_logcode () {
 
 	if [[ $3 == "-a" ]]; then
 		_debug "Going through all alog files"
-		ls -aSd /var/log/nginx/* | grep access | egrep -v '^access.log$|staging|canary|gridpane|.gz' #| xargs grep " $3[0-9][0-9] " | egrep -v 'xmlrpc.php' | awk '{ print $1" -- "$6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -n
+		ls -aSd /var/log/nginx/* | grep access | egrep -v '^access.log$|staging|canary|gridpane|.gz' | xargs grep " $3[0-9][0-9] " | egrep -v 'xmlrpc.php' | awk '{ print $1" -- "$6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -n
 	else
 		_debug "Checking log file $2"
-		ls -aSd /var/log/nginx/$3 | grep access | egrep -v '^access.log$|staging|canary|gridpane|.gz' #| xargs grep " $3[0-9][0-9] " | egrep -v 'xmlrpc.php' | awk '{ print $1" -- "$6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -n		
+		ls -aSd /var/log/nginx/$3 | grep access | egrep -v '^access.log$|staging|canary|gridpane|.gz' | xargs grep " $3[0-9][0-9] " | egrep -v 'xmlrpc.php' | awk '{ print $1" -- "$6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -n		
 	fi
 	
 }
