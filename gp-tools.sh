@@ -38,7 +38,6 @@ ACTION=${2:null}
 
 # -- Colors
 export TERM=xterm-color
-export GREP_OPTIONS='--color=auto' GREP_COLOR='1;32'
 export CLICOLOR=1
 export LSCOLORS=ExFxCxDxBxegedabagacad
 
@@ -130,7 +129,7 @@ exec_tool () {
                 fi
 	else
 		_debug "Executing $@"
-		gp-tools_$1 $@
+		tool_$1 $@
 	fi
 }
 
@@ -149,7 +148,7 @@ else
 			help_intro
 		fi
 	else
-		_debug "exec_tool \$CMD=$CMD \$ACTION=$ACTION"
-		exec_tool $CMD $ACTION
+		_debug "exec_tool $@"
+		exec_tool $@
 	fi
 fi

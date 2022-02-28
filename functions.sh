@@ -96,13 +96,12 @@ gp-tools_log () {
 }
 
 
-# - exec_log - execute log functions
+# - goaccess - execute log functions
 help_cmd[goaccess]='Process GridPane logs with goaccess'
 declare -A help_goaccess
 help_goaccess[usage]='usage: gp-goaccess [<domain.com>|-a]'
-help_goaccess[test]='testing'
 
-gp-tools_goaccess () {
+tool_goaccess () {
 	LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b \"%R\" \"%u\"\'
 	DATE_FORMAT='%d/%b/%Y\'
 	TIME_FORMAT='%H:%M:%S %Z\'
@@ -122,4 +121,47 @@ gp-tools_goaccess () {
 	else
 	        cat /var/log/nginx/$1.access.log | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 	fi
+}
+
+# - 4xxerr
+help_cmd[logcode]='Look for specifc HTTP codes in web server logfiles and return top hits.'
+declare -A help_logcode
+help_logcode[usage]='Usage: logcode <code> [<file>|-a]'
+
+tool_logcode () {
+	echo $@
+        if [ -v $2 ] || [ -v $3 ]; then
+		echo "Usage: $SCRIPT_NAME logcode <code> [<logfilename>|-a]"
+		echo "	tcode = the http status code number 4 = 4xx or 5 = 5xx"
+		echo "	<logfilename> = specific log file"
+		echo "	-a = all log files for Nginx or OLS"
+		echo "	-e = exclude GridPane, staging and canary"
+		return
+	fi
+
+	if [[ $3 == "-a" ]]; then
+		_debug "Going through all alog files"
+		if [[ $4 == "-e" ]]; then
+			_debug "-e set exclude GridPane, staging and canary"
+			files=$(ls -aSd /var/log/nginx/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
+		else
+			files=$(ls -aSd /var/log/nginx/*)
+		fi
+		_debug "Files selected"
+		_debug "$files"
+
+	else
+		_debug "Checking log file $3"
+		files=$(ls -aSd /var/log/nginx/$3)
+	fi
+
+        for file in $files; do
+		_debug "Processing $file"
+		content=$(grep " $2[0-9][0-9] " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -40)
+        	echo "$content"
+        	echo "...more lines but limited to top 40"
+        done
+        
+        #xargs grep " $3[0-9][0-9] " | egrep -v 'xmlrpc.php' | awk '{ print $1" -- "$6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -n
+	
 }
