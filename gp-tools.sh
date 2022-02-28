@@ -149,7 +149,7 @@ else
 			help_intro
 		fi
 	else
-		_debug "exec_tool \$CMD=$CMD \$ACTION=$ACTION"
-		exec_tool $CMD $ACTION
+		_debug "exec_tool $@"
+		exec_tool $@
 	fi
 fi

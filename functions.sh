@@ -124,11 +124,26 @@ tool_goaccess () {
 }
 
 # - 4xxerr
-help_cmd[4xxerr]='Look for 4xx errors in web server logfiles'
-declare -A help_goaccess
-help_goaccess[usage]='usage: 4xxerr'
+help_cmd[logcode]='Look for specifc HTTP codes in web server logfiles and return top hits.'
+declare -A help_logcode
+help_logcode[usage]='Usage: logcode <code> [<file>|-a]'
 
-tool_4xxerror () {
-	# This is for Nginx
-	ls -aS | grep access | egrep -v '^access.log$|staging|canary|gridpane|.gz' | xargs grep ' 4[0-9][0-9] ' | egrep -v 'xmlrpc.php' | awk '{ print $6" - "$10}' | sort | uniq -c | sort -nr
+tool_logcode () {
+	echo $@
+        if [ -v $2 ] || [ -v $3 ]; then
+		echo "Usage: $SCRIPT_NAME logcode <code> [<file>|-a]"
+		echo "	tcode = the http status code number 4 = 4xx or 5 = 5xx"
+		echo "	<file> = specific log file"
+		echo "	-a = all log files for Nginx or OLS"
+		return
+	fi
+
+	if [[ $3 == "-a" ]]; then
+		_debug "Going through all alog files"
+		ls -aSd /var/log/nginx/* | grep access | egrep -v '^access.log$|staging|canary|gridpane|.gz' #| xargs grep " $3[0-9][0-9] " | egrep -v 'xmlrpc.php' | awk '{ print $1" -- "$6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -n
+	else
+		_debug "Checking log file $2"
+		ls -aSd /var/log/nginx/$3 | grep access | egrep -v '^access.log$|staging|canary|gridpane|.gz' #| xargs grep " $3[0-9][0-9] " | egrep -v 'xmlrpc.php' | awk '{ print $1" -- "$6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -n		
+	fi
+	
 }
