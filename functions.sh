@@ -96,13 +96,12 @@ gp-tools_log () {
 }
 
 
-# - exec_log - execute log functions
+# - goaccess - execute log functions
 help_cmd[goaccess]='Process GridPane logs with goaccess'
 declare -A help_goaccess
 help_goaccess[usage]='usage: gp-goaccess [<domain.com>|-a]'
-help_goaccess[test]='testing'
 
-gp-tools_goaccess () {
+tool_goaccess () {
 	LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b \"%R\" \"%u\"\'
 	DATE_FORMAT='%d/%b/%Y\'
 	TIME_FORMAT='%H:%M:%S %Z\'
@@ -122,4 +121,14 @@ gp-tools_goaccess () {
 	else
 	        cat /var/log/nginx/$1.access.log | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 	fi
+}
+
+# - 4xxerr
+help_cmd[4xxerr]='Look for 4xx errors in web server logfiles'
+declare -A help_goaccess
+help_goaccess[usage]='usage: 4xxerr'
+
+tool_4xxerror () {
+	# This is for Nginx
+	ls -aS | grep access | egrep -v '^access.log$|staging|canary|gridpane|.gz' | xargs grep ' 4[0-9][0-9] ' | egrep -v 'xmlrpc.php' | awk '{ print $6" - "$10}' | sort | uniq -c | sort -nr
 }

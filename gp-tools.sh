@@ -130,7 +130,7 @@ exec_tool () {
                 fi
 	else
 		_debug "Executing $@"
-		gp-tools_$1 $@
+		tool_$1 $@
 	fi
 }
 
