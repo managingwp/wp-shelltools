@@ -86,16 +86,14 @@ help_intro () {
 	echo ""
         echo "$SCRIPT_NAME help"
         echo "-----------------------------------"
-	printf '  %-20s - %-15s\n' "all" "List all commands"
 	for key in "${!help_cmd[@]}"; do
 		 printf '  help %-15s - %-15s\n' "$key" "${help_cmd[$key]}"
 	done
 	echo ""
         echo "Examples:"
         echo " --"
-        echo "  gp-tools all"
+        echo "  gp-tools goaccess"
 	echo "  gp-tools log"
-	echo "  gp-tools log tail"
 	echo ""
 
 }
@@ -114,18 +112,8 @@ help_topic () {
 }
 
 exec_tool () {	
-	if [[ $1 == 'log' ]]; then
-		if [ ! $2 ]; then
-			_debug "Help for log command"
-			help_topic log
-		elif [[ $2 == 'tail' ]] || [[ $2 == 'last' ]]; then
-			_debug "Executing log $2"
-                        exec_log $2
-                fi
-	else
-		_debug "Executing $@"
-		tool_$1 $@
-	fi
+	_debug "Executing $@"
+	tool_$1 $@
 }
 
 # --------------

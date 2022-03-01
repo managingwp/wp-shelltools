@@ -20,7 +20,12 @@ declare -A help_log
 help_log[tail]='tail all logs'
 help_log[last]='last 50 lines of all logs'
 
-gp-tools_log () {
+tool_log () {
+        # Usage
+        if [ -v $2 ]; then
+                echo "Usage: $SCRIPT_NAME log [tail|last]"
+                return
+        fi	
         GPLP="/opt/gridpane/logs"
         NGINXP="/var/log/nginx"
         LSWSP="/usr/local/lsws/logs"
@@ -89,19 +94,20 @@ gp-tools_log () {
         elif [ $1 = 'last' ]; then
                 echo " -- Tailing last 50 lines of files $LOG_FILES"
                 tail -n 50 $LSWS_LOGS_CHECK $LOG_FILES | less
-        else
-                help_intro log
         fi
-
 }
 
 
 # - goaccess - execute log functions
 help_cmd[goaccess]='Process GridPane logs with goaccess'
-declare -A help_goaccess
-help_goaccess[usage]='usage: gp-goaccess [<domain.com>|-a]'
-
 tool_goaccess () {
+        # Usage
+        if [ -v $2 ]; then
+        	echo "Usage: $SCRIPT_NAME gp-goaccess [<domain.com>|-a]"
+        	return
+        fi
+        
+        # Formats for goaccess
 	LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b \"%R\" \"%u\"\'
 	DATE_FORMAT='%d/%b/%Y\'
 	TIME_FORMAT='%H:%M:%S %Z\'
@@ -125,9 +131,6 @@ tool_goaccess () {
 
 # - 4xxerr
 help_cmd[logcode]='Look for specifc HTTP codes in web server logfiles and return top hits.'
-declare -A help_logcode
-help_logcode[usage]='Usage: logcode <code> [<file>|-a]'
-
 tool_logcode () {	
 	# Usage
         if [ -v $2 ] || [ -v $3 ]; then
@@ -197,7 +200,6 @@ tool_logcode () {
 
 # - gpcron
 help_cmd[gpcron]='List sites using GP Cron'
-
 tool_gpcron () {
 	grep 'cron:true' /var/www/*/logs/*.env	
 }
