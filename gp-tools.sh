@@ -13,7 +13,7 @@ VERSION=0.0.1
 
 _debug () {
         if [ -f .debug ];then
-                echo -e "${CCYAN}**** DEBUG $1${NC}"
+                echo -e "${CCYAN}**** DEBUG $@${NC}"
         fi
 }
 
@@ -30,11 +30,6 @@ _success () {
 # -------
 echo "-- Loading $SCRIPT_NAME - v$VERSION"
 . $(dirname "$0")/functions.sh
-
-declare CMD
-declare ACTION
-CMD=${1:null}
-ACTION=${2:null}
 
 # -- Colors
 export TERM=xterm-color
@@ -119,11 +114,11 @@ help_topic () {
 }
 
 exec_tool () {	
-	if [[ $CMD == 'log' ]]; then
-		if [ ! $ACTION ]; then
+	if [[ $1 == 'log' ]]; then
+		if [ ! $2 ]; then
 			_debug "Help for log command"
 			help_topic log
-		elif [[ $ACTION == 'tail' ]] || [[ $ACTION == 'last' ]]; then
+		elif [[ $2 == 'tail' ]] || [[ $2 == 'last' ]]; then
 			_debug "Executing log $2"
                         exec_log $2
                 fi
@@ -137,7 +132,8 @@ exec_tool () {
 # -- Main script
 # --------------
 
-_debug "command: $CMD action: $ACTION"
+args=$@
+_debug "Command Line Arguments = $args"
 if [ ! $1 ]; then
         help_intro
 else

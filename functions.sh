@@ -128,40 +128,69 @@ help_cmd[logcode]='Look for specifc HTTP codes in web server logfiles and return
 declare -A help_logcode
 help_logcode[usage]='Usage: logcode <code> [<file>|-a]'
 
-tool_logcode () {
-	echo $@
+tool_logcode () {	
+	# Usage
         if [ -v $2 ] || [ -v $3 ]; then
-		echo "Usage: $SCRIPT_NAME logcode <code> [<logfilename>|-a]"
-		echo "	tcode = the http status code number 4 = 4xx or 5 = 5xx"
-		echo "	<logfilename> = specific log file"
-		echo "	-a = all log files for Nginx or OLS"
-		echo "	-e = exclude GridPane, staging and canary"
+		echo "Usage: $SCRIPT_NAME logcode -e <code> [<logfilename>|-a] [results]"
+                echo "	-e = exclude GridPane, staging and canary"
+		echo "	<code> = the http status code number 4 = 4xx or 5 = 5xx"
+		echo "	<logfilename> = specific log file or -a for all"
+		echo "	[results] = number of results, optional, default 40"
 		return
 	fi
+	
+	# Set parameters.
+	exclude=$2;_debug "exculde=$exclude"
+	logcode=$3;_debug "logcode=$logcode"
+	logfilename=$4;_debug "logfilename=$logfilename"
+	if [ -z $5 ];then
+		results="40"
+	else 
+		results=$5;_debug
+	fi
+	_debug "results=$results"
 
-	if [[ $3 == "-a" ]]; then
+	# Nginx or OLS?
+	nginxlogs=/var/log/nginx
+	olslogs=/var/log/ols
+	if [ -d $nginxlogs ]; then
+		_debug "Found nginx logs under $nginxlogs"
+		logfiledir=$nginxlogs
+	elif [ -d $olslogs ]; then
+		_debug "Found ols logs under $olslogs"
+		logfiledir=$olslogs
+	else
+		_error "No $nginxlogs or $olslogs directory"
+		return
+	fi
+		
+	# All logs or just one?
+	if [[ $logfilename == "-a" ]]; then
 		_debug "Going through all alog files"
-		if [[ $4 == "-e" ]]; then
-			_debug "-e set exclude GridPane, staging and canary"
-			files=$(ls -aSd /var/log/nginx/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
+		# Exclude gridpane specific logs
+		if [[ $exclude == "-e" ]]; then
+			_debug "Argument -e set, will exclude GridPane, staging and canary"
+			files=$(ls -aSd $logfiledir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
 		else
-			files=$(ls -aSd /var/log/nginx/*)
+			files=$(ls -aSd $logfiledir/* | egrep -v '.gz')
 		fi
 		_debug "Files selected"
 		_debug "$files"
-
+	# Just one log file.
 	else
-		_debug "Checking log file $3"
-		files=$(ls -aSd /var/log/nginx/$3)
+		_debug "Checking log file $logfilename"
+		if [ -f $logfilename ]; then
+			_debug "Log file exists - $logfilename"
+			files=$(ls -aSd $logfiledir/$logfilename)
+		else
+			echo "Log file $logfiledir/$logfilename doesn't exist"
+		fi
 	fi
 
         for file in $files; do
 		_debug "Processing $file"
-		content=$(grep " $2[0-9][0-9] " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -40)
+		content=$(grep " $logcode[0-9][0-9] " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$results)
         	echo "$content"
-        	echo "...more lines but limited to top 40"
+        	echo "...more lines but limited to top $results"
         done
-        
-        #xargs grep " $3[0-9][0-9] " | egrep -v 'xmlrpc.php' | awk '{ print $1" -- "$6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -n
-	
 }
