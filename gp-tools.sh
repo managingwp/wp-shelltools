@@ -31,14 +31,8 @@ _success () {
 echo "-- Loading $SCRIPT_NAME - v$VERSION"
 . $(dirname "$0")/functions.sh
 
-declare CMD
-declare ACTION
-CMD=${1:null}
-ACTION=${2:null}
-
 # -- Colors
 export TERM=xterm-color
-export GREP_OPTIONS='--color=auto' GREP_COLOR='1;32'
 export CLICOLOR=1
 export LSCOLORS=ExFxCxDxBxegedabagacad
 
@@ -120,17 +114,16 @@ help_topic () {
 }
 
 exec_tool () {	
-	if [[ $CMD == 'log' ]]; then
-		if [ ! $ACTION ]; then
+	if [[ $1 == 'log' ]]; then
+		if [ ! $2 ]; then
 			_debug "Help for log command"
 			help_topic log
-		elif [[ $ACTION == 'tail' ]] || [[ $ACTION == 'last' ]]; then
+		elif [[ $2 == 'tail' ]] || [[ $2 == 'last' ]]; then
 			_debug "Executing log $2"
                         exec_log $2
                 fi
 	else
-		_debug "Executing $1"
-		gp-tools_$1
+		tool_$1 $@
 	fi
 }
 
@@ -138,7 +131,8 @@ exec_tool () {
 # -- Main script
 # --------------
 
-_debug "command: $CMD action: $ACTION"
+args=$@
+_debug "Command Line Arguments = $args"
 if [ ! $1 ]; then
         help_intro
 else
@@ -149,6 +143,7 @@ else
 			help_intro
 		fi
 	else
+		_debug "exec_tool $@"
 		exec_tool $@
 	fi
 fi

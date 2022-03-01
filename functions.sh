@@ -32,47 +32,47 @@ gp-tools_log () {
         echo  " -- Running $1"
 
         # System log files
-        for LOGS in "${SYSTEM_LOGS[@]}"; do
-                echo -n "  -- Checking $LOGS"
-                if [ -f $LOGS ]; then
-                        _success " - Found $LOGS"
-                        LOG_FILES+=("$LOGS")
+        for SYS_LOGS in "${SYSTEM_LOGS[@]}"; do
+                echo -n "  -- Checking $SYS_LOGS"
+                if [ -f $SYS_LOGS ]; then
+                        _success " - Found $SYS_LOGS"
+                        LOG_FILES+=("$SYS_LOGS")
                 else
-                        _error " - Didn't find $LOGS"
+                        _error " - Didn't find $SYS_LOGS"
                 fi
         done
 
         # OLS Log files
-	for LOGS in "${LSWS_LOGS[@]}"; do
-		echo -n "  -- Checking $LOGS"
-		if [ -f $LOGS ]; then
-			_success " - Found $LOGS"
-			LOG_FILES+=("$LOGS")			
+	for OLS_LOGS in "${LSWS_LOGS[@]}"; do
+		echo -n "  -- Checking $OLS_LOGS"
+		if [ -f $OLS_LOGS ]; then
+			_success " - Found $OLS_LOGS"
+			LOG_FILES+=("$OLS_LOGS")
 		else 
-			_error " - Didn't find $LOGS"
+			_error " - Didn't find $OLS_LOGS"
 		fi
 	done
 
         # Nginx log files
-	for LOGS in "${NGINX_LOGS[@]}"; do
-		echo -n "  -- Checking $LOGS"
-                if [ -f $LOGS ]; then
-                        _success " - Found $LOGS"
-                        LOG_FILES+=("$LOGS")
+	for NX_LOGS in "${NGINX_LOGS[@]}"; do
+		echo -n "  -- Checking $NX_LOGS"
+                if [ -f $NX_LOGS ]; then
+                        _success " - Found $NX_LOGS"
+                        LOG_FILES+=("$NX_LOGS")
                 else
-                        _error " - Didn't find $LOGS"
+                        _error " - Didn't find $NX_LOGS"
                 fi
 	done
 
         # GridPane specific log files
-        GP_LOGS=("$GPLP/backup.log" "$GPLP/backup.error.log" "$GPLP/gpclone.log" "$GPLP/gpdailyworker.log" "$GPLP/gphourlyworker.log" "$GPLP/gpworker.log")	
-	for LOGS in "${GP_LOGS[@]}"; do
-                echo -n "  -- Checking $LOGS"
-                if [ -f $LOGS ]; then
-                        _success " - Found $LOGS"
-                        LOG_FILES+=("$LOGS")
+        GRIDPANE_LOGS=("$GPLP/backup.log" "$GPLP/backup.error.log" "$GPLP/gpclone.log" "$GPLP/gpdailyworker.log" "$GPLP/gphourlyworker.log" "$GPLP/gpworker.log")	
+	for GP_LOGS in "${GRIDPANE_LOGS[@]}"; do
+                echo -n "  -- Checking $GP_LOGS"
+                if [ -f $GP_LOGS ]; then
+                        _success " - Found $GP_LOGS"
+                        LOG_FILES+=("$GP_LOGS")
                 else
-                        _error " - Didn't find $LOGS"
+                        _error " - Didn't find $GP_LOGS"
                 fi
         done
 	
@@ -84,7 +84,7 @@ gp-tools_log () {
 	fi
 	
         if [ $1 = 'tail' ]; then
-                echo " -- Tailing files $LOG_FILES"
+                echo " -- Tailing files ${LOG_FILES[*]}"
                 tail -f "$LOG_FILES"
         elif [ $1 = 'last' ]; then
                 echo " -- Tailing last 50 lines of files $LOG_FILES"
@@ -96,29 +96,87 @@ gp-tools_log () {
 }
 
 
-# - exec_log - execute log functions
+# - goaccess - execute log functions
 help_cmd[goaccess]='Process GridPane logs with goaccess'
 declare -A help_goaccess
 help_goaccess[usage]='usage: gp-goaccess [<domain.com>|-a]'
-help_goaccess[test]='testing'
 
-gp-tools_goaccess () {
+tool_goaccess () {
 	LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b \"%R\" \"%u\"\'
 	DATE_FORMAT='%d/%b/%Y\'
 	TIME_FORMAT='%H:%M:%S %Z\'
 
-
+	_debug "goaccess arguments - $ACTION"
+	_debug "goaccess LOG_FORMAT = $LOG_FORMAT ## DATE_FORMAT = $DATE_FORMAT ## TIME_FORMAT = $TIME_FORMAT"
 	# -- Check args.
-	if [ -v $1 ]; then
+	if [ -v $ACTION ]; then
 	        echo "Usage: gp-tools goaccess [<domain.com>|-a]"
 	        echo "	-a will go through all the logs versus a single domain"
 	        return
 	fi
 
 	# Main
-	if [ $1 = "-a" ]; then
+	if [ $ACTION = "-a" ]; then
 	        zcat /var/log/nginx/$2.access.log.*.gz | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 	else
 	        cat /var/log/nginx/$1.access.log | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 	fi
+}
+
+# - 4xxerr
+help_cmd[logcode]='Look for specifc HTTP codes in web server logfiles and return top hits.'
+declare -A help_logcode
+help_logcode[usage]='Usage: logcode <code> [<file>|-a]'
+
+tool_logcode () {	
+	# Usage
+        if [ -v $2 ] || [ -v $3 ]; then
+		echo "Usage: $SCRIPT_NAME logcode <code> [<logfilename>|-a]"
+		echo "	tcode = the http status code number 4 = 4xx or 5 = 5xx"
+		echo "	<logfilename> = specific log file"
+		echo "	-a = all log files for Nginx or OLS"
+		echo "	-e = exclude GridPane, staging and canary"
+		return
+	fi
+
+	# Nginx or OLS?
+	if [ -d /var/log/nginx ]; then
+		logfiledir="/var/log/nginx"
+	elif [ -d /var/log/ols ]; then
+		logfiledir="/var/log/ols"
+	else
+		_error "No nginx or ols log file directories found in /var/log"
+		return
+	fi
+		
+	# All logs or just one?
+	if [[ $3 == "-a" ]]; then
+		_debug "Going through all alog files"
+		# Exclude gridpane specific logs
+		if [[ $4 == "-e" ]]; then
+			_debug "-e set exclude GridPane, staging and canary"
+			files=$(ls -aSd $logfiledir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
+		else
+			files=$(ls -aSd $logfiledir/*)
+		fi
+		_debug "Files selected"
+		_debug "$files"
+	# Just one log file.
+	else
+		_debug "Checking log file $3"
+		if [ -f $3 ]; then
+			_debug "Log file exists - $3"
+			files=$(ls -aSd $logfiledir/$3)
+		else
+			echo "Log file $logfiledir$3 doesn't exist"
+		fi
+	fi
+
+        for file in $files; do
+		_debug "Processing $file"
+		content=$(grep " $2[0-9][0-9] " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -40)
+        	echo "$content"
+        	echo "...more lines but limited to top 40"
+        done
+        	
 }
