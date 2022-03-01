@@ -14,6 +14,17 @@ declare -A help_cmd
 
 _debug "Loading functions"
 
+# - _getsitelogs
+_getsitelogs () {
+	if [ -d "/var/log/nginx" ]; then
+		sitelogsdir="/var/log/nginx"
+	elif [ -d "/var/log/lsws" ]; then
+		sitelogsdir="/var/log/lsws"
+	fi
+	files=$(ls -aSd $logfiledir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
+}
+
+
 # - exec_log - execute log functions
 help_cmd[log]='tail or print last 50 lines of all GridPane logs'
 declare -A help_log
@@ -23,7 +34,8 @@ help_log[last]='last 50 lines of all logs'
 tool_log () {
         # Usage
         if [ -v $2 ]; then
-                echo "Usage: $SCRIPT_NAME log [tail|last]"
+                echo "Usage: $SCRIPT_NAME log [tail|last] [-s]"
+                echo "	-s Include site access and error logs."
                 return
         fi	
         GPLP="/opt/gridpane/logs"
@@ -31,17 +43,20 @@ tool_log () {
         LSWSP="/usr/local/lsws/logs"
         
         SYSTEM_LOGS=("/var/log/syslog")
+        GRIDPANE_LOGS=("$GPLP/backup.log" "$GPLP/backup.error.log" "$GPLP/gpclone.log" "$GPLP/gpdailyworker.log" "$GPLP/gphourlyworker.log" "$GPLP/gpworker.log")
         LSWS_LOGS=("$LSWSP/stderr.log" "$LSWSP/error.log" "$LSWSP/lsrestart.log")
 	NGINX_LOGS=("$NGINXP/error_log")
 	NGINX_FPM_LOGS=("/var/log/php/*/fpm.log")
-	
 	# Cycle through FPM logs.
 	for file in /var/log/php/*/fpm.log; do
 		_debug "fpm file - $file"
 			NGINX_FILES+=("$SYS_LOGS")
 	done
-	GP_LOGS=("$GPLP/backup.log" "$GPLP/backup.error.log" "$GPLP/gpclone.log" "$GPLP/gpdailyworker.log" "$GPLP/gphourlyworker.log" "$GPLP/gpworker.log")        
-        echo  " -- Running $1"
+
+	
+
+	# Start check logs
+        echo  " -- Running $2"
 
         # System log files
         for SYS_LOGS in "${SYSTEM_LOGS[@]}"; do
@@ -88,7 +103,6 @@ tool_log () {
 	done
 
         # GridPane specific log files
-        GRIDPANE_LOGS=("$GPLP/backup.log" "$GPLP/backup.error.log" "$GPLP/gpclone.log" "$GPLP/gpdailyworker.log" "$GPLP/gphourlyworker.log" "$GPLP/gpworker.log")	
 	for GP_LOGS in "${GRIDPANE_LOGS[@]}"; do
                 echo -n "  -- Checking $GP_LOGS"
                 if [ -f $GP_LOGS ]; then
@@ -98,6 +112,10 @@ tool_log () {
                         _error " - Didn't find $GP_LOGS"
                 fi
         done
+	
+        # Website specific log files
+	SITE_LOGS=$(_getsitelogs)
+	_debug "$SITE_LOGS"
 	
 	if [[ -z $LOG_FILES ]]; then
 		_error "-- No log files found"
