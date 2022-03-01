@@ -193,4 +193,14 @@ tool_logcode () {
         	echo "$content"
         	echo "...more lines but limited to top $results"
         done
+<<<<<<< HEAD
+=======
+}
+
+# - gpcron
+help_cmd[gpcron]='List sites using GP Cron'
+
+tool_gpcron () {
+	grep 'cron:true' /var/www/*/logs/*.env	
+>>>>>>> dev
 }
