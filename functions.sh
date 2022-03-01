@@ -33,9 +33,12 @@ tool_log () {
         SYSTEM_LOGS=("/var/log/syslog")
         LSWS_LOGS=("$LSWSP/stderr.log" "$LSWSP/error.log" "$LSWSP/lsrestart.log")
 	NGINX_LOGS=("$NGINXP/error_log")
+	NGINX_FPM_LOGS=("/var/log/php/*/fpm.log")
+	
 	# Cycle through FPM logs.
 	for file in /var/log/php/*/fpm.log; do
-		echo $file
+		_debug "fpm file - $file"
+			NGINX_FILES+=("$SYS_LOGS")
 	done
 	GP_LOGS=("$GPLP/backup.log" "$GPLP/backup.error.log" "$GPLP/gpclone.log" "$GPLP/gpdailyworker.log" "$GPLP/gphourlyworker.log" "$GPLP/gpworker.log")        
         echo  " -- Running $1"
@@ -62,6 +65,17 @@ tool_log () {
 		fi
 	done
 
+	# Nginx FPM log files
+	for FPM_LOGS in ${NGINX_FPM_LOGS[@]}; do
+		echo -n "  -- Checking $FPM_LOGS"
+		if [ -f $FPM_LOGS ]; then
+			_success " - Found $FPM_LOGS"
+                        LOG_FILES+=("$FPM_LOGS")
+                else
+                	_error " - Didn't find $FPM_LOGS"
+                fi
+        done
+        
         # Nginx log files
 	for NX_LOGS in "${NGINX_LOGS[@]}"; do
 		echo -n "  -- Checking $NX_LOGS"
