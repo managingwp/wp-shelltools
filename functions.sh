@@ -32,7 +32,11 @@ tool_log () {
         
         SYSTEM_LOGS=("/var/log/syslog")
         LSWS_LOGS=("$LSWSP/stderr.log" "$LSWSP/error.log" "$LSWSP/lsrestart.log")
-	NGINX_LOGS=("$NGINXP/error_log" "/var/log/php/*/fpm.log")
+	NGINX_LOGS=("$NGINXP/error_log")
+	# Cycle through FPM logs.
+	for file in /var/log/php/*/fpm.log; do
+		echo $file
+	done
 	GP_LOGS=("$GPLP/backup.log" "$GPLP/backup.error.log" "$GPLP/gpclone.log" "$GPLP/gpdailyworker.log" "$GPLP/gphourlyworker.log" "$GPLP/gpworker.log")        
         echo  " -- Running $1"
 
