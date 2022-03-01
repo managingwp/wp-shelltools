@@ -123,6 +123,7 @@ exec_tool () {
                         exec_log $2
                 fi
 	else
+		_debug "Executing $@"
 		tool_$1 $@
 	fi
 }

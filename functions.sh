@@ -178,5 +178,4 @@ tool_logcode () {
         	echo "$content"
         	echo "...more lines but limited to top 40"
         done
-        	
 }
