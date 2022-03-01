@@ -131,19 +131,19 @@ help_logcode[usage]='Usage: logcode <code> [<file>|-a]'
 tool_logcode () {	
 	# Usage
         if [ -v $2 ] || [ -v $3 ]; then
-		echo "Usage: $SCRIPT_NAME logcode -e <code> <length> [<logfilename>|-a]"
-		echo "	tcode = the http status code number 4 = 4xx or 5 = 5xx"
-		echo "	<logfilename> = specific log file"
-		echo "	-a = all log files for Nginx or OLS"
-		echo "	-e = exclude GridPane, staging and canary"
+		echo "Usage: $SCRIPT_NAME logcode -e <code> [<logfilename>|-a] [results]"
+                echo "	-e = exclude GridPane, staging and canary"
+		echo "	<code> = the http status code number 4 = 4xx or 5 = 5xx"
+		echo "	<logfilename> = specific log file or -a for all"
+		echo "	[results] = number of results, optional, default 40"
 		return
 	fi
 	
 	# Set parameters.
 	exclude=$2;_debug "exculde=$exclude"
 	logcode=$3;_debug "logcode=$logcode"
-	headlength=$4;_debug "headlength=$headlength"
 	logfilename=$5;_debug "logfilename=$logfilename"
+	if [ -n $4 ];then results="40";else results=$4;_debug "headlength=$results"; fi
 
 	# Nginx or OLS?
 	nginxlogs=/var/log/nginx
@@ -184,8 +184,8 @@ tool_logcode () {
 
         for file in $files; do
 		_debug "Processing $file"
-		content=$(grep " $logcode[0-9][0-9] " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head $headlength)
+		content=$(grep " $logcode[0-9][0-9] " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$results)
         	echo "$content"
-        	echo "...more lines but limited to top 40"
+        	echo "...more lines but limited to top $results"
         done
 }
