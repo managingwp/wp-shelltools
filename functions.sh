@@ -178,9 +178,9 @@ tool_logcode () {
 		_debug "$files"
 	# Just one log file.
 	else
-		_debug "Checking log file $3"
+		_debug "Checking log file $logfilename"
 		if [ -f $logfilename ]; then
-			_debug "Log file exists - $3"
+			_debug "Log file exists - $logfilename"
 			files=$(ls -aSd $logfiledir/$logfilename)
 		else
 			echo "Log file $logfiledir/$logfilename doesn't exist"
