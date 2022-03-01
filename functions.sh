@@ -131,13 +131,19 @@ help_logcode[usage]='Usage: logcode <code> [<file>|-a]'
 tool_logcode () {	
 	# Usage
         if [ -v $2 ] || [ -v $3 ]; then
-		echo "Usage: $SCRIPT_NAME logcode <code> [<logfilename>|-a]"
+		echo "Usage: $SCRIPT_NAME logcode -e <code> <length> [<logfilename>|-a]"
 		echo "	tcode = the http status code number 4 = 4xx or 5 = 5xx"
 		echo "	<logfilename> = specific log file"
 		echo "	-a = all log files for Nginx or OLS"
 		echo "	-e = exclude GridPane, staging and canary"
 		return
 	fi
+	
+	# Set parameters.
+	exclude=$2;_debug "exculde=$exclude"
+	logcode=$3;_debug "logcode=$logcode"
+	headlength=$4;_debug "headlength=$headlength"
+	logfilename=$5;_debug "logfilename=$logfilename"
 
 	# Nginx or OLS?
 	nginxlogs=/var/log/nginx
