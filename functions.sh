@@ -140,12 +140,16 @@ tool_logcode () {
 	fi
 
 	# Nginx or OLS?
-	if [ -d /var/log/nginx ]; then
-		logfiledir="/var/log/nginx"
-	elif [ -d /var/log/ols ]; then
-		logfiledir="/var/log/ols"
+	nginxlogs=/var/log/nginx
+	olslogs=/var/log/ols
+	if [ -d $nginxlogs ]; then
+		_debug "Found nginx logs under $nginxlogs"
+		logfiledir=$nginxlogs
+	elif [ -d $olslogs ]; then
+		_debug "Found ols logs under $olslogs"
+		logfiledir=$olslogs
 	else
-		_error "No nginx or ols log file directories found in /var/log"
+		_error "No $nginxlogs or $olslogs directory"
 		return
 	fi
 		
@@ -154,10 +158,10 @@ tool_logcode () {
 		_debug "Going through all alog files"
 		# Exclude gridpane specific logs
 		if [[ $4 == "-e" ]]; then
-			_debug "-e set exclude GridPane, staging and canary"
+			_debug "Argument -e set, will exclude GridPane, staging and canary"
 			files=$(ls -aSd $logfiledir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
 		else
-			files=$(ls -aSd $logfiledir/*)
+			files=$(ls -aSd $logfiledir/* | egrep -v '.gz')
 		fi
 		_debug "Files selected"
 		_debug "$files"
