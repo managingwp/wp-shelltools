@@ -13,7 +13,7 @@ VERSION=0.0.1
 
 _debug () {
         if [ -f .debug ];then
-                echo -e "${CCYAN}**** DEBUG $1${NC}"
+                echo -e "${CCYAN}**** DEBUG $@${NC}"
         fi
 }
 
