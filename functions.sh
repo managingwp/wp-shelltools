@@ -142,8 +142,13 @@ tool_logcode () {
 	# Set parameters.
 	exclude=$2;_debug "exculde=$exclude"
 	logcode=$3;_debug "logcode=$logcode"
-	logfilename=$5;_debug "logfilename=$logfilename"
-	if [ -n $4 ];then results="40";else results=$4;_debug "headlength=$results"; fi
+	logfilename=$4;_debug "logfilename=$logfilename"
+	if [ -z $5 ];then
+		results="40"
+	else 
+		results=$5;_debug
+	fi
+	_debug "results=$results"
 
 	# Nginx or OLS?
 	nginxlogs=/var/log/nginx
