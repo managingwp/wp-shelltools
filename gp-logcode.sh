@@ -58,6 +58,11 @@ main () {
 	                echo "Log file $logfiledir/$logfile doesn't exist"
 	        fi
 	fi
+	
+	# logcode
+	if [[ $logcode -lt 10 ]];
+		logcode=" $logcode[0-9][0-9]"
+	fi
 
 	for file in $files; do
 	        _debug "Processing $file"
