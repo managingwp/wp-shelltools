@@ -37,7 +37,7 @@ main () {
 	if [ -z $results ];then
 		results="40"
 	else 
-		results=$5;_debug
+		return
 	fi
 	_debug "results=$results"
 
