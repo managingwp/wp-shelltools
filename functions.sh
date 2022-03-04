@@ -5,13 +5,13 @@
 # ------------
 # -- Variables
 # ------------
-GPTOOLS_ROOT=$(pwd)
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # ----------------
 # -- Key Functions
 # ----------------
 _debug () {
-        if [ -f $GPTOOLS_ROOT/.debug ];then
+        if [ -f $SCRIPT_DIR/.debug ];then
                 echo -e "${CCYAN}**** DEBUG $@${NC}"
         fi
 }
@@ -23,8 +23,6 @@ _error () {
 _success () {
         echo -e "${CGREEN}$@${NC}";
 }
-
-_debug "Loading functions.sh"
 
 # --
 # -- Colors
