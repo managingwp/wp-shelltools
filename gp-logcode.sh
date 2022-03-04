@@ -62,7 +62,7 @@ main () {
 	# logcode
 	if [[ $logcode -lt 10 ]]; then
 		_debug "logcode is less than 10"
-		logcode=" $logcode[0-9][0-9]"
+		logcode="$logcode[0-9][0-9]"
 	fi
 
 	for file in $files; do
