@@ -145,7 +145,7 @@ while true; do
 done
 
 # handle non-option arguments
-_debug "code: $code, logfile: $logfile, alllogs: $alllogs, exclude:$exclude, results:$results"
+_debug "logcode: $logcode, logfile: $logfile, alllogs: $alllogs, exclude:$exclude, results:$results"
 _debug "$#"
 if [[ -z $logcode ]]; then
 	usage
