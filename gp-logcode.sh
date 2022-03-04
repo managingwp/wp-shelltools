@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # - gp-logcode
+. $(dirname "$0")/functions.sh
+_debug "Loading functions.sh"
 
 # Usage
 usage () {
@@ -11,34 +13,31 @@ usage () {
         echo "  Optional"
         echo "    -r [results] = number of results, optional, default 40"
         echo "    -e = exclude GridPane, staging and canary."
-        exit
 }
 
-# Set parameters.
-exclude=$2;_debug "exculde=$exclude"
-logcode=$3;_debug "logcode=$logcode"
-logfilename=$4;_debug "logfilename=$logfilename"
 
+check_logs () { # Nginx or OLS?
+	nginxlogs=/var/log/nginx
+	olslogs=/var/log/ols
+	if [ -d $nginxlogs ]; then
+	        _debug "Found nginx logs under $nginxlogs"
+	        logfiledir=$nginxlogs
+	elif [ -d $olslogs ]; then
+	        _debug "Found ols logs under $olslogs"
+	        logfiledir=$olslogs
+	else
+	        _error "No $nginxlogs or $olslogs directory"
+	        exit
+	fi
+}
+
+main () {
 if [ -z $5 ];then
         results="40"
 else
         results=$5;_debug
 fi
 _debug "results=$results"
-
-# Nginx or OLS?
-nginxlogs=/var/log/nginx
-olslogs=/var/log/ols
-if [ -d $nginxlogs ]; then
-        _debug "Found nginx logs under $nginxlogs"
-        logfiledir=$nginxlogs
-elif [ -d $olslogs ]; then
-        _debug "Found ols logs under $olslogs"
-        logfiledir=$olslogs
-else
-        _error "No $nginxlogs or $olslogs directory"
-        exit
-fi
 
 # All logs or just one?
 if [[ $logfilename == "-a" ]]; then
@@ -69,6 +68,7 @@ for file in $files; do
         echo "$content"
         echo "...more lines but limited to top $results"
 done
+}
 
 # --
 # Parse Arguments
@@ -82,8 +82,8 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
     exit 1
 fi
 
-OPTIONS=dfo:v
-LONGOPTS=debug,force,output:,verbose
+OPTIONS=c:l:aer:
+LONGOPTS=code:,logfile:,all,exclude,results:
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -98,7 +98,7 @@ fi
 # read getopt’s output this way to handle the quoting right:
 eval set -- "$PARSED"
 
-d=n f=n v=n outFile=-
+c=- l=- a=n e=n r=n
 # now enjoy the options in order and nicely split until we see --
 # logcode -c <code> (-l <logfilename>|-a) [-e] [-r results]
 while true; do
@@ -119,8 +119,8 @@ while true; do
             exclude="1"
             shift 1
             ;;
-        -r|--output)
-            results="$2"
+        -r|--results)
+            results=$2
             shift 2
             ;;
         --)
@@ -135,10 +135,16 @@ while true; do
 done
 
 # handle non-option arguments
-if [[ $# -ne 2 ]] ; then
+_debug "code: $code, logfile: $logfile, alllogs: $alllogs, exclude:$exclude, results:$results"
+_debug "$#"
+if [[ -z $code ]]; then
 	usage
+	_error "No http code provided"
+	exit 4
+elif [[ -z $logfile ]] && [[ -z $alllogs ]]; then
+	usage
+	_error "Specify a -l <logfile> or -a for all logs"
 	exit 4
 fi
 
-_debug
-echo "verbose: $v, force: $f, debug: $d, in: $1, out: $outFile"
+check_logs
