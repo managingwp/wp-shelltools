@@ -81,7 +81,7 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
 fi
 
 OPTIONS=c:l:aer:
-LONGOPTS=code:,logfile:,all,exclude,results:
+LONGOPTS=logcode:,logfile:,all,exclude,results:
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -101,8 +101,8 @@ c=- l=- a=n e=n r=n
 # logcode -c <code> (-l <logfilename>|-a) [-e] [-r results]
 while true; do
     case "$1" in
-        -c|--code)
-            code=$2
+        -c|--logcode)
+            logcode=$2
             shift 2
             ;;
         -l|--logfile)
@@ -135,7 +135,7 @@ done
 # handle non-option arguments
 _debug "code: $code, logfile: $logfile, alllogs: $alllogs, exclude:$exclude, results:$results"
 _debug "$#"
-if [[ -z $code ]]; then
+if [[ -z $logcode ]]; then
 	usage
 	_error "No http code provided"
 	exit 4
