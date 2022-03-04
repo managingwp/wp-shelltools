@@ -61,7 +61,7 @@ main () {
 
 	for file in $files; do
 	        _debug "Processing $file"
-	        _debug 'Running -- grep " $logcode[0-9][0-9] " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$results'
+	        _debug "Running -- grep \" $logcode[0-9][0-9] \" $file | awk '{ print \$6\" - \"\$10\" - \"\$7\" \"$8\" \"\$9}' | sort | uniq -c | sort -nr | head -$results"
 	        content=$(grep " $logcode[0-9][0-9] " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$results)
 	        echo "$content"
 	        echo "...more lines but limited to top $results"
