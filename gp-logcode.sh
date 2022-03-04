@@ -17,6 +17,7 @@ usage () {
 
 
 check_logs () { # Nginx or OLS?
+	_debug "Checking if logs exist"
 	nginxlogs=/var/log/nginx
 	olslogs=/var/log/ols
 	if [ -d $nginxlogs ]; then
@@ -148,3 +149,4 @@ elif [[ -z $logfile ]] && [[ -z $alllogs ]]; then
 fi
 
 check_logs
+main
