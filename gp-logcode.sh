@@ -36,8 +36,6 @@ main () {
 	# Set results if not defined.
 	if [ -z $results ];then
 		results="40"
-	else 
-		return
 	fi
 	_debug "results=$results"
 
