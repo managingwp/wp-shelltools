@@ -57,7 +57,7 @@ main () {
 	# Just one log file.
 	else
 	        _debug "Checking log file $logfilename"
-	        if [ -f $logfile ]; then
+	        if [ -f $logfiledir/$logfile ]; then
 	                _debug "Log file exists - $logfile"
 	                files=$(ls -aSd $logfiledir/$logfile)
 	        else
