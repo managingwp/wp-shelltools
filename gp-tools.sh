@@ -12,9 +12,9 @@ VERSION=0.0.1
 # -------
 echo "-- Loading $SCRIPT_NAME - v$VERSION"
 . $(dirname "$0")/functions.sh
-_debug "Loading functions.sh"
 _debug "Loading functions-tools.sh"
 . $(dirname "$0")/tool-functions.sh
+_debug "Loading functions-tools.sh"
 
 # ------------
 # -- Functions

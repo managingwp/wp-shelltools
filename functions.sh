@@ -1,16 +1,17 @@
 # ---------------
 # -- functions.sh
 # ---------------
+
 # ------------
 # -- Variables
 # ------------
+GPTOOLS_ROOT=$(pwd)
 
 # ----------------
 # -- Key Functions
 # ----------------
-
 _debug () {
-        if [ -f .debug ];then
+        if [ -f $GPTOOLS_ROOT/.debug ];then
                 echo -e "${CCYAN}**** DEBUG $@${NC}"
         fi
 }
@@ -22,6 +23,8 @@ _error () {
 _success () {
         echo -e "${CGREEN}$@${NC}";
 }
+
+_debug "Loading functions.sh"
 
 # --
 # -- Colors
