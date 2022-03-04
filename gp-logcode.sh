@@ -33,42 +33,38 @@ check_logs () { # Nginx or OLS?
 }
 
 main () {
-if [ -z $5 ];then
-        results="40"
-else
-        results=$5;_debug
-fi
-_debug "results=$results"
+	_debug "results=$results"
 
-# All logs or just one?
-if [[ $logfilename == "-a" ]]; then
-	_debug "Going through all alog files"
-        # Exclude gridpane specific logs
-        if [[ $exclude == "-e" ]]; then
-                _debug "Argument -e set, will exclude GridPane, staging and canary"
-                files=$(ls -aSd $logfiledir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
-        else
-                files=$(ls -aSd $logfiledir/* | egrep -v '.gz')
-        fi
-        _debug "Files selected"
-        _debug "$files"
-# Just one log file.
-else
-        _debug "Checking log file $logfilename"
-        if [ -f $logfilename ]; then
-                _debug "Log file exists - $logfilename"
-                files=$(ls -aSd $logfiledir/$logfilename)
-        else
-                echo "Log file $logfiledir/$logfilename doesn't exist"
-        fi
-fi
+	# All logs or just one?
+	if [[ $logfilename == "-a" ]]; then
+		_debug "Going through all alog files"
+	        # Exclude gridpane specific logs
+	        if [[ $exclude == "-e" ]]; then
+	                _debug "Argument -e set, will exclude GridPane, staging and canary"
+	                files=$(ls -aSd $logfiledir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
+	        else
+	                files=$(ls -aSd $logfiledir/* | egrep -v '.gz')
+	        fi
+	        _debug "Files selected"
+	        _debug "$files"
+	
+	# Just one log file.
+	else
+	        _debug "Checking log file $logfilename"
+	        if [ -f $logfile ]; then
+	                _debug "Log file exists - $logfile"
+	                files=$(ls -aSd $logfiledir/$logfile)
+	        else
+	                echo "Log file $logfiledir/$logfile doesn't exist"
+	        fi
+	fi
 
-for file in $files; do
-        _debug "Processing $file"
-        content=$(grep " $logcode[0-9][0-9] " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$results)
-        echo "$content"
-        echo "...more lines but limited to top $results"
-done
+	for file in $files; do
+	        _debug "Processing $file"
+	        content=$(grep " $logcode[0-9][0-9] " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$results)
+	        echo "$content"
+	        echo "...more lines but limited to top $results"
+	done
 }
 
 # --
