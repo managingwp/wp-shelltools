@@ -108,7 +108,7 @@ fi
 # read getopt’s output this way to handle the quoting right:
 eval set -- "$PARSED"
 
-c=- l=- a=n e=n r=n
+c=- l=- a=n e=n r=-
 # now enjoy the options in order and nicely split until we see --
 # logcode -c <code> (-l <logfilename>|-a) [-e] [-r results]
 while true; do
