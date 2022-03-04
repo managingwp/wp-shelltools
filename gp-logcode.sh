@@ -60,7 +60,7 @@ main () {
 	fi
 	
 	# logcode
-	if [[ $logcode -lt 10 ]];
+	if [[ $logcode -lt 10 ]]; then
 		logcode=" $logcode[0-9][0-9]"
 	fi
 
