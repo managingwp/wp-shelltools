@@ -33,6 +33,12 @@ check_logs () { # Nginx or OLS?
 }
 
 main () {
+	# Set results if not defined.
+	if [ -z $results ];then
+		results="40"
+	else 
+		results=$5;_debug
+	fi
 	_debug "results=$results"
 
 	# All logs or just one?
