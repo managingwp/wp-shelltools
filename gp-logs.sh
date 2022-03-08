@@ -162,7 +162,7 @@ if [ $2 = 'tail' ]; then
         tail -f "$LOG_FILES"
 elif [ $2 = 'last' ]; then
 	echo " -- Tailing last 50 lines of files $LOG_FILES"
-        tail -n 50 $LSWS_LOGS_CHECK $LOG_FILES | less
+        tail -n 50 $LOG_FILES | less
 else
 	_error "No option provided to print out logs, choose either tail or last"
 	exit 1
