@@ -84,22 +84,14 @@ help_intro () {
 
 }
 
-# -- core commands
-help_topic () {
-	declare -A help_topic
-	help_topic=help_${1}
-	_debug ""
-	echo ""
-	echo "$1 help"
-	echo "----------------"
-	for key in "${!help_topic[@]}"; do
-		printf '  %-15s - %-15s\n' "$key" "${help_topic[$key]}"
-	done
-}
-
 exec_tool () {	
 	_debug "Executing $@"
-	tool_$1 $@
+	if [[ $(type -t tool_$1) == function ]]; then
+		tool_$1 $@
+	else
+		echo "No command $1"
+		exit
+	fi
 }
 
 # --------------
@@ -112,11 +104,7 @@ if [ ! $1 ]; then
         help_intro
 else
 	if [ $1 = 'help' ]; then
-		if [ $2 ]; then 
-			help_topic $2
-		else
 			help_intro
-		fi
 	else
 		_debug "exec_tool $@"
 		exec_tool $@
