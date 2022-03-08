@@ -7,9 +7,6 @@
 SCRIPT_NAME=gp-tools
 VERSION=0.0.1
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
 # ----------------
 # -- Key Functions
 # ----------------
@@ -28,18 +25,12 @@ _success () {
         echo -e "${CGREEN}$@${NC}";
 }
 
-=======
->>>>>>> dev
->>>>>>> main
 # -------
 # -- Init
 # -------
 echo "-- Loading $SCRIPT_NAME - v$VERSION"
 . $(dirname "$0")/functions.sh
-<<<<<<< HEAD
 _debug "Loading functions.sh"
-=======
-<<<<<<< HEAD
 
 # -- Colors
 export TERM=xterm-color
@@ -64,10 +55,6 @@ export CLIGHT_CYAN='\e[1;36m'
 export CLIGHT_GRAY='\e[0;37m'
 export CWHITE='\e[1;37m'
 
-=======
-_debug "Loading functions.sh"
->>>>>>> dev
->>>>>>> main
 
 # ------------
 # -- Functions
@@ -111,28 +98,8 @@ help_topic () {
 }
 
 exec_tool () {	
-<<<<<<< HEAD
 	_debug "Executing $@"
 	tool_$1 $@
-=======
-<<<<<<< HEAD
-	if [[ $1 == 'log' ]]; then
-		if [ ! $2 ]; then
-			_debug "Help for log command"
-			help_topic log
-		elif [[ $2 == 'tail' ]] || [[ $2 == 'last' ]]; then
-			_debug "Executing log $2"
-                        exec_log $2
-                fi
-	else
-		_debug "Executing $@"
-		tool_$1 $@
-	fi
-=======
-	_debug "Executing $@"
-	tool_$1 $@
->>>>>>> dev
->>>>>>> main
 }
 
 # --------------
