@@ -8,13 +8,15 @@ _debug "Loading functions.sh"
 # --
 GPOPT="/opt/gridpane"
 GPLP="/opt/gridpane/logs"
-NGINXP="/var/log/nginx"
-LSWSP="/usr/local/lsws/logs"
+NGINX_LOG_PATH="/var/log/nginx"
+OLS_LOG_PATH="/usr/local/lsws/logs"
 
 SYS_LOGS=("/var/log/syslog")
-OLS_LOGS=("$LSWSP/stderr.log" "$LSWSP/error.log" "$LSWSP/lsrestart.log")
-NGINX_LOGS=("$NGINXP/error_log")
-GP_LOGS=("$GPOPT/backup.log" "$GPOPT/backup.error.log" "$GPOPT/gpclone.log" "$GPOPT/gpdailyworker.log" "$GPOPT/gphourlyworker.log" "$GPOPT/gpworker.log")
+OLS_LOGS=("$OLS_LOG_PATH/stderr.log" "$OLS_LOG_PATH/error.log" "$OLS_LOG_PATH/lsrestart.log")
+NGINX_LOGS=("$NGINX_LOG_PATH/error_log")
+GP_LOGS=("$GPOPT/gpclone.log" "$GPOPT/gpdailyworker.log" "$GPOPT/gphourlyworker.log" "$GPOPT/gpworker.log")
+GP_BACKUP_LOGS=("$GPOPT/backup.log" "$GPOPT/backup.error.log" "$GPOPT/backups.monitoring.log")
+
 
 # ---------------
 # -- functions.sh
@@ -28,7 +30,7 @@ usage () {
 
 
 # Start check logs
-echo  " -- Running logs command with $2 option"
+echo  "-- Running logs command with $2 option"
         
 # Locate FPM logs.
 for file in /var/log/php/*/fpm.log; do
@@ -37,57 +39,78 @@ for file in /var/log/php/*/fpm.log; do
 done
 
 # PHP FPM log files
+echo "-- Checking PHP FPM log files"
 for FPM_LOG in "${FPM_LOGS[@]}"; do
         echo -n "  -- Checking $FPM_LOG"
         if [ -f $FPM_LOG ]; then
-                _success " - Found $FPM_LOG"
+                _success "   -- Found $FPM_LOG"
                 LOG_FILES+=("$FPM_LOG")
         else
-                _error " - Didn't find $FPM_LOG"
+                _error "   -- Didn't find $FPM_LOG"
         fi
 done
 
 # System log files
+echo "-- Checking System log files"
 for SYS_LOG in "${SYS_LOGS[@]}"; do
 	echo -n "  -- Checking $SYS_LOG"
         if [ -f $SYS_LOG ]; then
-        	_success " - Found $SYS_LOG"
+        	_success "   -- Found $SYS_LOG"
                 LOG_FILES+=("$SYS_LOG")
         else
-        	_error " - Didn't find $SYS_LOG"
+        	_error "   -- Didn't find $SYS_LOG"
         fi
 done
 
 # OLS Log files
-for OLS_LOG in "${OLS_LOGS[@]}"; do
-	echo -n "  -- Checking $OLS_LOGS"
-	if [ -f $OLS_LOGS ]; then
-		_success " - Found $OLS_LOGS"
-		LOG_FILES+=("$OLS_LOGS")
-	else 
-		_error " - Didn't find $OLS_LOGS"
-	fi
-done
+if [[ -d $OLS_LOG_PATH ]]; then
+	echo "-- Checking for OLS log files"
+	for OLS_LOG in "${OLS_LOGS[@]}"; do
+		echo -n "  -- Checking $OLS_LOGS"
+		if [ -f $OLS_LOGS ]; then
+			_success "   -- Found $OLS_LOGS"
+			LOG_FILES+=("$OLS_LOGS")
+		else 
+			_error "   -- Didn't find $OLS_LOGS"
+		fi
+	done
+fi
 
 # Nginx log files
-for NGINX_LOG in "${NGINX_LOGS[@]}"; do
-	echo -n "  -- Checking $NGINX_LOG"
-	if [ -f $NGINX_LOG ]; then
-        	_success " - Found $NGINX_LOG"
-                LOG_FILES+=("$NGINX_LOG")
-        else
-        	_error " - Didn't find $NGINX_LOG"
-        fi
-done
+if [[ -d $NGINX_LOG_PATH ]]; then
+	echo " -- Checking for NGINX log files"
+	for NGINX_LOG in "${NGINX_LOGS[@]}"; do
+		echo -n "  -- Checking $NGINX_LOG"
+		if [ -f $NGINX_LOG ]; then
+	        	_success "   -- Found $NGINX_LOG"
+	                LOG_FILES+=("$NGINX_LOG")
+	        else
+	        	_error "   -- Didn't find $NGINX_LOG"
+	        fi
+	done
+fi
 
 # GridPane specific log files
+echo "-- Checking for GridPane log files"
 for GP_LOG in "${GP_LOGS[@]}"; do
 	echo -n "  -- Checking $GP_LOG"
         if [ -f $GP_LOG ]; then
-	        _success " - Found $GP_LOG"
+	        _success "   -- Found $GP_LOG"
         	LOG_FILES+=("$GP_LOG")
         else
-        	_error " - Didn't find $GP_LOG"
+        	_error "   -- Didn't find $GP_LOG"
+        fi
+done
+
+# GridPane Backup specific log files
+echo "-- Checking for GridPane Backup log files"
+for GP_BACKUP_LOG in "${GP_BACKUP_LOGS[@]}"; do
+        echo -n "  -- Checking $GP_BACKUP_LOG"
+        if [ -f $GP_BACKUP_LOG ]; then
+                _success "   -- Found $GP_BACKUP_LOG"
+                LOG_FILES+=("$GP_BACKUP_LOG")
+        else
+                _error "   -- Didn't find $GP_BACKUP_LOG"
         fi
 done
 	
@@ -105,7 +128,7 @@ fi
 
 # -- Check if there are any logs to run against.
 if [[ -z $LOG_FILES ]]; then
-        _error "-- No logs files found, exiting"
+        _error "No logs files found at all, exiting"
         exit 1
 else
         _success "  -- Found log files, continuing"
