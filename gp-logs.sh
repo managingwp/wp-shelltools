@@ -17,17 +17,38 @@ NGINX_LOGS=("$NGINX_LOG_PATH/error_log")
 GP_LOGS=("$GPOPT/gpclone.log" "$GPOPT/gpdailyworker.log" "$GPOPT/gphourlyworker.log" "$GPOPT/gpworker.log")
 GP_BACKUP_LOGS=("$GPOPT/backup.log" "$GPOPT/backup.error.log" "$GPOPT/backups.monitoring.log")
 
+# --------
+# -- Debug
+# --------
+_debug_all $@
 
-# ---------------
-# -- functions.sh
-# ---------------
+# ------------
+# -- functions
+# ------------
 
 # Usage
 usage () {
 	echo "Usage: $SCRIPT_NAME log [tail|last] [-s]"
         echo "  -s Include site access and error logs."
+        echo ""
+        echo "Log files checked"
+        echo "  System - ${SYS_LOGS[@]}"
+        echo "  OLS - ${OLS_LOGS[@]}"
+        echo "  NGINX - ${NGINX_LOGS[@]}"
+        echo "  GP - ${GP_LOGS[@]}"
+        echo "  GP Backup - ${GP_BACKUP_LOGS[@]}"
+        echo ""
 }
 
+if [[ ! -n $1 ]]; then
+	usage
+	exit 1
+fi
+
+if [[ $1 == "logs" ]] && [[ ! -n $2 ]]; then
+        usage
+        exit 1
+fi
 
 # Start check logs
 echo  "-- Running logs command with $2 option"

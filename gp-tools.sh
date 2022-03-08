@@ -56,6 +56,11 @@ export CLIGHT_GRAY='\e[0;37m'
 export CWHITE='\e[1;37m'
 
 
+# --------
+# -- Debug
+# --------
+_debug_all
+
 # ------------
 # -- Functions
 # ------------
@@ -85,7 +90,7 @@ help_intro () {
 }
 
 exec_tool () {	
-	_debug "Executing $@"
+	_debug "executing - $@"
 	if [[ $(type -t tool_$1) == function ]]; then
 		tool_$1 $@
 	else
@@ -99,14 +104,12 @@ exec_tool () {
 # --------------
 
 args=$@
-_debug "Command Line Arguments = $args"
 if [ ! $1 ]; then
         help_intro
 else
 	if [ $1 = 'help' ]; then
 			help_intro
 	else
-		_debug "exec_tool $@"
 		exec_tool $@
 	fi
 fi
