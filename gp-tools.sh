@@ -7,6 +7,7 @@
 SCRIPT_NAME=gp-tools
 VERSION=0.0.1
 
+<<<<<<< HEAD
 # ----------------
 # -- Key Functions
 # ----------------
@@ -25,11 +26,14 @@ _success () {
         echo -e "${CGREEN}$@${NC}";
 }
 
+=======
+>>>>>>> dev
 # -------
 # -- Init
 # -------
 echo "-- Loading $SCRIPT_NAME - v$VERSION"
 . $(dirname "$0")/functions.sh
+<<<<<<< HEAD
 
 # -- Colors
 export TERM=xterm-color
@@ -54,25 +58,13 @@ export CLIGHT_CYAN='\e[1;36m'
 export CLIGHT_GRAY='\e[0;37m'
 export CWHITE='\e[1;37m'
 
+=======
+_debug "Loading functions.sh"
+>>>>>>> dev
 
 # ------------
 # -- Functions
 # ------------
-
-# -- debug
-_debug () {
-	if [ -f .debug ];then
-		echo -e "${CCYAN}**** DEBUG $1${NC}"
-	fi
-}
-
-_error () {
-	echo -e "${CRED}$@${NC}";
-}
-
-_success () {
-	echo -e "${CGREEN}$@${NC}";
-}
 
 # -- Help
 help () {
@@ -86,16 +78,14 @@ help_intro () {
 	echo ""
         echo "$SCRIPT_NAME help"
         echo "-----------------------------------"
-	printf '  %-20s - %-15s\n' "all" "List all commands"
 	for key in "${!help_cmd[@]}"; do
 		 printf '  help %-15s - %-15s\n' "$key" "${help_cmd[$key]}"
 	done
 	echo ""
         echo "Examples:"
         echo " --"
-        echo "  gp-tools all"
+        echo "  gp-tools goaccess"
 	echo "  gp-tools log"
-	echo "  gp-tools log tail"
 	echo ""
 
 }
@@ -114,6 +104,7 @@ help_topic () {
 }
 
 exec_tool () {	
+<<<<<<< HEAD
 	if [[ $1 == 'log' ]]; then
 		if [ ! $2 ]; then
 			_debug "Help for log command"
@@ -126,6 +117,10 @@ exec_tool () {
 		_debug "Executing $@"
 		tool_$1 $@
 	fi
+=======
+	_debug "Executing $@"
+	tool_$1 $@
+>>>>>>> dev
 }
 
 # --------------

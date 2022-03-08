@@ -1,12 +1,14 @@
-#!/bin/bash
-# Last updated 2021-03-23 v0.1
+#!/usr/bin/env bash
+# - gp-logcode
+. $(dirname "$0")/functions.sh
+_debug "Loading functions.sh"
 
 # Variables
 GP_WWW_PATH="/var/www/"
 WP_CLI_OPTIONS="--allow-root --skip-plugins --skip-themes --skip-packages"
 
 # Functions
-help () {
+usage () {
 	echo "Lists WordPress plugins on all websites on a GridPane Server"
 	echo ""
 	echo "Syntax: gpplugin -a <plugin>"
@@ -55,5 +57,5 @@ elif [ ! -z $ALL ]; then
 	echo "Searching for all plugins on all sites!"
 	ls -1 $GP_WWW_PATH | grep -vE 'canary|staging' | grep -vE '22222|nginx|gridpanevps.com' | xargs -i sh -c "echo '\033[1;42m$GP_WWW_PATH{}\e[0m';wp $WP_CLI_OPTIONS --path=$GP_WWW_PATH{}/htdocs plugin status"
 else
-	help
+	usage
 fi

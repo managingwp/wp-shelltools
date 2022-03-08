@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# - gp-logcode
+. $(dirname "$0")/functions.sh
+_debug "Loading functions.sh"
+
+# --
+# -- Variables
+# --
 ram_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
 ram_MB=$(echo "scale=0; ${ram_KB} / 1000" | bc)
 ten_percent_ram_MB=$(echo "scale=0; ${ram_KB} / 10000" | bc)
@@ -10,6 +17,10 @@ sixty_percent_ram_MB=$((thirty_percent_ram_MB + thirty_percent_ram_MB))
 seventy_percent_ram_MB=$((fifty_percent_ram_MB + twenty_percent_ram_MB))
 eighty_percent_ram_MB=$((fifty_percent_ram_MB + thirty_percent_ram_MB))
 ninety_percent_ram_MB=$((fifty_percent_ram_MB + fourty_percent_ram_MB))
+
+# --
+# -- Start
+# --
 
 echo "gpmonit mysql algorithm"
 echo "--"
@@ -36,6 +47,7 @@ if [[ ${ram_MB} -ge 16000 ]]; then
   mysqlRAM="${fifty_percent_ram_MB}"
 fi
 
+# -- print out details
 echo "gpmonit mysql would set the restart threshold at ${mysqlRAM}MB memory usage for MySQL"
 echo ""
 echo "Suggested Changes"
