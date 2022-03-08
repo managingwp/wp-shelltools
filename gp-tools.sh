@@ -7,12 +7,67 @@
 SCRIPT_NAME=gp-tools
 VERSION=0.0.1
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+# ----------------
+# -- Key Functions
+# ----------------
+
+_debug () {
+        if [ -f .debug ];then
+                echo -e "${CCYAN}**** DEBUG $@${NC}"
+        fi
+}
+
+_error () {
+        echo -e "${CRED}$@${NC}";
+}
+
+_success () {
+        echo -e "${CGREEN}$@${NC}";
+}
+
+=======
+>>>>>>> dev
+>>>>>>> main
 # -------
 # -- Init
 # -------
 echo "-- Loading $SCRIPT_NAME - v$VERSION"
 . $(dirname "$0")/functions.sh
+<<<<<<< HEAD
 _debug "Loading functions.sh"
+=======
+<<<<<<< HEAD
+
+# -- Colors
+export TERM=xterm-color
+export CLICOLOR=1
+export LSCOLORS=ExFxCxDxBxegedabagacad
+
+export NC='\e[0m' # No Color
+export CBLACK='\e[0;30m'
+export CGRAY='\e[1;30m'
+export CRED='\e[0;31m'
+export CLIGHT_RED='\e[1;31m'
+export CGREEN='\e[0;32m'
+export CLIGHT_GREEN='\e[1;32m'
+export CBROWN='\e[0;33m'
+export CYELLOW='\e[1;33m'
+export CBLUE='\e[0;34m'
+export CLIGHT_BLUE='\e[1;34m'
+export CPURPLE='\e[0;35m'
+export CLIGHT_PURPLE='\e[1;35m'
+export CCYAN='\e[0;36m'
+export CLIGHT_CYAN='\e[1;36m'
+export CLIGHT_GRAY='\e[0;37m'
+export CWHITE='\e[1;37m'
+
+=======
+_debug "Loading functions.sh"
+>>>>>>> dev
+>>>>>>> main
 
 # ------------
 # -- Functions
@@ -56,8 +111,28 @@ help_topic () {
 }
 
 exec_tool () {	
+<<<<<<< HEAD
 	_debug "Executing $@"
 	tool_$1 $@
+=======
+<<<<<<< HEAD
+	if [[ $1 == 'log' ]]; then
+		if [ ! $2 ]; then
+			_debug "Help for log command"
+			help_topic log
+		elif [[ $2 == 'tail' ]] || [[ $2 == 'last' ]]; then
+			_debug "Executing log $2"
+                        exec_log $2
+                fi
+	else
+		_debug "Executing $@"
+		tool_$1 $@
+	fi
+=======
+	_debug "Executing $@"
+	tool_$1 $@
+>>>>>>> dev
+>>>>>>> main
 }
 
 # --------------
