@@ -8,144 +8,162 @@ _debug "Loading functions.sh"
 # --
 GPOPT="/opt/gridpane"
 GPLP="/opt/gridpane/logs"
-NGINXP="/var/log/nginx"
-LSWSP="/usr/local/lsws/logs"
+NGINX_LOG_PATH="/var/log/nginx"
+OLS_LOG_PATH="/usr/local/lsws/logs"
 
-SYSTEM_LOGS=("/var/log/syslog")
-GRIDPANE_LOGS=("$GPOPT/backup.log" "$GPOPT/backup.error.log" "$GPOPT/gpclone.log" "$GPOPT/gpdailyworker.log" "$GPOPT/gphourlyworker.log" "$GPOPT/gpworker.log")
-LSWS_LOGS=("$LSWSP/stderr.log" "$LSWSP/error.log" "$LSWSP/lsrestart.log")
-NGINX_LOGS=("$NGINXP/error_log")
-NGINX_FPM_LOGS=("/var/log/php/*/fpm.log")
+SYS_LOGS=("/var/log/syslog")
+OLS_LOGS=("$OLS_LOG_PATH/stderr.log" "$OLS_LOG_PATH/error.log" "$OLS_LOG_PATH/lsrestart.log")
+NGINX_LOGS=("$NGINX_LOG_PATH/error_log")
+GP_LOGS=("$GPOPT/gpclone.log" "$GPOPT/gpdailyworker.log" "$GPOPT/gphourlyworker.log" "$GPOPT/gpworker.log")
+GP_BACKUP_LOGS=("$GPOPT/backup.log" "$GPOPT/backup.error.log" "$GPOPT/backups.monitoring.log")
 
-# ---------------
-# -- functions.sh
-# ---------------
+# --------
+# -- Debug
+# --------
+_debug_all $@
+
+# ------------
+# -- functions
+# ------------
 
 # Usage
 usage () {
 	echo "Usage: $SCRIPT_NAME log [tail|last] [-s]"
         echo "  -s Include site access and error logs."
+        echo ""
+        echo "Log files checked"
+        echo "  System - ${SYS_LOGS[@]}"
+        echo "  OLS - ${OLS_LOGS[@]}"
+        echo "  NGINX - ${NGINX_LOGS[@]}"
+        echo "  GP - ${GP_LOGS[@]}"
+        echo "  GP Backup - ${GP_BACKUP_LOGS[@]}"
+        echo ""
 }
 
+if [[ ! -n $1 ]]; then
+	usage
+	exit 1
+fi
+
+if [[ $1 == "logs" ]] && [[ ! -n $2 ]]; then
+        usage
+        exit 1
+fi
 
 # Start check logs
-echo  " -- Running $2"
+echo  "-- Running logs command with $2 option"
         
-# Cycle through FPM logs.
+# Locate FPM logs.
 for file in /var/log/php/*/fpm.log; do
 	_debug "fpm file - $file"
-		NGINX_FILES+=("$SYS_LOGS")
+	FPM_LOGS+=("$file")
+done
+
+# PHP FPM log files
+echo "-- Checking PHP FPM log files"
+for FPM_LOG in "${FPM_LOGS[@]}"; do
+        echo -n "  -- Checking $FPM_LOG"
+        if [ -f $FPM_LOG ]; then
+                _success "   -- Found $FPM_LOG"
+                LOG_FILES+=("$FPM_LOG")
+        else
+                _error "   -- Didn't find $FPM_LOG"
+        fi
 done
 
 # System log files
-for SYS_LOGS in "${SYSTEM_LOGS[@]}"; do
-	echo -n "  -- Checking $SYS_LOGS"
-        if [ -f $SYS_LOGS ]; then
-        	_success " - Found $SYS_LOGS"
-                LOG_FILES+=("$SYS_LOGS")
+echo "-- Checking System log files"
+for SYS_LOG in "${SYS_LOGS[@]}"; do
+	echo -n "  -- Checking $SYS_LOG"
+        if [ -f $SYS_LOG ]; then
+        	_success "   -- Found $SYS_LOG"
+                LOG_FILES+=("$SYS_LOG")
         else
-        	_error " - Didn't find $SYS_LOGS"
+        	_error "   -- Didn't find $SYS_LOG"
         fi
 done
 
 # OLS Log files
-for OLS_LOGS in "${LSWS_LOGS[@]}"; do
-	echo -n "  -- Checking $OLS_LOGS"
-	if [ -f $OLS_LOGS ]; then
-		_success " - Found $OLS_LOGS"
-		LOG_FILES+=("$OLS_LOGS")
-	else 
-		_error " - Didn't find $OLS_LOGS"
-	fi
-done
+if [[ -d $OLS_LOG_PATH ]]; then
+	echo "-- Checking for OLS log files"
+	for OLS_LOG in "${OLS_LOGS[@]}"; do
+		echo -n "  -- Checking $OLS_LOGS"
+		if [ -f $OLS_LOGS ]; then
+			_success "   -- Found $OLS_LOGS"
+			LOG_FILES+=("$OLS_LOGS")
+		else 
+			_error "   -- Didn't find $OLS_LOGS"
+		fi
+	done
+fi
 
-# Nginx FPM log files
-for FPM_LOGS in ${NGINX_FPM_LOGS[@]}; do
-	echo -n "  -- Checking $FPM_LOGS"
-	if [ -f $FPM_LOGS ]; then
-		_success " - Found $FPM_LOGS"
-		LOG_FILES+=("$FPM_LOGS")
-	else
-               	_error " - Didn't find $FPM_LOGS"
-        fi
-done
-        
 # Nginx log files
-for NX_LOGS in "${NGINX_LOGS[@]}"; do
-	echo -n "  -- Checking $NX_LOGS"
-	if [ -f $NX_LOGS ]; then
-        	_success " - Found $NX_LOGS"
-                LOG_FILES+=("$NX_LOGS")
-        else
-        	_error " - Didn't find $NX_LOGS"
-        fi
-done
+if [[ -d $NGINX_LOG_PATH ]]; then
+	echo " -- Checking for NGINX log files"
+	for NGINX_LOG in "${NGINX_LOGS[@]}"; do
+		echo -n "  -- Checking $NGINX_LOG"
+		if [ -f $NGINX_LOG ]; then
+	        	_success "   -- Found $NGINX_LOG"
+	                LOG_FILES+=("$NGINX_LOG")
+	        else
+	        	_error "   -- Didn't find $NGINX_LOG"
+	        fi
+	done
+fi
 
 # GridPane specific log files
-for GP_LOGS in "${GRIDPANE_LOGS[@]}"; do
-	echo -n "  -- Checking $GP_LOGS"
-        if [ -f $GP_LOGS ]; then
-	        _success " - Found $GP_LOGS"
-        	LOG_FILES+=("$GP_LOGS")
+echo "-- Checking for GridPane log files"
+for GP_LOG in "${GP_LOGS[@]}"; do
+	echo -n "  -- Checking $GP_LOG"
+        if [ -f $GP_LOG ]; then
+	        _success "   -- Found $GP_LOG"
+        	LOG_FILES+=("$GP_LOG")
         else
-        	_error " - Didn't find $GP_LOGS"
+        	_error "   -- Didn't find $GP_LOG"
+        fi
+done
+
+# GridPane Backup specific log files
+echo "-- Checking for GridPane Backup log files"
+for GP_BACKUP_LOG in "${GP_BACKUP_LOGS[@]}"; do
+        echo -n "  -- Checking $GP_BACKUP_LOG"
+        if [ -f $GP_BACKUP_LOG ]; then
+                _success "   -- Found $GP_BACKUP_LOG"
+                LOG_FILES+=("$GP_BACKUP_LOG")
+        else
+                _error "   -- Didn't find $GP_BACKUP_LOG"
         fi
 done
 	
-# Website specific log files
+# -- Check for website specific log files
+echo "  -- Checking for site log files"
 SITE_LOGS=$(_getsitelogs)
-_debug "$SITE_LOGS"
 	
-	if [[ -z $LOG_FILES ]]; then
-		_error "-- No log files found"
-		return
-	else
-		_debug "Found log files - ${LOG_FILES[*]}"
-	fi
-	
-        if [ $1 = 'tail' ]; then
-                echo " -- Tailing files ${LOG_FILES[*]}"
-                tail -f "$LOG_FILES"
-        elif [ $1 = 'last' ]; then
-                echo " -- Tailing last 50 lines of files $LOG_FILES"
-                tail -n 50 $LSWS_LOGS_CHECK $LOG_FILES | less
-        fi
-}
+if [[ -z $SITE_LOGS ]]; then
+	_error "    -- No web logs files found"
+else
+	_success "    -- Found web log files"
+	_debug "    -- Found log files - ${LOG_FILES[*]}"
+	LOG_FILES+=("$SITE_LOGS")
+fi
 
+# -- Check if there are any logs to run against.
+if [[ -z $LOG_FILES ]]; then
+        _error "No logs files found at all, exiting"
+        exit 1
+else
+        _success "  -- Found log files, continuing"
+        _debug "  -- Found log files - ${LOG_FILES[*]}"
+fi
 
-# - goaccess - execute log functions
-help_cmd[goaccess]='Process GridPane logs with goaccess'
-tool_goaccess () {
-        # Usage
-        if [ -v $2 ]; then
-        	echo "Usage: $SCRIPT_NAME gp-goaccess [<domain.com>|-a]"
-        	return
-        fi
-        
-        # Formats for goaccess
-	LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b \"%R\" \"%u\"\'
-	DATE_FORMAT='%d/%b/%Y\'
-	TIME_FORMAT='%H:%M:%S %Z\'
-
-	_debug "goaccess arguments - $ACTION"
-	_debug "goaccess LOG_FORMAT = $LOG_FORMAT ## DATE_FORMAT = $DATE_FORMAT ## TIME_FORMAT = $TIME_FORMAT"
-	# -- Check args.
-	if [ -v $ACTION ]; then
-	        echo "Usage: gp-tools goaccess [<domain.com>|-a]"
-	        echo "	-a will go through all the logs versus a single domain"
-	        return
-	fi
-
-	# Main
-	if [ $ACTION = "-a" ]; then
-	        zcat /var/log/nginx/$2.access.log.*.gz | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
-	else
-	        cat /var/log/nginx/$1.access.log | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
-	fi
-}
-
-# - 4xxerr
-help_cmd[logcode]='Look for specifc HTTP codes in web server logfiles and return top hits.'
-tool_logcode () {	
-	gp-logcode.sh
-}
+# -- tail or last log files!
+if [ $2 = 'tail' ]; then
+	echo " -- Tailing files ${LOG_FILES[*]}"
+        tail -f "${LOG_FILES[@]}"
+elif [ $2 = 'last' ]; then
+	echo " -- Tailing last 50 lines of files $LOG_FILES"
+        tail -n 50 "${LOG_FILES[@]}" | less
+else
+	_error "No option provided to print out logs, choose either tail or last"
+	exit 1
+fi

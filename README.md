@@ -47,7 +47,22 @@ gp-tools help
 ```
 Here's a list of all commands
 ```
+-- Loading gp-tools - v0.0.1
 
+gp-tools help
+-----------------------------------
+  help goaccess        - Process GridPane logs with goaccess
+  help backups         - List backups for all sites on the server.
+  help plugins         - Lists WordPress plugins on all websites on a GridPane Server
+  help logcode         - Look for specifc HTTP codes in web server logfiles and return top hits.
+  help gpcron          - List sites using GP Cron
+  help mysqlmem        - GridPane monit memory calculation
+  help logs            - tail or show last lines on all GridPane logs.
+
+Examples:
+ --
+  gp-tools goaccess
+  gp-tools log
 ```
 
 # Advanced Help
