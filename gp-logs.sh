@@ -28,7 +28,7 @@ usage () {
 
 
 # Start check logs
-echo  " -- Running $2"
+echo  " -- Running logs command with $2 option"
         
 # Locate FPM logs.
 for file in /var/log/php/*/fpm.log; do
@@ -113,10 +113,10 @@ else
 fi
 
 # -- tail or last log files!
-if [ $1 = 'tail' ]; then
+if [ $2 = 'tail' ]; then
 	echo " -- Tailing files ${LOG_FILES[*]}"
         tail -f "$LOG_FILES"
-elif [ $1 = 'last' ]; then
+elif [ $2 = 'last' ]; then
 	echo " -- Tailing last 50 lines of files $LOG_FILES"
         tail -n 50 $LSWS_LOGS_CHECK $LOG_FILES | less
 else
