@@ -1,3 +1,20 @@
+<!--ts-->
+Table of Contents
+=================
+
+* [gp-tools](#gp-tools)
+* [Resources](#resources)
+* [Donate](#donate)
+* [Install](#install)
+   * [Requirements](#requirements)
+* [Tools](#tools)
+   * [<a href="gp-goaccess.md">gp-goaccess</a>](#gp-goaccess)
+   * [<a href="gp-api.md">gp-api</a>](#gp-api)
+   * [<a href="gp-plugins.md">gp-plugins</a>](#gp-plugins)
+* [Debugging](#debugging)
+* [Future Features](#future-features)
+<!--te--> 
+
 # gp-tools
 The goal of this project is to make it easy to manage and maintain GridPane servers.
 
@@ -26,18 +43,14 @@ git clone https://github.com/jordantrizz/gpcli.git ~/gpcli;~/gpcli/gpcli -c inst
 # Tools
 Below are the tools and their respective README's.
 
-## [gpgoaccess](gpgoaccess.md)
+## [gp-goaccess](gp-goaccess.md)
 * Provides the appropriate commands to run goaccess on GridPane Nginx log files.
-## [gpapi](gpapi.md)
+## [gp-api](gp-api.md)
 * Wrapper to the GP API.
-<<<<<<< HEAD
-## [gpplugin](gpplugin.md)
+## [gp-plugins](gp-plugins.md)
 * Traverses all sites on a server (excluding system sites) and lists plugins or gets status on a single plugin
 
 =======
-## [gpbksite](gpbksite.md)
-* A script to backup your gp websites, WIP.
-
 # Debugging
 Add a .debug file to any directory to get debug information.
 
