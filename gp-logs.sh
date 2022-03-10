@@ -180,6 +180,7 @@ elif [[ $1 = 'last' ]]; then
         tail -n 50 "${LOG_FILES[@]}" | less
 elif [[ $1 = 'test' ]]; then
 	echo " -- Running test to confirm log files to process"
+	echo ${LOG_FILES[@]} | tr ' ' '\n'
 else
 	_debug "args: $@"
 	_error "No option provided to print out logs, choose either tail or last"
