@@ -98,10 +98,11 @@ _getsitelogs () {
 		_debug "Found nginx log directory"
                 sitelogsdir="/var/log/nginx"
         elif [ -d "/var/log/lsws" ]; then
-        	_devbug "found OLS log directory"
+        	_debug "found OLS log directory"
                 sitelogsdir="/var/log/lsws"
         fi
-        SITE_LOGS=$(ls -aSd $logfiledir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
+	SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
+	_debug "\$SITE_LOGS=${SITE_LOGS}"
 }
 
 # --
