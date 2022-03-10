@@ -199,5 +199,6 @@ elif [[ $COMMAND = 'test' ]]; then
 else
 	_debug "args: $@"
 	_error "No option provided to print out logs, choose either tail or last"
+	usage
 	exit 1
 fi
