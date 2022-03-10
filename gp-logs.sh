@@ -157,6 +157,10 @@ else
 fi
 
 # -- tail or last log files!
+if [[ $1 == "gp-tools" ]]; then
+	shift
+fi
+
 if [[ $2 = 'tail' ]]; then
 	echo " -- Tailing files ${LOG_FILES[*]}"
         tail -f "${LOG_FILES[@]}"
