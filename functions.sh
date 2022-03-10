@@ -64,7 +64,7 @@ _debug_all () {
 }
 
 _debug_function () {
-	_debug "$FUNCNAME"
+	_debug "function: ${FUNCNAME[1]}"
 }
 
 # -- error message
