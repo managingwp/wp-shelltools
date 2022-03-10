@@ -94,6 +94,7 @@ _checkroot () {
 # -- _getsitelogs
 _getsitelogs () {
 	_debug_function
+	# Find logs
         if [ -d "/var/log/nginx" ]; then
 		_debug "Found nginx log directory"
                 sitelogsdir="/var/log/nginx"
@@ -101,7 +102,15 @@ _getsitelogs () {
         	_debug "found OLS log directory"
                 sitelogsdir="/var/log/lsws"
         fi
-	SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
+        
+        # Grab logs
+        if [[ $GP_EXCLUDE ]]; then
+        	_debug "Exclude GP logs"
+        	SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
+        else
+        	_debug "Include GP logs"
+        	SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
+        fi
 	_debug "\$SITE_LOGS=${SITE_LOGS}"
 }
 

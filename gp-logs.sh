@@ -1,7 +1,17 @@
 #!/usr/bin/env bash
 # - gp-logcode
+# -- functions
 . $(dirname "$0")/functions.sh
 _debug "Loading functions.sh"
+
+# -- getopts
+while getopts "ae" option; do
+        case ${option} in
+                a ) ACCESS_LOGS=1 ;;
+                e ) GP_EXCLUDE=1 ;;
+        esac
+done
+_debug "getopts: \$ACCESS_LOGS=$ACCESS_LOGS \$GP_EXCLUDE=$GP_EXCLUDE"
 
 # --
 # -- Variables
@@ -29,7 +39,7 @@ _debug_all $@
 
 # Usage
 usage () {
-	echo "Usage: $SCRIPT_NAME log [tail|last] [-s]"
+	echo "Usage: $SCRIPT_NAME [-s|-e] [tail|last|test]"
         echo "  -s Include site access and error logs."
         echo ""
 	echo "Commands:"
@@ -38,7 +48,7 @@ usage () {
 	echo "    test		- Test what logs will be processed"
 	echo ""
 	echo "Options:"
-	echo "    -s		- Include site access and error logs."
+	echo "    -a		- Include website access and error logs."
 	echo "    -e		- Exclude GridPane, staging, and canary"
 	echo ""
 	echo ""
@@ -62,7 +72,7 @@ if [[ $1 == "logs" ]] && [[ ! -n $2 ]]; then
 fi
 
 # Start check logs
-echo  "-- Running logs command with $2 option"
+echo  "-- Running logs command with $1 option"
         
 # Locate FPM logs.
 for file in /var/log/php/*/fpm.log; do
@@ -147,15 +157,20 @@ for GP_BACKUP_LOG in "${GP_BACKUP_LOGS[@]}"; do
 done
 	
 # -- Check for website specific log files
-echo "  -- Checking for site log files"
-_getsitelogs
+if [[ $ACCESS_LOGS == "1" ]]; then
+	_debug "Including web access logs"
+	echo "  -- Checking for site log files"
+	_getsitelogs
 
-if [[ -z $SITE_LOGS ]]; then
-	_error "    -- No web logs files found"
+	if [[ -z $SITE_LOGS ]]; then
+		_error "    -- No web logs files found"
+	else
+		_success "    -- Found web log files"
+		_debug "    -- Found log files - ${SITE_LOGS[@]}"
+		LOG_FILES+=("$SITE_LOGS")
+	fi
 else
-	_success "    -- Found web log files"
-	_debug "    -- Found log files - ${SITE_LOGS[@]}"
-	LOG_FILES+=("$SITE_LOGS")
+	_debug "Not including web access logs"
 fi
 
 # -- Check if there are any logs to run against.
@@ -167,7 +182,9 @@ else
         _debug "  -- Found log files - ${LOG_FILES[*]}"
 fi
 
-# -- tail or last log files!
+# -------
+# -- Main
+# -------
 if [[ $1 == "logs" ]]; then
 	shift
 fi
