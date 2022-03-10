@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
+# - gp-logcode
+. $(dirname "$0")/functions.sh
+_debug "Loading functions.sh"
 
-# -- Intro
-# Created by Jordan v0.1
-# 
-
+# --
 # -- Variables
-gp_api_url="https://my.gridpane.com/oauth/api/v1/$gp_api_endpoint"
-gp_api_token=.gptoken
+# --
+API_URL="https://my.gridpane.com/oauth/api/v1/$gp_api_endpoint"
+API_TOKEN=.gptoken
 gp_api_cmd=$(curl -s $gp_api_url --header 'Authorization: Bearer $gp_api_access_token')
 
 ## - Color
@@ -46,15 +47,24 @@ if [[ -n $1 ]]; then
     unknown_options=$1
 fi
 
+# --
 # -- Functions
-_debug () {
-	if [ -f .debug ]; then
-                echo -e "\n${YELLOW} Debug:${NC} $@"
-        fi
+# --
+
+# -- usage
+usage () {
+        echo "Usage: $SCRIPT_NAME <command> <variables>"
+        echo ""
+        echo " Commands"
+	echo ""
+	echo "servers		-List servers"
+        echo "sites		-List sites"
+        echo "test		- Test if your token works"
+        echo ""
+        echo "version: $VERSION"
+        echo""
 }
 
-# echo commands run using | exe eval ls -al
-exe() { echo "\$ $@" ; "$@" ; }
 
 run_api () {
 	api_output=$(eval curl -s --location --request $@ --header \'Authorization: Bearer $gp_api_access_token\')
@@ -90,30 +100,26 @@ test_gptoken () {
 	#api_test_output=$(echo $api_output | jq ' . | {name: .name, id: .id, email: .email}')
 }
 
-help () {
-	echo "Syntax: gpapi -c <command> -v <value>"
-	echo ""
-	echo "Commands:"
-	echo "test	- Test if your token works"
-	echo "d2s 	- Domain to Server -v domain.com"
-	echo "s2d	- Server to Domains -v server"
-}
-
 send_command () {
 	echo "Send command"
 }
 
 # -- Start
 
-if [[ -z $COMMAND ]]; then help;exit;fi
-if [[ $COMMAND == 'test' ]]; then check_gptoken;test_gptoken; fi
-if [[ -z $VALUE ]]; then echo "Specify a value"; exit; fi
+#if [[ -z $COMMAND ]]; then help;exit;fi
+#if [[ $COMMAND == 'test' ]]; then check_gptoken;test_gptoken; fi
+#if [[ -z $VALUE ]]; then echo "Specify a value"; exit; fi
 
 
-if [[ $COMMAND == 'd2s' ]]; then
-	check_gptoken
-	run_api "GET https://my.gridpane.com/oauth/api/v1/site"
-	_debug $api_output
+#if [[ $COMMAND == 'd2s' ]]; then
+#	check_gptoken
+#	run_api "GET https://my.gridpane.com/oauth/api/v1/site"
+#	_debug $api_output
 #	d2s_domain_id=$(echo $d2s_list)
 #	_debug $d2s_domain_id
+#fi
+
+if [[ -z $1 ]]; then
+	usage
+	exit
 fi

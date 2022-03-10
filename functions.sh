@@ -5,10 +5,14 @@
 # ------------
 # -- Variables
 # ------------
-
-# -- current script directory
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-SCRIPT=`basename "$0"`
+VERSION="0.4.0"
+SCRIPT=$(readlink -f "$0")
+SCRIPTPATH=$(dirname "$SCRIPT")
+REQUIRED_APPS=("jq" "column")
+[[ -f .test ]] && TEST=$(<$SCRIPTPATH/.test) || TEST="0"
+[[ -f .debug ]] && DEBUG=$(<$SCRIPTPATH/.debug) || DEBUG="0"
+[[ -z $DEBUG ]] && DEBUG="0"
+[[ -z $TEST ]] && TEST="0"
 
 # -- colors
 export TERM=xterm-color
@@ -37,27 +41,36 @@ export CWHITE='\e[1;37m'
 # -- Key Functions
 # ----------------
 _debug () {
-        if [ -f $SCRIPT_DIR/.debug ];then
+        if [ -f .debug ] && (( $DEBUG >= "1" )); then
                 echo -e "${CCYAN}**** DEBUG $@${NC}"
         fi
 }
 
+# -- debug curl
+_debug_curl () {
+                if [[ $DEBUG == "2" ]]; then
+                        echo -e "${CCYAN}**** DEBUG $@${NC}"
+                fi
+}
+
+# -- show debug information
+_debug_all () {
+        _debug "--------------------------"
+        _debug "arguments - $@"
+        _debug "funcname - ${FUNCNAME[@]}"
+        _debug "basename - $SCRIPTPATH"
+        _debug "sourced files - ${BASH_SOURCE[@]}"
+        _debug "--------------------------"
+}
+
+# -- error message
 _error () {
         echo -e "${CRED}$@${NC}";
 }
 
+# -- success message
 _success () {
         echo -e "${CGREEN}$@${NC}";
-}
-
-# - _getsitelogs
-_getsitelogs () {
-	if [ -d "/var/log/nginx" ]; then
-		sitelogsdir="/var/log/nginx"
-	elif [ -d "/var/log/lsws" ]; then
-		sitelogsdir="/var/log/lsws"
-	fi
-	files=$(ls -aSd $logfiledir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
 }
 
 # -- Check root
@@ -70,6 +83,7 @@ _checkroot () {
 	fi
 }
 
+<<<<<<< HEAD
 # --------
 # -- Debug
 # --------
@@ -80,6 +94,19 @@ _debug_all () {
 	_debug "basename - `basename "$0"`"
 	_debug "sourced files - ${BASH_SOURCE[@]}"
 	_debug "--------------------------"
+=======
+# --
+# -- GridPane specific functions
+# --
+# - _getsitelogs
+_getsitelogs () {
+        if [ -d "/var/log/nginx" ]; then
+                sitelogsdir="/var/log/nginx"
+        elif [ -d "/var/log/lsws" ]; then
+                sitelogsdir="/var/log/lsws"
+        fi
+        files=$(ls -aSd $logfiledir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
+>>>>>>> dev
 }
 
 # --
@@ -162,4 +189,10 @@ tool_gpcron () {
 help_cmd[backups]='List backups for all sites on the server.'
 tool_backups () {
 	ls -aL /home/*/sites/*/logs/backups.env | xargs -l -I {} sh -c "echo {} | awk -F/ '{print \$5}'|tr '\n' '|'; tr '\n' '|' < {};echo \n"
+}
+
+# - api - GridPane api
+help_cmd[api]='Interact with the GridPane API'
+tool_api () {
+	gp-api.sh $@
 }

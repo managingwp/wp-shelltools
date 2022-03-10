@@ -17,6 +17,7 @@ usage () {
 
 
 check_logs () { # Nginx or OLS?
+	_debug "check_logs()"
 	_debug "Checking if logs exist"
 	nginxlogs=/var/log/nginx
 	olslogs=/var/log/ols
@@ -33,6 +34,7 @@ check_logs () { # Nginx or OLS?
 }
 
 main () {
+	_debug "main()"
 	# Set results if not defined.
 	if [ -z $results ];then
 		results="40"
@@ -40,26 +42,30 @@ main () {
 	_debug "results=$results"
 
 	# All logs or just one?
-	if [[ $logfilename == "-a" ]]; then
-		_debug "Going through all alog files"
+	if [[ $alllogs == "1" ]]; then
+		_debug "argument -a set - all log file mode"
 	        # Exclude gridpane specific logs
 	        if [[ $exclude == "-e" ]]; then
-	                _debug "Argument -e set, will exclude GridPane, staging and canary"
+	                _debug "argument -e set - exclude gp, staging and canary sites in $logfiledir/*"
 	                files=$(ls -aSd $logfiledir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
 	        else
+	        	_debug "go through all logs in $logfiledir/*"
 	                files=$(ls -aSd $logfiledir/* | egrep -v '.gz')
 	        fi
-	        _debug "Files selected"
+	        _debug "logfiles selected"
 	        _debug "$files"
 	
 	# Just one log file.
 	else
-	        _debug "Checking log file $logfilename"
+	        _debug "single log file mode"
+	        _debug "checking log files "
+	        _debug " - $logfilename"
 	        if [ -f $logfiledir/$logfile ]; then
-	                _debug "Log file exists - $logfile"
+	                _success "Log file exists - $logfile"
 	                files=$(ls -aSd $logfiledir/$logfile)
 	        else
-	                echo "Log file $logfiledir/$logfile doesn't exist"
+	                _error "Log file $logfiledir/$logfile doesn't exist"
+	                exit
 	        fi
 	fi
 	
@@ -144,7 +150,7 @@ done
 
 # handle non-option arguments
 _debug "logcode: $logcode, logfile: $logfile, alllogs: $alllogs, exclude:$exclude, results:$results"
-_debug "$#"
+_debug "args: $@"
 if [[ -z $logcode ]]; then
 	usage
 	_error "No http code provided"
