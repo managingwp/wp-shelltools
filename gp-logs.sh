@@ -154,7 +154,7 @@ if [[ -z $SITE_LOGS ]]; then
 	_error "    -- No web logs files found"
 else
 	_success "    -- Found web log files"
-	_debug "    -- Found log files - ${LOG_FILES[*]}"
+	_debug "    -- Found log files - ${SITE_LOGS[@]}"
 	LOG_FILES+=("$SITE_LOGS")
 fi
 
