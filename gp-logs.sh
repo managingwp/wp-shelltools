@@ -62,6 +62,10 @@ usage () {
         echo ""
 }
 
+start_logs () {
+	read -p " -- Press [Enter] to start"
+}
+
 collect_logs () {
 
 # Start check logs
@@ -184,17 +188,20 @@ fi
 if [[ $COMMAND = 'tail' ]]; then
 	echo " -- Starting to tail logs"
 	collect_logs
-	echo " -- Tailing files ${LOG_FILES[*]}"	
+	echo " -- Tailing files ${LOG_FILES[*]}"
+	start_logs
         tail -f "${LOG_FILES[@]}"
 elif [[ $COMMAND = 'last' ]]; then
 	echo " -- Starting to tail logs"
 	collect_logs
 	echo " -- Tailing last 50 lines of files $LOG_FILES"
+	start_logs
         tail -n 50 "${LOG_FILES[@]}" | less
 elif [[ $COMMAND = 'test' ]]; then
 	echo " -- Starting test"
 	collect_logs
 	echo " -- Running test to confirm log files to process"
+	start_logs
 	echo ${LOG_FILES[@]} | tr ' ' '\n'
 else
 	_debug "args: $@"
