@@ -32,12 +32,22 @@ usage () {
 	echo "Usage: $SCRIPT_NAME log [tail|last] [-s]"
         echo "  -s Include site access and error logs."
         echo ""
-        echo "Log files checked"
-        echo "  System - ${SYS_LOGS[@]}"
-        echo "  OLS - ${OLS_LOGS[@]}"
-        echo "  NGINX - ${NGINX_LOGS[@]}"
-        echo "  GP - ${GP_LOGS[@]}"
-        echo "  GP Backup - ${GP_BACKUP_LOGS[@]}"
+	echo "Commands:"
+	echo "    tail		- Tail all logs"
+	echo "    last		- Last 10 lines of all logs"
+	echo "    test		- Test what logs will be processed"
+	echo ""
+	echo "Options:"
+	echo "    -s		- Include site access and error logs."
+	echo "    -e		- Exclude GridPane, staging, and canary"
+	echo ""
+	echo ""
+        echo "Log files checked:"
+        echo "    System 	- ${SYS_LOGS[@]}"
+        echo "    OLS	- ${OLS_LOGS[@]}"
+        echo "    NGINX 	- ${NGINX_LOGS[@]}"
+        echo "    GP		- ${GP_LOGS[@]}"
+        echo "    GP Backup 	- ${GP_BACKUP_LOGS[@]}"
         echo ""
 }
 
@@ -168,6 +178,8 @@ if [[ $1 = 'tail' ]]; then
 elif [[ $1 = 'last' ]]; then
 	echo " -- Tailing last 50 lines of files $LOG_FILES"
         tail -n 50 "${LOG_FILES[@]}" | less
+elif [[ $1 = 'test' ]]; then
+	echo " -- Running test to confirm log files to process"
 else
 	_debug "args: $@"
 	_error "No option provided to print out logs, choose either tail or last"
