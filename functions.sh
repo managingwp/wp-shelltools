@@ -63,6 +63,10 @@ _debug_all () {
         _debug "--------------------------"
 }
 
+_debug_function () {
+	_debug "$FUNCNAME"
+}
+
 # -- error message
 _error () {
         echo -e "${CRED}$@${NC}";
@@ -86,14 +90,18 @@ _checkroot () {
 # --
 # -- GridPane specific functions
 # --
-# - _getsitelogs
+
+# -- _getsitelogs
 _getsitelogs () {
+	_debug_function
         if [ -d "/var/log/nginx" ]; then
+		_debug "Found nginx log directory"
                 sitelogsdir="/var/log/nginx"
         elif [ -d "/var/log/lsws" ]; then
+        	_devbug "found OLS log directory"
                 sitelogsdir="/var/log/lsws"
         fi
-        files=$(ls -aSd $logfiledir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
+        SITE_LOGS=$(ls -aSd $logfiledir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
 }
 
 # --

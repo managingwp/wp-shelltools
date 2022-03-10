@@ -148,8 +148,8 @@ done
 	
 # -- Check for website specific log files
 echo "  -- Checking for site log files"
-SITE_LOGS=$(_getsitelogs)
-	
+_getsitelogs
+
 if [[ -z $SITE_LOGS ]]; then
 	_error "    -- No web logs files found"
 else
