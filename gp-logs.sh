@@ -157,10 +157,10 @@ else
 fi
 
 # -- tail or last log files!
-if [ $2 = 'tail' ]; then
+if [[ $2 = 'tail' ]]; then
 	echo " -- Tailing files ${LOG_FILES[*]}"
         tail -f "${LOG_FILES[@]}"
-elif [ $2 = 'last' ]; then
+elif [[ $2 = 'last' ]]; then
 	echo " -- Tailing last 50 lines of files $LOG_FILES"
         tail -n 50 "${LOG_FILES[@]}" | less
 else
