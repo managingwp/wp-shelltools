@@ -5,13 +5,15 @@
 _debug "Loading functions.sh"
 
 # -- getopts
-while getopts "ae" option; do
+while getopts ":aec:" option; do
         case ${option} in
-                a ) ACCESS_LOGS=1 ;;
-                e ) GP_EXCLUDE=1 ;;
+                a) ACCESS_LOGS=1 ;;
+                e) GP_EXCLUDE=1 ;;
+                c) COMMAND=$OPTARG ;;
+                ?) usage ;;
         esac
 done
-_debug "getopts: \$ACCESS_LOGS=$ACCESS_LOGS \$GP_EXCLUDE=$GP_EXCLUDE"
+_debug "getopts: \$ACCESS_LOGS=$ACCESS_LOGS \$GP_EXCLUDE=$GP_EXCLUDE \$COMMAND=$COMMAND"
 
 # --
 # -- Variables
@@ -39,10 +41,9 @@ _debug_all $@
 
 # Usage
 usage () {
-	echo "Usage: $SCRIPT_NAME [-s|-e] [tail|last|test]"
-        echo "  -s Include site access and error logs."
+	echo "Usage: $SCRIPT_NAME [-s|-e] -c [tail|last|test]"
         echo ""
-	echo "Commands:"
+	echo "Commands (-c):"
 	echo "    tail		- Tail all logs"
 	echo "    last		- Last 10 lines of all logs"
 	echo "    test		- Test what logs will be processed"
@@ -61,15 +62,7 @@ usage () {
         echo ""
 }
 
-if [[ ! -n $1 ]]; then
-	usage
-	exit 1
-fi
-
-if [[ $1 == "logs" ]] && [[ ! -n $2 ]]; then
-        usage
-        exit 1
-fi
+collect_logs () {
 
 # Start check logs
 echo  "-- Running logs command with $1 option"
@@ -182,20 +175,25 @@ else
         _debug "  -- Found log files - ${LOG_FILES[*]}"
 fi
 
+}
+
 # -------
 # -- Main
 # -------
-if [[ $1 == "logs" ]]; then
-	shift
-fi
 
-if [[ $1 = 'tail' ]]; then
-	echo " -- Tailing files ${LOG_FILES[*]}"
+if [[ $COMMAND = 'tail' ]]; then
+	echo " -- Starting to tail logs"
+	collect_logs
+	echo " -- Tailing files ${LOG_FILES[*]}"	
         tail -f "${LOG_FILES[@]}"
-elif [[ $1 = 'last' ]]; then
+elif [[ $COMMAND = 'last' ]]; then
+	echo " -- Starting to tail logs"
+	collect_logs
 	echo " -- Tailing last 50 lines of files $LOG_FILES"
         tail -n 50 "${LOG_FILES[@]}" | less
-elif [[ $1 = 'test' ]]; then
+elif [[ $COMMAND = 'test' ]]; then
+	echo " -- Starting test"
+	collect_logs
 	echo " -- Running test to confirm log files to process"
 	echo ${LOG_FILES[@]} | tr ' ' '\n'
 else

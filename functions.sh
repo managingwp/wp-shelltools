@@ -56,10 +56,10 @@ _debug_curl () {
 # -- show debug information
 _debug_all () {
         _debug "--------------------------"
-        _debug "arguments - $@"
-        _debug "funcname - ${FUNCNAME[@]}"
-        _debug "basename - $SCRIPTPATH"
-        _debug "sourced files - ${BASH_SOURCE[@]}"
+        _debug "arguments: $@"
+        _debug "funcname: ${FUNCNAME[@]}"
+        _debug "basename: $SCRIPTPATH"
+        _debug "sourced files: ${BASH_SOURCE[@]}"
         _debug "--------------------------"
 }
 
