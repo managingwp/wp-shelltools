@@ -41,7 +41,7 @@ export CWHITE='\e[1;37m'
 # -- Key Functions
 # ----------------
 _debug () {
-        if [ -f .debug ] && (( $DEBUG >= "1" )); then
+        if [ -f .debug ] || (( $DEBUG >= "1" )); then
                 echo -e "${CCYAN}**** DEBUG $@${NC}"
         fi
 }

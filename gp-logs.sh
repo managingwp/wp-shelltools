@@ -11,6 +11,7 @@ GPLP="/opt/gridpane/logs"
 NGINX_LOG_PATH="/var/log/nginx"
 OLS_LOG_PATH="/usr/local/lsws/logs"
 
+(( TEST >= "1" )) && LOG_FILES+=("$SCRIPTPATH/tests/test.log")
 SYS_LOGS=("/var/log/syslog")
 OLS_LOGS=("$OLS_LOG_PATH/stderr.log" "$OLS_LOG_PATH/error.log" "$OLS_LOG_PATH/lsrestart.log")
 NGINX_LOGS=("$NGINX_LOG_PATH/error_log")
@@ -157,17 +158,18 @@ else
 fi
 
 # -- tail or last log files!
-if [[ $1 == "gp-tools" ]]; then
+if [[ $1 == "logs" ]]; then
 	shift
 fi
 
-if [[ $2 = 'tail' ]]; then
+if [[ $1 = 'tail' ]]; then
 	echo " -- Tailing files ${LOG_FILES[*]}"
         tail -f "${LOG_FILES[@]}"
-elif [[ $2 = 'last' ]]; then
+elif [[ $1 = 'last' ]]; then
 	echo " -- Tailing last 50 lines of files $LOG_FILES"
         tail -n 50 "${LOG_FILES[@]}" | less
 else
+	_debug "args: $@"
 	_error "No option provided to print out logs, choose either tail or last"
 	exit 1
 fi
