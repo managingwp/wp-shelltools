@@ -19,14 +19,20 @@ usage () {
 check_logs () { # Nginx or OLS?
 	_debug "check_logs()"
 	_debug "Checking if logs exist"
+
+	# Paths
 	nginxlogs=/var/log/nginx
 	olslogs=/var/log/ols
+
 	if [ -d $nginxlogs ]; then
 	        _debug "Found nginx logs under $nginxlogs"
 	        logfiledir=$nginxlogs
 	elif [ -d $olslogs ]; then
 	        _debug "Found ols logs under $olslogs"
 	        logfiledir=$olslogs
+	elif [[ $TEST ]]; then
+		_debug "In test mode, using test data"
+		logfiledir=$SCRIPTPATH/tests
 	else
 	        _error "No $nginxlogs or $olslogs directory"
 	        exit
@@ -79,7 +85,7 @@ main () {
 	        _debug "Processing $file"
 	        _debug "Running -- grep \" $logcode \" $file | awk '{ print \$6\" - \"\$10\" - \"\$7\" \"$8\" \"\$9}' | sort | uniq -c | sort -nr | head -$results"
 	        content=$(grep "\" $logcode " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$results)
-	        [[ $content]] && echo "$content"
+	        [[ $content ]] && echo "$content"
 	        echo "...more lines but limited to top $results"
 	done
 }
@@ -161,5 +167,7 @@ elif [[ -z $logfile ]] && [[ -z $alllogs ]]; then
 	exit 4
 fi
 
+
+_debug_all $@
 check_logs
 main
