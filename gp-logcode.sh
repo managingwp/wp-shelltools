@@ -144,6 +144,7 @@ main () {
 		fi	
 		# Print content
 	        if [[ $content ]]; then
+			echo "##### File: $file"
 	        	echo "$content"
 		        echo "...more lines but limited to top $RESULTS"
 		else
