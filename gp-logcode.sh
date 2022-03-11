@@ -79,7 +79,7 @@ main () {
 	        _debug "Processing $file"
 	        _debug "Running -- grep \" $logcode \" $file | awk '{ print \$6\" - \"\$10\" - \"\$7\" \"$8\" \"\$9}' | sort | uniq -c | sort -nr | head -$results"
 	        content=$(grep "\" $logcode " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$results)
-	        echo "$content"
+	        [[ $content]] && echo "$content"
 	        echo "...more lines but limited to top $results"
 	done
 }
