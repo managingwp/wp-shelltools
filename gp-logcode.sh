@@ -106,8 +106,8 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
     exit 1
 fi
 
-OPTIONS=c:l:aer:
-LONGOPTS=logcode:,logfile:,all,exclude,results:
+OPTIONS=c:l:aer:d
+LONGOPTS=logcode:,logfile:,all,exclude,results,debug:
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -146,6 +146,10 @@ while true; do
         -r|--results)
             results=$2
             shift 2
+            ;;
+        -d|--debug)
+            DEBUG="1"
+            shift 1
             ;;
         --)
             shift
