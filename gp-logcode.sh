@@ -131,14 +131,14 @@ main () {
 		logcode="$logcode[0-9][0-9]"
 	fi
 
-	for file in $files; do
+	for file in $PROCESS_FILES; do
 	        _debug "Processing $file"
 		if [[ $Z_INCLUDE == "1" ]]; then
-                        _debug "Running -- zgrep \" $logcode \" $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$RESULTS)"
-                        content=$(zgrep "\" $logcode " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$RESULTS)
+                        _debug "Running -- zgrep \" $LOGCODE \" $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$RESULTS)"
+                        content=$(zgrep "\" $LOGCODE " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$RESULTS)
 		else
-			_debug "Running -- grep \" $logcode \" $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$RESULTS)"
-		        content=$(grep "\" $logcode " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$RESULTS)
+			_debug "Running -- grep \" $LOGCODE \" $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$RESULTS)"
+		        content=$(grep "\" $LOGCODE " $file | awk '{ print $6" - "$10" - "$7" "$8" "$9}' | sort | uniq -c | sort -nr | head -$RESULTS)
 		fi	
 		# Print content
 	        if [[ $content ]]; then
