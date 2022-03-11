@@ -13,6 +13,7 @@ while getopts "c:m:l:d:r:ez" option; do
 		r) RESULTS=$OPTARG ;;
                 e) GP_EXCLUDE=1 ;;
                 z) Z_INCLUDE=1 ;;
+                debug) DEBUG=1 ;;
                 ?) usage ;;
         esac
 done
@@ -33,12 +34,13 @@ usage () {
 	echo "					- domain = domain logs"
 	echo "					- log = single log, requires -l"
         echo "  -l <logfilename> 	- Specific log file when using -m log"
-        echo "	-d <domain>		- Domain logs when using -m domain"
+        echo "	-d <domainname>	- Domain logs when using -m domain"
         echo ""
         echo "  Options"
         echo "    -r [results] = number of results, optional, default 40"
         echo "    -e = exclude GridPane, staging and canary."
         echo "    -z = include compressed files"
+        echo "	  -debug = debug"
 }
 
 # -- check_logs
