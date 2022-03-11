@@ -5,19 +5,16 @@
 _debug "Loading functions.sh"
 
 # -- getopts
-while getopts ":awesgfc:" option; do
+while getopts ":el:c:" option; do
         case ${option} in
-                a) ALL_LOGS=1 ;;
-                w) WEB_LOGS=1 ;;
-                e) GP_EXCLUDE=1 ;;
-                s) SYSTEM_LOGS ;;
-                g) GRIDPANE_LOGS ;;
-                f) PHPFPM_LOGS ;;
+		l) LOGS=$OPTARG ;;
                 c) COMMAND=$OPTARG ;;
+                e) GP_EXCLUDE=1 ;;
                 ?) usage ;;
         esac
 done
-_debug "getopts: \$ACCESS_LOGS=$ACCESS_LOGS \$GP_EXCLUDE=$GP_EXCLUDE \$COMMAND=$COMMAND"
+_debug "args: $@"
+_debug "getopts: \$LOGS=$LOGS \$COMMAND=$COMMAND \$GP_EXCLUDE=$GP_EXCLUDE"
 
 # --
 # -- Variables
@@ -45,20 +42,22 @@ _debug_all $@
 
 # Usage
 usage () {
-	echo "Usage: $SCRIPT_NAME [-s|-e] -c [tail|last|test]"
+	echo "Usage: $SCRIPT_NAME -c [tail|last|test] -l [all|web|system|gp|fpm] (-e)"
         echo ""
-	echo "Commands (-c):"
+	echo "Command (-c):"
 	echo "    tail		- Tail all logs"
 	echo "    last		- Last 10 lines of all logs"
 	echo "    test		- Test what logs will be processed"
 	echo ""
+	echo "Logs (-l):"
+	echo "    all		- Include all logs."
+	echo "    web		- Web logs only"
+	echo "    system	- System log files only"
+	echo "    gp		- GridPane core log files only"
+	echo "    gpbackup	- PHP-FPM log files only"
+	echo ""
 	echo "Options:"
-	echo "    -a		- Include all logs."
-	echo "    -w		- Web logs only"
-	echo "    -e		- Exclude GridPane, staging, and canary"
-	echo "	  -s		- System log files only"
-	echo "    -g		- GridPane core log files only"
-	echo "	  -f		- PHP-FPM log files only"
+	echo "    -e            - Exclude GridPane, staging, and canary"
 	echo ""
 	echo ""
         echo "Log files checked:"
@@ -71,13 +70,47 @@ usage () {
 }
 
 start_logs () {
-	_notice -p " -- Press [Enter] to start"
+	echo ""
+	read -p " -- Press [Enter] to start"
+	
+	
+}
+
+collect_logs () {
+	_debug_function
+	# all = Include all logs.
+	# web = Web logs only
+	# system = System log files only
+	# gp = GridPane core log files only"
+	# fpm = PHP-FPM log files only"
+
+	if [[ $LOGS == "all" ]]; then
+		_debug "Collect logs: all"
+		collect_system_logs
+		collect_access_logs
+		collect_weblogs
+		collect_gridpane
+		collect_gridpane_backup
+		collect_accesslogs		
+	elif [[ $LOGS == "web" ]];then
+		collect_weblogs
+		collect_access_logs		
+	elif [[ $LOGS == "system" ]]; then
+		collect_system_logs
+	elif [[ $LOGS == "gp" ]]; then
+		collect_gridpane
+		collect_gridpane_backup
+	elif [[ $LOGS == "gpbackup" ]]; then
+		collect_gridpane_backup
+	else
+		_error "Something borked... :("
+	fi
+
 }
 
 
-
 # -- system logs
-system_logs () {
+collect_system_logs () {
 	# System log files
 	echo "-- Checking System log files"
 	for SYS_LOG in "${SYS_LOGS[@]}"; do
@@ -92,7 +125,7 @@ system_logs () {
 }
 
 # -- access logs
-collect_accesslogs () {
+collect_access_logs () {
         _debug_function
         # Find logs
         if [ -d "/var/log/nginx" ]; then
@@ -101,14 +134,16 @@ collect_accesslogs () {
         elif [ -d "/var/log/lsws" ]; then
                 _debug "found OLS log directory"
                 sitelogsdir="/var/log/lsws"
+        else
+        	_error "-- Didn't find access logs directory for OLS or Nginx"
         fi
 
         # Grab logs
         if [[ $GP_EXCLUDE ]]; then
-                _debug "Exclude GP logs"
+                _debug "Exclude GridPane access logs '/access.log$|staging|canary|gridpane|.gz'"
                 SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
         else
-                _debug "Include GP logs"
+                _debug "Including GridPane access logs '/access.log$|staging|canary|gridpane|.gz'"
                 SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
         fi
         _debug "\$SITE_LOGS=${SITE_LOGS}"
@@ -117,6 +152,7 @@ collect_accesslogs () {
 
 # -- web logs files
 collect_weblogs () {
+	_debug_function
 	# OLS logs
 	if [[ -d $OLS_LOG_PATH ]]; then
 		echo "-- Checking for OLS log files"
@@ -129,6 +165,8 @@ collect_weblogs () {
 				_error "   -- Didn't find $OLS_LOGS"
 			fi
 		done
+	else
+		_error "-- Didn't find OLS logs"
 	fi
 
 	# Nginx logs
@@ -143,6 +181,8 @@ collect_weblogs () {
 		        	_error "   -- Didn't find $NGINX_LOG"
 		        fi
 		done
+	else
+		_error "-- Didn't find Nginx logs"
 	fi
 }
 
@@ -160,6 +200,8 @@ collect_gridpane () {
 	done
 }
 
+
+collect_gridpane_backup () {
 # GridPane Backup specific log files
 echo "-- Checking for GridPane Backup log files"
 for GP_BACKUP_LOG in "${GP_BACKUP_LOGS[@]}"; do
@@ -171,7 +213,9 @@ for GP_BACKUP_LOG in "${GP_BACKUP_LOGS[@]}"; do
                 _error "   -- Didn't find $GP_BACKUP_LOG"
         fi
 done
+}
 	
+collect_accesslogs () {
 # -- Check for website log files
 if [[ $ACCESS_LOGS == "1" ]]; then
 	# Access logs
@@ -207,6 +251,8 @@ if [[ $ACCESS_LOGS == "1" ]]; then
 else
 	_debug "Not including web access logs"
 fi
+}
+
 
 # -- Check if there are any logs to run against.
 if [[ -z $LOG_FILES ]]; then
@@ -217,11 +263,16 @@ else
         _debug "  -- Found log files - ${LOG_FILES[*]}"
 fi
 
-}
 
 # -------
 # -- Main
 # -------
+
+if [[ -z $COMMAND ]] || [[ -z $LOGS ]]; then
+	_error "Requires -c and -l to proceed"
+	usage
+	exit 1
+fi
 
 if [[ $COMMAND = 'tail' ]]; then
 	echo " -- Starting to tail logs"
@@ -247,3 +298,5 @@ else
 	usage
 	exit 1
 fi
+
+_success "Test!"

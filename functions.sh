@@ -68,10 +68,10 @@ _debug_function () {
 }
 
 # -- colored messages
-_error () { echo  "${CRED}$@${NC}" }
-_warning () { echo "${CRED}$@${NC}" }
-_success () { echo -e "${CGREEN}$@${NC}" }
-_notice () { echo "${CBLUE}$@${NC}" }
+_error () { echo  -e "${CRED}$@${NC}"; }
+_warning () { echo -e "${CRED}$@${NC}"; }
+_success () { echo -e "${CGREEN}$@${NC}"; }
+_notice () { echo -e "${CBLUE}$@${NC}"; }
 
 # -- Check root
 _checkroot () {
@@ -174,3 +174,4 @@ help_cmd[api]='Interact with the GridPane API'
 tool_api () {
 	gp-api.sh $@
 }
+
