@@ -76,7 +76,7 @@ process_options () {
                 
 	# Set results if not defined.
         if [ -z $RESULTS ];then
-                results="40"
+                RESULTS="40"
         fi
         _debug "RESULTS=$RESULTS"
 }
@@ -109,7 +109,7 @@ main () {
 			_debug "PROCESS_FILES: $PROCESS_FILES"4
 		else
 			_debug "Exclude compressed files"
-			PROCESS_FILES=$(ls -aSd $LOGFILEDIR/*.log | $EXCLUDE)
+			PROCESS_FILES=$(ls -aSd $LOGFILEDIR/$DOMAIN*.log | $EXCLUDE)
 			_debug "PROCESS_FILES: $PROCESS_FILES"
 		fi		
 	elif [[ $1 == "log" ]]; then
