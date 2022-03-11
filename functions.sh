@@ -67,15 +67,11 @@ _debug_function () {
 	_debug "function: ${FUNCNAME[1]}"
 }
 
-# -- error message
-_error () {
-        echo -e "${CRED}$@${NC}";
-}
-
-# -- success message
-_success () {
-        echo -e "${CGREEN}$@${NC}";
-}
+# -- colored messages
+_error () { echo  "${CRED}$@${NC}" }
+_warning () { echo "${CRED}$@${NC}" }
+_success () { echo -e "${CGREEN}$@${NC}" }
+_notice () { echo "${CBLUE}$@${NC}" }
 
 # -- Check root
 _checkroot () {
@@ -90,29 +86,6 @@ _checkroot () {
 # --
 # -- GridPane specific functions
 # --
-
-# -- _getsitelogs
-_getsitelogs () {
-	_debug_function
-	# Find logs
-        if [ -d "/var/log/nginx" ]; then
-		_debug "Found nginx log directory"
-                sitelogsdir="/var/log/nginx"
-        elif [ -d "/var/log/lsws" ]; then
-        	_debug "found OLS log directory"
-                sitelogsdir="/var/log/lsws"
-        fi
-        
-        # Grab logs
-        if [[ $GP_EXCLUDE ]]; then
-        	_debug "Exclude GP logs"
-        	SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
-        else
-        	_debug "Include GP logs"
-        	SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
-        fi
-	_debug "\$SITE_LOGS=${SITE_LOGS}"
-}
 
 # --
 # -- Help Stuff

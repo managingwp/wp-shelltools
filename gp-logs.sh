@@ -5,10 +5,14 @@
 _debug "Loading functions.sh"
 
 # -- getopts
-while getopts ":aec:" option; do
+while getopts ":awesgfc:" option; do
         case ${option} in
-                a) ACCESS_LOGS=1 ;;
+                a) ALL_LOGS=1 ;;
+                w) WEB_LOGS=1 ;;
                 e) GP_EXCLUDE=1 ;;
+                s) SYSTEM_LOGS ;;
+                g) GRIDPANE_LOGS ;;
+                f) PHPFPM_LOGS ;;
                 c) COMMAND=$OPTARG ;;
                 ?) usage ;;
         esac
@@ -49,8 +53,12 @@ usage () {
 	echo "    test		- Test what logs will be processed"
 	echo ""
 	echo "Options:"
-	echo "    -a		- Include website access and error logs."
+	echo "    -a		- Include all logs."
+	echo "    -w		- Web logs only"
 	echo "    -e		- Exclude GridPane, staging, and canary"
+	echo "	  -s		- System log files only"
+	echo "    -g		- GridPane core log files only"
+	echo "	  -f		- PHP-FPM log files only"
 	echo ""
 	echo ""
         echo "Log files checked:"
@@ -63,83 +71,94 @@ usage () {
 }
 
 start_logs () {
-	read -p " -- Press [Enter] to start"
+	_notice -p " -- Press [Enter] to start"
 }
 
-collect_logs () {
 
-# Start check logs
-echo  "-- Running logs command with $1 option"
-        
-# Locate FPM logs.
-for file in /var/log/php/*/fpm.log; do
-	_debug "fpm file - $file"
-	FPM_LOGS+=("$file")
-done
 
-# PHP FPM log files
-echo "-- Checking PHP FPM log files"
-for FPM_LOG in "${FPM_LOGS[@]}"; do
-        echo -n "  -- Checking $FPM_LOG"
-        if [ -f $FPM_LOG ]; then
-                _success "   -- Found $FPM_LOG"
-                LOG_FILES+=("$FPM_LOG")
-        else
-                _error "   -- Didn't find $FPM_LOG"
-        fi
-done
-
-# System log files
-echo "-- Checking System log files"
-for SYS_LOG in "${SYS_LOGS[@]}"; do
-	echo -n "  -- Checking $SYS_LOG"
-        if [ -f $SYS_LOG ]; then
-        	_success "   -- Found $SYS_LOG"
-                LOG_FILES+=("$SYS_LOG")
-        else
-        	_error "   -- Didn't find $SYS_LOG"
-        fi
-done
-
-# OLS Log files
-if [[ -d $OLS_LOG_PATH ]]; then
-	echo "-- Checking for OLS log files"
-	for OLS_LOG in "${OLS_LOGS[@]}"; do
-		echo -n "  -- Checking $OLS_LOGS"
-		if [ -f $OLS_LOGS ]; then
-			_success "   -- Found $OLS_LOGS"
-			LOG_FILES+=("$OLS_LOGS")
-		else 
-			_error "   -- Didn't find $OLS_LOGS"
-		fi
-	done
-fi
-
-# Nginx log files
-if [[ -d $NGINX_LOG_PATH ]]; then
-	echo " -- Checking for NGINX log files"
-	for NGINX_LOG in "${NGINX_LOGS[@]}"; do
-		echo -n "  -- Checking $NGINX_LOG"
-		if [ -f $NGINX_LOG ]; then
-	        	_success "   -- Found $NGINX_LOG"
-	                LOG_FILES+=("$NGINX_LOG")
+# -- system logs
+system_logs () {
+	# System log files
+	echo "-- Checking System log files"
+	for SYS_LOG in "${SYS_LOGS[@]}"; do
+		echo -n "  -- Checking $SYS_LOG"
+	        if [ -f $SYS_LOG ]; then
+	        	_success "   -- Found $SYS_LOG"
+	                LOG_FILES+=("$SYS_LOG")
 	        else
-	        	_error "   -- Didn't find $NGINX_LOG"
+	        	_error "   -- Didn't find $SYS_LOG"
 	        fi
 	done
-fi
+}
 
-# GridPane specific log files
-echo "-- Checking for GridPane log files"
-for GP_LOG in "${GP_LOGS[@]}"; do
-	echo -n "  -- Checking $GP_LOG"
-        if [ -f $GP_LOG ]; then
-	        _success "   -- Found $GP_LOG"
-        	LOG_FILES+=("$GP_LOG")
-        else
-        	_error "   -- Didn't find $GP_LOG"
+# -- access logs
+collect_accesslogs () {
+        _debug_function
+        # Find logs
+        if [ -d "/var/log/nginx" ]; then
+                _debug "Found nginx log directory"
+                sitelogsdir="/var/log/nginx"
+        elif [ -d "/var/log/lsws" ]; then
+                _debug "found OLS log directory"
+                sitelogsdir="/var/log/lsws"
         fi
-done
+
+        # Grab logs
+        if [[ $GP_EXCLUDE ]]; then
+                _debug "Exclude GP logs"
+                SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
+        else
+                _debug "Include GP logs"
+                SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
+        fi
+        _debug "\$SITE_LOGS=${SITE_LOGS}"
+}
+
+
+# -- web logs files
+collect_weblogs () {
+	# OLS logs
+	if [[ -d $OLS_LOG_PATH ]]; then
+		echo "-- Checking for OLS log files"
+		for OLS_LOG in "${OLS_LOGS[@]}"; do
+			echo -n "  -- Checking $OLS_LOGS"
+			if [ -f $OLS_LOGS ]; then
+				_success "   -- Found $OLS_LOGS"
+				LOG_FILES+=("$OLS_LOGS")
+			else 
+				_error "   -- Didn't find $OLS_LOGS"
+			fi
+		done
+	fi
+
+	# Nginx logs
+	if [[ -d $NGINX_LOG_PATH ]]; then
+		echo " -- Checking for NGINX log files"
+		for NGINX_LOG in "${NGINX_LOGS[@]}"; do
+			echo -n "  -- Checking $NGINX_LOG"
+			if [ -f $NGINX_LOG ]; then
+		        	_success "   -- Found $NGINX_LOG"
+		                 LOG_FILES+=("$NGINX_LOG")
+		        else
+		        	_error "   -- Didn't find $NGINX_LOG"
+		        fi
+		done
+	fi
+}
+
+collect_gridpane () {
+	# GridPane specific log files
+	echo "-- Checking for GridPane log files"
+	for GP_LOG in "${GP_LOGS[@]}"; do
+		echo -n "  -- Checking $GP_LOG"
+	        if [ -f $GP_LOG ]; then
+		        _success "   -- Found $GP_LOG"
+	        	LOG_FILES+=("$GP_LOG")
+	        else
+	        	_error "   -- Didn't find $GP_LOG"
+	        fi
+	done
+}
 
 # GridPane Backup specific log files
 echo "-- Checking for GridPane Backup log files"
@@ -153,8 +172,9 @@ for GP_BACKUP_LOG in "${GP_BACKUP_LOGS[@]}"; do
         fi
 done
 	
-# -- Check for website specific log files
+# -- Check for website log files
 if [[ $ACCESS_LOGS == "1" ]]; then
+	# Access logs
 	_debug "Including web access logs"
 	echo "  -- Checking for site log files"
 	_getsitelogs
@@ -166,6 +186,24 @@ if [[ $ACCESS_LOGS == "1" ]]; then
 		_debug "    -- Found log files - ${SITE_LOGS[@]}"
 		LOG_FILES+=("$SITE_LOGS")
 	fi
+
+	# Locate FPM logs.
+	for file in /var/log/php/*/fpm.log; do
+        	_debug "fpm file - $file"
+	        FPM_LOGS+=("$file")
+	done
+
+	# PHP FPM log files
+	echo "-- Checking PHP FPM log files"
+	for FPM_LOG in "${FPM_LOGS[@]}"; do
+	        echo -n "  -- Checking $FPM_LOG"
+        	if [ -f $FPM_LOG ]; then
+                	_success "   -- Found $FPM_LOG"
+	                LOG_FILES+=("$FPM_LOG")
+	        else
+        	        _error "   -- Didn't find $FPM_LOG"
+	        fi
+	done
 else
 	_debug "Not including web access logs"
 fi
