@@ -69,7 +69,7 @@ process_options () {
 	# Confirm exclude
 	if [[ $GP_EXCLUDE == "-e" ]]; then
 		_debug "argument -e set - exclude gp, staging and canary sites in $LOGFILEDIR/*"
-               	EXCLUDE="egrep -v '/access.log$|staging|canary|gridpane|.gz'"
+               	EXCLUDE="| egrep -v '/access.log$|staging|canary|gridpane|.gz'"
         else
               	EXCLUDE=""
         fi
@@ -93,11 +93,11 @@ main () {
 		_debug "All logs mode"
 		if [[ $Z_INCLUDE ]]; then
 			_debug "Include compressed files"
-                	PROCESS_FILES=$(ls -aSd $LOGFILEDIR/* | $EXCLUDE)
+                	PROCESS_FILES=$(ls -aSd $LOGFILEDIR/* $EXCLUDE)
                 	_debug "PROCESS_FILES: $PROCESS_FILES"
                 else
                 	_debug "Exclude compressed files"
-	                PROCESS_FILES=$(ls -aSd $LOGFILEDIR/*.log | $EXCLUDE)
+	                PROCESS_FILES=$(ls -aSd $LOGFILEDIR/*.log $EXCLUDE)
 	                _debug "PROCESS_FILES: $PROCESS_FILES"	                
 	        fi
 	elif [[ $1 == "domain" ]]; then
@@ -105,12 +105,12 @@ main () {
 		_debug "Domain logs mode"
 		if [[ $Z_INCLUDE ]]; then
 			_debug "Include compressed files"
-			PROCESS_FILES=$(ls -aSd $LOGFILEDIR/$DOMAIN* | $EXCLUDE)
+			PROCESS_FILES=$(ls -aSd $LOGFILEDIR/$DOMAIN* $EXCLUDE)
 			_debug "PROCESS_FILES: $PROCESS_FILES"4
 		else
 			_debug "Exclude compressed files"
-			_debug "ls -aSd $LOGFILEDIR/$DOMAIN*.log | $EXCLUDE"
-			PROCESS_FILES=$(ls -aSd $LOGFILEDIR/$DOMAIN*.log | $EXCLUDE)
+			_debug "ls -aSd $LOGFILEDIR/$DOMAIN*.log $EXCLUDE"
+			PROCESS_FILES=$(ls -aSd $LOGFILEDIR/$DOMAIN*.log $EXCLUDE)
 			_debug "PROCESS_FILES: $PROCESS_FILES"
 		fi		
 	elif [[ $1 == "log" ]]; then
