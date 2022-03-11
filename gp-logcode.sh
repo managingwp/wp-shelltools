@@ -4,7 +4,7 @@
 _debug "Loading functions.sh"
 
 # -- getopts
-while getopts "c:m:l:d:r:ez" option; do
+while getopts "c:m:l:d:r:ezx" option; do
         case ${option} in
                 c) LOGCODE=$OPTARG ;;
                 m) MODE=$OPTARG ;;
@@ -13,7 +13,7 @@ while getopts "c:m:l:d:r:ez" option; do
 		r) RESULTS=$OPTARG ;;
                 e) GP_EXCLUDE=1 ;;
                 z) Z_INCLUDE=1 ;;
-                debug) DEBUG=1 ;;
+                x) DEBUG=1 ;;
                 ?) usage ;;
         esac
 done
@@ -40,7 +40,7 @@ usage () {
         echo "    -r [results] = number of results, optional, default 40"
         echo "    -e = exclude GridPane, staging and canary."
         echo "    -z = include compressed files"
-        echo "	  -debug = debug"
+        echo "	  -x = debug"
 }
 
 # -- check_logs
