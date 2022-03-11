@@ -109,6 +109,7 @@ main () {
 			_debug "PROCESS_FILES: $PROCESS_FILES"4
 		else
 			_debug "Exclude compressed files"
+			_debug "ls -aSd $LOGFILEDIR/$DOMAIN*.log"
 			PROCESS_FILES=$(ls -aSd $LOGFILEDIR/$DOMAIN*.log | $EXCLUDE)
 			_debug "PROCESS_FILES: $PROCESS_FILES"
 		fi		
