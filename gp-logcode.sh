@@ -4,7 +4,7 @@
 _debug "Loading functions.sh"
 
 # -- getopts
-while getopts "c:m:l:d:r:ezd" option; do
+while getopts "c:m:l:d:r:ez" option; do
         case ${option} in
                 c) LOGCODE=$OPTARG ;;
                 m) MODE=$OPTARG ;;
@@ -13,7 +13,6 @@ while getopts "c:m:l:d:r:ezd" option; do
 		r) RESULTS=$OPTARG ;;
                 e) GP_EXCLUDE=1 ;;
                 z) Z_INCLUDE=1 ;;
-                d) DEBUG=1 ;;
                 ?) usage ;;
         esac
 done
