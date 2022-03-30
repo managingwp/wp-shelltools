@@ -41,11 +41,7 @@ export CWHITE='\e[1;37m'
 # -- Key Functions
 # ----------------
 _debug () {
-<<<<<<< HEAD
-        if [ -f .debug ] && (( $DEBUG >= "1" )); then
-=======
         if [ -f $SCRIPTPATH/.debug ] || (( $DEBUG >= "1" )); then
->>>>>>> dev
                 echo -e "${CCYAN}**** DEBUG $@${NC}"
         fi
 }
@@ -55,30 +51,6 @@ _debug_curl () {
                 if [[ $DEBUG == "2" ]]; then
                         echo -e "${CCYAN}**** DEBUG $@${NC}"
                 fi
-<<<<<<< HEAD
-}
-
-# -- show debug information
-_debug_all () {
-        _debug "--------------------------"
-        _debug "arguments - $@"
-        _debug "funcname - ${FUNCNAME[@]}"
-        _debug "basename - $SCRIPTPATH"
-        _debug "sourced files - ${BASH_SOURCE[@]}"
-        _debug "--------------------------"
-}
-
-# -- error message
-_error () {
-        echo -e "${CRED}$@${NC}";
-}
-
-# -- success message
-_success () {
-        echo -e "${CGREEN}$@${NC}";
-}
-
-=======
 }
 
 # -- show debug information
@@ -101,7 +73,6 @@ _warning () { echo -e "${CRED}$@${NC}"; }
 _success () { echo -e "${CGREEN}$@${NC}"; }
 _notice () { echo -e "${CBLUE}$@${NC}"; }
 
->>>>>>> dev
 # -- Check root
 _checkroot () {
 	if [ ! -f .debug ]; then
@@ -112,34 +83,9 @@ _checkroot () {
 	fi
 }
 
-<<<<<<< HEAD
-# --------
-# -- Debug
-# --------
-_debug_all () {
-	_debug "--------------------------"
-	_debug "arguments - $@"
-	_debug "funcname - ${FUNCNAME[@]}"
-	_debug "basename - `basename "$0"`"
-	_debug "sourced files - ${BASH_SOURCE[@]}"
-	_debug "--------------------------"
-=======
 # --
 # -- GridPane specific functions
 # --
-<<<<<<< HEAD
-# - _getsitelogs
-_getsitelogs () {
-        if [ -d "/var/log/nginx" ]; then
-                sitelogsdir="/var/log/nginx"
-        elif [ -d "/var/log/lsws" ]; then
-                sitelogsdir="/var/log/lsws"
-        fi
-        files=$(ls -aSd $logfiledir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
->>>>>>> dev
-}
-=======
->>>>>>> dev
 
 # --
 # -- Help Stuff
@@ -227,9 +173,5 @@ tool_backups () {
 help_cmd[api]='Interact with the GridPane API'
 tool_api () {
 	gp-api.sh $@
-<<<<<<< HEAD
-}
-=======
 }
 
->>>>>>> dev

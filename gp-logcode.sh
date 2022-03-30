@@ -68,6 +68,7 @@ check_logs () { # Nginx or OLS?
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 main () {
 	_debug "main()"
 	# Set results if not defined.
@@ -100,6 +101,64 @@ main () {
 	                files=$(ls -aSd $logfiledir/$logfile)
 	        else
 	                _error "Log file $logfiledir/$logfile doesn't exist"
+=======
+process_options () {
+	# Confirm exclude
+	if [[ $GP_EXCLUDE == "-e" ]]; then
+		_debug "argument -e set - exclude gp, staging and canary sites in $LOGFILEDIR/*"
+               	EXCLUDE="| egrep -v '/access.log$|staging|canary|gridpane|.gz'"
+        else
+              	EXCLUDE=""
+        fi
+                
+	# Set results if not defined.
+        if [ -z $RESULTS ];then
+                RESULTS="40"
+        fi
+        _debug "RESULTS=$RESULTS"
+}
+
+# -- main
+main () {
+	_debug_function
+	
+	# Process options
+	process_options
+
+	if [[ $1 == "all" ]]; then
+		# Mode all
+		_debug "All logs mode"
+		if [[ $Z_INCLUDE ]]; then
+			_debug "Include compressed files"
+                	PROCESS_FILES=$(ls -aSd $LOGFILEDIR/* $EXCLUDE)
+                	_debug "PROCESS_FILES: $PROCESS_FILES"
+                else
+                	_debug "Exclude compressed files"
+	                PROCESS_FILES=$(ls -aSd $LOGFILEDIR/*.log $EXCLUDE)
+	                _debug "PROCESS_FILES: $PROCESS_FILES"	                
+	        fi
+	elif [[ $1 == "domain" ]]; then
+		# Mode domain
+		_debug "Domain logs mode"
+		if [[ $Z_INCLUDE ]]; then
+			_debug "Include compressed files"
+			PROCESS_FILES=$(ls -aSd $LOGFILEDIR/$DOMAIN* $EXCLUDE)
+			_debug "PROCESS_FILES: $PROCESS_FILES"4
+		else
+			_debug "Exclude compressed files"
+			_debug "ls -aSd $LOGFILEDIR/$DOMAIN*.log $EXCLUDE"
+			PROCESS_FILES=$(ls -aSd $LOGFILEDIR/$DOMAIN*.log $EXCLUDE)
+			_debug "PROCESS_FILES: $PROCESS_FILES"
+		fi		
+	elif [[ $1 == "log" ]]; then
+		# Mode log
+	        _debug "Single logfile mode - $LOGFILE"
+	        if [[ -f $LOGFILEDIR/$LOGFILE ]]; then
+	                _success "Log file exists - $logfile"	                
+	                PROCESS_FILES=$LOGFILEDIR/$LOGFILE
+	        else
+	                _error "Log file $LOGFILEDIR/$logfile doesn't exist"
+>>>>>>> dev
 =======
 process_options () {
 	# Confirm exclude
@@ -201,11 +260,14 @@ if [[ -z $LOGCODE ]] || [[ -z $MODE ]]; then
 fi
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # handle non-option arguments
 _debug "logcode: $logcode, logfile: $logfile, alllogs: $alllogs, exclude:$exclude, results:$results"
 _debug "args: $@"
 if [[ -z $logcode ]]; then
 =======
+=======
+>>>>>>> dev
 if [[ $MODE == "all" ]]; then
 	# Log all
 	_debug "mode: $MODE"
@@ -229,6 +291,7 @@ elif [[ $MODE == "log" ]]; then
                 _error "Need to specify logfile via -l <logfile>"
         fi
 else
+<<<<<<< HEAD
 >>>>>>> dev
 	usage
 fi
@@ -237,4 +300,9 @@ fi
 check_logs
 main
 =======
+>>>>>>> dev
+=======
+	usage
+fi
+
 >>>>>>> dev
