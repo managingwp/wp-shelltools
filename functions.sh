@@ -41,7 +41,11 @@ export CWHITE='\e[1;37m'
 # -- Key Functions
 # ----------------
 _debug () {
+<<<<<<< HEAD
         if [ -f .debug ] && (( $DEBUG >= "1" )); then
+=======
+        if [ -f $SCRIPTPATH/.debug ] || (( $DEBUG >= "1" )); then
+>>>>>>> dev
                 echo -e "${CCYAN}**** DEBUG $@${NC}"
         fi
 }
@@ -51,6 +55,7 @@ _debug_curl () {
                 if [[ $DEBUG == "2" ]]; then
                         echo -e "${CCYAN}**** DEBUG $@${NC}"
                 fi
+<<<<<<< HEAD
 }
 
 # -- show debug information
@@ -73,6 +78,30 @@ _success () {
         echo -e "${CGREEN}$@${NC}";
 }
 
+=======
+}
+
+# -- show debug information
+_debug_all () {
+        _debug "--------------------------"
+        _debug "arguments: $@"
+        _debug "funcname: ${FUNCNAME[@]}"
+        _debug "basename: $SCRIPTPATH"
+        _debug "sourced files: ${BASH_SOURCE[@]}"
+        _debug "--------------------------"
+}
+
+_debug_function () {
+	_debug "function: ${FUNCNAME[1]}"
+}
+
+# -- colored messages
+_error () { echo  -e "${CRED}$@${NC}"; }
+_warning () { echo -e "${CRED}$@${NC}"; }
+_success () { echo -e "${CGREEN}$@${NC}"; }
+_notice () { echo -e "${CBLUE}$@${NC}"; }
+
+>>>>>>> dev
 # -- Check root
 _checkroot () {
 	if [ ! -f .debug ]; then
@@ -98,6 +127,7 @@ _debug_all () {
 # --
 # -- GridPane specific functions
 # --
+<<<<<<< HEAD
 # - _getsitelogs
 _getsitelogs () {
         if [ -d "/var/log/nginx" ]; then
@@ -108,6 +138,8 @@ _getsitelogs () {
         files=$(ls -aSd $logfiledir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz')
 >>>>>>> dev
 }
+=======
+>>>>>>> dev
 
 # --
 # -- Help Stuff
@@ -195,4 +227,9 @@ tool_backups () {
 help_cmd[api]='Interact with the GridPane API'
 tool_api () {
 	gp-api.sh $@
+<<<<<<< HEAD
 }
+=======
+}
+
+>>>>>>> dev
