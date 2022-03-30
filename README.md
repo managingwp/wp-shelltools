@@ -27,7 +27,7 @@ The goal of this project is to make it easy to manage and maintain GridPane serv
 # Donate
 Stepped Tea, ocasional Coffee, Beer, Scotch, Chicken Wings help me through the day, so feel free to buy me one :0
 
-<a href="https://wpinfo.net/sponsor/" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://wpinfo.net/sponsor/)
 
 # Install
 ## Requirements
