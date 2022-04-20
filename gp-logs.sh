@@ -172,7 +172,7 @@ collect_nginx () {
                 NGINX_LOGS=$(ls -aSd $NGINX_LOG_PATH/* | egrep "$LOG_GREP" | grep -v '.gz' | tr '\n' ' ')
         fi
 		_debug "\$NGINX_LOGS = ${NGINX_LOGS}"
-		$NGINX_LOGS=(${NGINX_LOGS//$'\n'/ })
+		NGINX_LOGS=(${NGINX_LOGS//$'\n'/ })
 
         if [[ -f $NGINX_LOGS ]]; then
 			_error "Didn't find any Nginx Access logs"			
