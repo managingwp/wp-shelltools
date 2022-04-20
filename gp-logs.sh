@@ -27,7 +27,6 @@ OLS_LOG_PATH="/usr/local/lsws/logs"
 (( TEST >= "1" )) && LOG_FILES+=("$SCRIPTPATH/tests/test.log")
 SYS_LOGS=("/var/log/syslog")
 OLS_LOGS=("$OLS_LOG_PATH/stderr.log" "$OLS_LOG_PATH/error.log" "$OLS_LOG_PATH/lsrestart.log")
-NGINX_LOGS=("$NGINX_LOG_PATH/error.log")
 GP_LOGS=("$GPOPT/gpclone.log" "$GPOPT/gpdailyworker.log" "$GPOPT/gphourlyworker.log" "$GPOPT/gpworker.log")
 GP_BACKUP_LOGS=("$GPOPT/backup.log" "$GPOPT/backup.error.log" "$GPOPT/backups.monitoring.log")
 
@@ -54,7 +53,7 @@ usage () {
 	echo "    web		- Web logs only"
 	echo "    system	- System log files only"
 	echo "    gp		- GridPane core log files only"
-	echo "    gpbackup	- PHP-FPM log files only"
+	echo "    gpbackup	- GridPane backup logs only"
 	echo ""
 	echo "Options:"
 	echo "    -e            - Exclude GridPane, staging, and canary"
@@ -87,14 +86,19 @@ collect_logs () {
 	if [[ $LOGS == "all" ]]; then
 		_debug "Collect logs: all"
 		collect_system_logs
-		collect_access_logs
-		collect_weblogs
+		collect_access-logs
+		collect_web-logs
 		collect_gridpane
 		collect_gridpane_backup
-		collect_accesslogs		
-	elif [[ $LOGS == "web" ]];then
-		collect_weblogs
+	elif [[ $LOGS == "web-access" ]];then
+		collect_web-logs
 		collect_access_logs		
+	elif [[ $LOGS == "web-error" ]]; then
+		collect_web-error-logs
+	elif [[ $LOGS == "web-all" ]]; then
+		collect_web-logs
+		collect_access-logs
+		collect_web-error-logs
 	elif [[ $LOGS == "system" ]]; then
 		collect_system_logs
 	elif [[ $LOGS == "gp" ]]; then
@@ -125,7 +129,7 @@ collect_system_logs () {
 }
 
 # -- access logs
-collect_access_logs () {
+collect_web-logs () {
         _debug_function
         # Find logs
         if [ -d "/var/log/nginx" ]; then
@@ -141,17 +145,17 @@ collect_access_logs () {
         # Grab logs
         if [[ $GP_EXCLUDE ]]; then
                 _debug "Exclude GridPane access logs '/access.log$|staging|canary|gridpane|.gz'"
-                SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
+                SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep 'access' | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
         else
                 _debug "Including GridPane access logs '/access.log$|staging|canary|gridpane|.gz'"
-                SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep access | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
+                SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep 'access' | grep -v '.gz' | tr '\n' ' ')
         fi
         _debug "\$SITE_LOGS=${SITE_LOGS}"
 }
 
 
-# -- web logs files
-collect_weblogs () {
+# -- web-logs log files
+collect_web-logs () {
 	_debug_function
 	# OLS logs
 	if [[ -d $OLS_LOG_PATH ]]; then
