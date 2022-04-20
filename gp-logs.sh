@@ -173,6 +173,7 @@ collect_nginx () {
         fi
 		_debug "\$NGINX_LOGS = ${NGINX_LOGS}"
 		NGINX_LOGS_ARRAY=(${NGINX_LOGS//$'\n'/ })
+		echo $NGINX_LOGS_ARRAY
 
         if [[ -f $NGINX_LOGS_ARRAY ]]; then
 			_error "Didn't find any Nginx Access logs"			
