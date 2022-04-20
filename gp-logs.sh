@@ -31,8 +31,8 @@ OLS_LOG_PATH="/usr/local/lsws/logs"
 
 (( TEST >= "1" )) && LOG_FILES+=("$SCRIPTPATH/tests/test.log")
 SYS_LOGS=("/var/log/syslog")
-NGINX_LOGS=("$NGINX_LOG_PATH/error.log" "$NGINX_LOG_PATH/access.log")
-OLS_LOGS=("$OLS_LOG_PATH/stderr.log" "$OLS_LOG_PATH/error.log" "$OLS_LOG_PATH/lsrestart.log")
+NGINX_SERVER_LOGS=("$NGINX_LOG_PATH/error.log" "$NGINX_LOG_PATH/access.log")
+OLS_SERVER_LOGS=("$OLS_LOG_PATH/stderr.log" "$OLS_LOG_PATH/error.log" "$OLS_LOG_PATH/lsrestart.log")
 GP_LOGS=("$GPOPT/gpclone.log" "$GPOPT/gpdailyworker.log" "$GPOPT/gphourlyworker.log" "$GPOPT/gpworker.log")
 GP_BACKUP_LOGS=("$GPOPT/backup.log" "$GPOPT/backup.error.log" "$GPOPT/backups.monitoring.log")
 PHP_FPM_LOGS=("/var/log/php")
@@ -178,6 +178,8 @@ collect_nginx () {
 		else
 			_success " -- Found $NGINX_LOGS"		
 		fi
+		LOG_FILES+=("$NGINX_LOGS")
+
 }
 
 collect_ols () {
@@ -193,7 +195,7 @@ collect_webserver-logs () {
 	# Nginx logs
 	if [[ -d $NGINX_LOG_PATH ]]; then
 		echo " -- Checking for NGINX webserver logs"
-		for LOG in "${NGINX_LOGS[@]}"; do
+		for LOG in "${NGINX_SERVER_LOGS[@]}"; do
 			echo -n "  -- Checking $LOG"
 			if [ -f $LOG ]; then
 		        	_success "   -- Found $LOG"
@@ -209,13 +211,13 @@ collect_webserver-logs () {
 	# OLS logs
 	if [[ -d $OLS_LOG_PATH ]]; then
 		echo "-- Checking for OLS web server logs"
-		for OLS_LOG in "${OLS_LOGS[@]}"; do
-			echo -n "  -- Checking $OLS_LOGS"
-			if [ -f $OLS_LOGS ]; then
-				_success "   -- Found $OLS_LOGS"
-				LOG_FILES+=("$OLS_LOGS")
+		for LOG in "${OLS_SERVER_LOGS[@]}"; do
+			echo -n "  -- Checking $LOG"
+			if [ -f $LOG ]; then
+				_success "   -- Found $LOG"
+				LOG_FILES+=("$LOG")
 			else 
-				_error "   -- Didn't find $OLS_LOGS"
+				_error "   -- Didn't find $LOG"
 			fi
 		done
 	else
