@@ -172,7 +172,7 @@ collect_nginx () {
                 NGINX_LOGS=$(ls -aSd $NGINX_LOG_PATH/* | egrep "$LOG_GREP" | grep -v '.gz' | tr '\n' ' ')
         fi
 		_debug "\$NGINX_LOGS = ${NGINX_LOGS}"
-		NGINX_LOGS_ARRAY=(${NGINX_LOGS//$'\n'/ })
+		IFS=$'\n' NGINX_LOGS_ARRAY=(${NGINX_LOGS//$'\n'/ })
 		echo $NGINX_LOGS_ARRAY
 
         if [[ -f $NGINX_LOGS_ARRAY ]]; then
