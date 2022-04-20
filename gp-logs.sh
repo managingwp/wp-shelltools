@@ -171,11 +171,12 @@ collect_nginx () {
                 _debug "Including GridPane access logs '/access.log$|staging|canary|gridpane|.gz'"
                 NGINX_LOGS=$(ls -aSd $NGINX_LOG_PATH/* | grep \'$LOG_GREP\' | grep -v '.gz' | tr '\n' ' ')
         fi
-        if [[ -f $NGINX_LOGS ]]; then
-			_debug "\$NGINX_LOGS = ${NGINX_LOGS}"
+		_debug "\$NGINX_LOGS = ${NGINX_LOGS}"
+		
+        if [[ -f $NGINX_LOGS ]]; then		
 			echo " -- Found ${NGINX_LOGS}"
 		else
-			_error "Didn't find any Nginx Access logs"
+			_error "Didn't find any Nginx Access logs"			
 		fi
 }
 
