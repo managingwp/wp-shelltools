@@ -9,8 +9,8 @@ VERSION="0.4.0"
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 REQUIRED_APPS=("jq" "column")
-[[ -f .test ]] && TEST=$(<$SCRIPTPATH/.test) || TEST="0"
-[[ -f .debug ]] && DEBUG=$(<$SCRIPTPATH/.debug) || DEBUG="0"
+[[ -f $SCRIPTPATH/.test ]] && TEST=$($SCRIPTPATH/.test) || TEST="0"
+[[ -f $SCRIPTPATH/.debug ]] && DEBUG=$($SCRIPTPATH/.debug) || DEBUG="0"
 [[ -z $DEBUG ]] && DEBUG="0"
 [[ -z $TEST ]] && TEST="0"
 

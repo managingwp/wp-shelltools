@@ -253,16 +253,17 @@ else
 fi
 }
 
-
-# -- Check if there are any logs to run against.
-if [[ -z $LOG_FILES ]]; then
-	_debug "\$LOG_FILES = $LOG_FILES"
-        _error "No logs files found at all, exiting"
-        exit 1
-else
-        _success "  -- Found log files, continuing"
-        _debug "  -- Found log files - ${LOG_FILES[*]}"
-fi
+check_logs () {
+	# -- Check if there are any logs to run against.
+	if [[ -z $LOG_FILES ]]; then
+		_debug "\$LOG_FILES = $LOG_FILES"
+	        _error "No logs files found at all, exiting"
+	        exit 1
+	else
+	        _success "  -- Found log files, continuing"
+	        _debug "  -- Found log files - ${LOG_FILES[*]}"
+	fi
+}
 
 
 # -------
