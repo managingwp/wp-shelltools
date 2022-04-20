@@ -166,17 +166,17 @@ collect_nginx () {
 	
 		if [[ $GP_EXCLUDE ]]; then
                 _debug "Exclude GridPane access logs '/access.log$|staging|canary|gridpane|.gz'"
-                NGINX_LOGS=$(ls -aSd $NGINX_LOG_PATH/* | egrep $LOG_GREP | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
+                NGINX_LOGS=$(ls -aSd $NGINX_LOG_PATH/* | egrep "$LOG_GREP" | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
         else
                 _debug "Including GridPane access logs '/access.log$|staging|canary|gridpane|.gz'"
                 NGINX_LOGS=$(ls -aSd $NGINX_LOG_PATH/* | egrep "$LOG_GREP" | grep -v '.gz' | tr '\n' ' ')
         fi
 		_debug "\$NGINX_LOGS = ${NGINX_LOGS}"
 
-        if [[ -f $NGINX_LOGS ]]; then		
-			echo " -- Found ${NGINX_LOGS}"
-		else
+        if [[ -f $NGINX_LOGS ]]; then
 			_error "Didn't find any Nginx Access logs"			
+		else
+			echo " -- Found ${NGINX_LOGS}"
 		fi
 }
 
