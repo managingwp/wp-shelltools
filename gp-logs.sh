@@ -27,7 +27,7 @@ OLS_LOG_PATH="/usr/local/lsws/logs"
 (( TEST >= "1" )) && LOG_FILES+=("$SCRIPTPATH/tests/test.log")
 SYS_LOGS=("/var/log/syslog")
 OLS_LOGS=("$OLS_LOG_PATH/stderr.log" "$OLS_LOG_PATH/error.log" "$OLS_LOG_PATH/lsrestart.log")
-NGINX_LOGS=("$NGINX_LOG_PATH/error_log")
+NGINX_LOGS=("$NGINX_LOG_PATH/error.log")
 GP_LOGS=("$GPOPT/gpclone.log" "$GPOPT/gpdailyworker.log" "$GPOPT/gphourlyworker.log" "$GPOPT/gpworker.log")
 GP_BACKUP_LOGS=("$GPOPT/backup.log" "$GPOPT/backup.error.log" "$GPOPT/backups.monitoring.log")
 
