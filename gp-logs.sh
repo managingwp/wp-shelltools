@@ -169,8 +169,7 @@ collect_nginx () {
                 NGINX_LOGS=$(ls -aSd $NGINX_LOG_PATH/* | egrep $LOG_GREP | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
         else
                 _debug "Including GridPane access logs '/access.log$|staging|canary|gridpane|.gz'"
-				_debug "ls -aSd $NGINX_LOG_PATH/* | grep $LOG_GREP | grep -v '.gz' | tr '\n' ' '"
-                NGINX_LOGS=$(ls -aSd $NGINX_LOG_PATH/* | grep $LOG_GREP | grep -v '.gz' | tr '\n' ' ')
+                NGINX_LOGS=$(ls -aSd $NGINX_LOG_PATH/* | egrep "$LOG_GREP" | grep -v '.gz' | tr '\n' ' ')
         fi
 		_debug "\$NGINX_LOGS = ${NGINX_LOGS}"
 
