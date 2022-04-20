@@ -256,6 +256,7 @@ fi
 
 # -- Check if there are any logs to run against.
 if [[ -z $LOG_FILES ]]; then
+	_debug "\$LOG_FILES = $LOG_FILES"
         _error "No logs files found at all, exiting"
         exit 1
 else
