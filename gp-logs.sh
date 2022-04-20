@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-# - gp-logcode
+# ----------
+# -- gp-logs
+# ----------
+
+# ------------
 # -- functions
+# ------------
 . $(dirname "$0")/functions.sh
 _debug "Loading functions.sh"
 
@@ -16,9 +21,9 @@ done
 _debug "args: $@"
 _debug "getopts: \$LOGS=$LOGS \$COMMAND=$COMMAND \$GP_EXCLUDE=$GP_EXCLUDE"
 
-# --
+# ------------
 # -- Variables
-# --
+# ------------
 GPOPT="/opt/gridpane"
 GPLP="/opt/gridpane/logs"
 NGINX_LOG_PATH="/var/log/nginx"
@@ -26,20 +31,22 @@ OLS_LOG_PATH="/usr/local/lsws/logs"
 
 (( TEST >= "1" )) && LOG_FILES+=("$SCRIPTPATH/tests/test.log")
 SYS_LOGS=("/var/log/syslog")
+NGINX_LOGS=("$NGINX_LOG_PATH/error.log" "$NGINX_LOG_PATH/access.log")
 OLS_LOGS=("$OLS_LOG_PATH/stderr.log" "$OLS_LOG_PATH/error.log" "$OLS_LOG_PATH/lsrestart.log")
 GP_LOGS=("$GPOPT/gpclone.log" "$GPOPT/gpdailyworker.log" "$GPOPT/gphourlyworker.log" "$GPOPT/gpworker.log")
 GP_BACKUP_LOGS=("$GPOPT/backup.log" "$GPOPT/backup.error.log" "$GPOPT/backups.monitoring.log")
+PHP_FPM_LOGS=("/var/log/php")
 
-# --------
-# -- Debug
-# --------
+# ------------
+# -- debug all
+# ------------
 _debug_all $@
 
 # ------------
 # -- functions
 # ------------
 
-# Usage
+# -- Usage
 usage () {
 	echo "Usage: $SCRIPT_NAME -c [tail|last|test] -l [all|web|system|gp|fpm] (-e)"
         echo ""
@@ -68,6 +75,7 @@ usage () {
         echo ""
 }
 
+# -- start_logs
 start_logs () {
 	echo ""
 	read -p " -- Press [Enter] to start"
@@ -75,6 +83,7 @@ start_logs () {
 	
 }
 
+# -- collect_logs
 collect_logs () {
 	_debug_function
 	# all = Include all logs.
@@ -86,19 +95,21 @@ collect_logs () {
 	if [[ $LOGS == "all" ]]; then
 		_debug "Collect logs: all"
 		collect_system_logs
-		collect_access-logs
-		collect_web-logs
+		collect_webserver-logs
+		collect_web-logs both
+		collect_php-fpm-logs
 		collect_gridpane
 		collect_gridpane_backup
 	elif [[ $LOGS == "web-access" ]];then
-		collect_web-logs
-		collect_access_logs		
+		collect_webserver-logs
+		collect_web-logs access	
 	elif [[ $LOGS == "web-error" ]]; then
-		collect_web-error-logs
+		collect_web-logs error
+		collect_php-fpm-logs
 	elif [[ $LOGS == "web-all" ]]; then
-		collect_web-logs
-		collect_access-logs
-		collect_web-error-logs
+		collect_webserver-logs
+		collect_web-logs both	
+		collect_php-fpm-logs
 	elif [[ $LOGS == "system" ]]; then
 		collect_system_logs
 	elif [[ $LOGS == "gp" ]]; then
@@ -128,54 +139,59 @@ collect_system_logs () {
 	done
 }
 
-# -- access logs
+# -- collect_web-logs errors|access|both
 collect_web-logs () {
         _debug_function
         # Find logs
-        if [ -d "/var/log/nginx" ]; then
+        if [ -d $NGINX_LOG_PATH ]; then
                 _debug "Found nginx log directory"
-                sitelogsdir="/var/log/nginx"
-        elif [ -d "/var/log/lsws" ]; then
-                _debug "found OLS log directory"
-                sitelogsdir="/var/log/lsws"
+                collect_nginx $1
+        elif [ -d $OLS_LOG_PATH ]; then
+                _debug "Found OLS log directory"
+                collect_ols $1
         else
         	_error "-- Didn't find access logs directory for OLS or Nginx"
         fi
+}
 
-        # Grab logs
-        if [[ $GP_EXCLUDE ]]; then
+# -- collect_access-logs-nginx -- grab Nginx log files.
+collect_nginx () {        
+		# Choose what logs to return based on $1
+		if [[ $1 == "error" ]] || [[ $1 == "access" ]]; then
+			LOG_GREP="$1"
+		elif [[ $1 == "both" ]]; then
+			LOG_GREP="error|access"
+		fi
+		_debug "\$LOG_GREP:$LOG_GREP"
+	
+		if [[ $GP_EXCLUDE ]]; then
                 _debug "Exclude GridPane access logs '/access.log$|staging|canary|gridpane|.gz'"
-                SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep 'access' | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
+                NGINX_LOGS=$(ls -aSd $NGINX_LOG_PATH/* | egrep \'$LOG_GREP\' | egrep -v '/access.log$|staging|canary|gridpane|.gz' | tr '\n' ' ')
         else
                 _debug "Including GridPane access logs '/access.log$|staging|canary|gridpane|.gz'"
-                SITE_LOGS=$(ls -aSd $sitelogsdir/* | grep 'access' | grep -v '.gz' | tr '\n' ' ')
+                NGINX_LOGS=$(ls -aSd $NGINX_LOG_PATH/* | grep \'$LOG_GREP\' | grep -v '.gz' | tr '\n' ' ')
         fi
-        _debug "\$SITE_LOGS=${SITE_LOGS}"
+        if [[ -f $NGINX_LOGS ]]; then
+			_debug "\$NGINX_LOGS = ${NGINX_LOGS}"
+			echo " -- Found ${NGINX_LOGS}"
+		else
+			_error "Didn't find any Nginx Access logs"
+		fi
+}
+
+collect_ols () {
+	_debug "Not completed"
+	echo "-- Not completed"
 }
 
 
-# -- web-logs log files
-collect_web-logs () {
+# -- collect_webserver-logs
+collect_webserver-logs () {
 	_debug_function
-	# OLS logs
-	if [[ -d $OLS_LOG_PATH ]]; then
-		echo "-- Checking for OLS log files"
-		for OLS_LOG in "${OLS_LOGS[@]}"; do
-			echo -n "  -- Checking $OLS_LOGS"
-			if [ -f $OLS_LOGS ]; then
-				_success "   -- Found $OLS_LOGS"
-				LOG_FILES+=("$OLS_LOGS")
-			else 
-				_error "   -- Didn't find $OLS_LOGS"
-			fi
-		done
-	else
-		_error "-- Didn't find OLS logs"
-	fi
 
 	# Nginx logs
 	if [[ -d $NGINX_LOG_PATH ]]; then
-		echo " -- Checking for NGINX log files"
+		echo " -- Checking for NGINX webserver logs"
 		for NGINX_LOG in "${NGINX_LOGS[@]}"; do
 			echo -n "  -- Checking $NGINX_LOG"
 			if [ -f $NGINX_LOG ]; then
@@ -186,7 +202,23 @@ collect_web-logs () {
 		        fi
 		done
 	else
-		_error "-- Didn't find Nginx logs"
+		_error "-- Didn't find Nginx webserver logs"
+	fi
+
+	# OLS logs
+	if [[ -d $OLS_LOG_PATH ]]; then
+		echo "-- Checking for OLS web server logs"
+		for OLS_LOG in "${OLS_LOGS[@]}"; do
+			echo -n "  -- Checking $OLS_LOGS"
+			if [ -f $OLS_LOGS ]; then
+				_success "   -- Found $OLS_LOGS"
+				LOG_FILES+=("$OLS_LOGS")
+			else 
+				_error "   -- Didn't find $OLS_LOGS"
+			fi
+		done
+	else
+		_error "-- Didn't find OLS web server logs"
 	fi
 }
 
@@ -206,9 +238,9 @@ collect_gridpane () {
 
 
 collect_gridpane_backup () {
-# GridPane Backup specific log files
-echo "-- Checking for GridPane Backup log files"
-for GP_BACKUP_LOG in "${GP_BACKUP_LOGS[@]}"; do
+	# GridPane Backup specific log files
+	echo "-- Checking for GridPane Backup log files"
+	for GP_BACKUP_LOG in "${GP_BACKUP_LOGS[@]}"; do
         echo -n "  -- Checking $GP_BACKUP_LOG"
         if [ -f $GP_BACKUP_LOG ]; then
                 _success "   -- Found $GP_BACKUP_LOG"
@@ -216,47 +248,30 @@ for GP_BACKUP_LOG in "${GP_BACKUP_LOGS[@]}"; do
         else
                 _error "   -- Didn't find $GP_BACKUP_LOG"
         fi
-done
-}
-	
-collect_accesslogs () {
-# -- Check for website log files
-if [[ $ACCESS_LOGS == "1" ]]; then
-	# Access logs
-	_debug "Including web access logs"
-	echo "  -- Checking for site log files"
-	_getsitelogs
-
-	if [[ -z $SITE_LOGS ]]; then
-		_error "    -- No web logs files found"
-	else
-		_success "    -- Found web log files"
-		_debug "    -- Found log files - ${SITE_LOGS[@]}"
-		LOG_FILES+=("$SITE_LOGS")
-	fi
-
-	# Locate FPM logs.
-	for file in /var/log/php/*/fpm.log; do
-        	_debug "fpm file - $file"
-	        FPM_LOGS+=("$file")
 	done
+}
 
+collect_php-fpm-logs () {
 	# PHP FPM log files
 	echo "-- Checking PHP FPM log files"
-	for FPM_LOG in "${FPM_LOGS[@]}"; do
-	        echo -n "  -- Checking $FPM_LOG"
-        	if [ -f $FPM_LOG ]; then
-                	_success "   -- Found $FPM_LOG"
-	                LOG_FILES+=("$FPM_LOG")
-	        else
-        	        _error "   -- Didn't find $FPM_LOG"
-	        fi
-	done
-else
-	_debug "Not including web access logs"
-fi
+
+	if [ "$(find "$PHP_FPM_LOGS" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
+        _debug "Found PHP log directories"
+        for name in $PHP_FPM_LOGS/*/*; do
+			_debug "Found $name"
+		done		
+	else
+		_debug "Not including PHP FPM logs"
+	fi
+	# Old Method
+	# Locate FPM logs.
+	#for file in /var/log/php/*/fpm.log; do
+    #    	_debug "fpm file - $file"
+	#        FPM_LOGS+=("$file")
+	#done
 }
 
+# -- check_logs -- most likely not needed anymore
 check_logs () {
 	# -- Check if there are any logs to run against.
 	if [[ -z $LOG_FILES ]]; then
