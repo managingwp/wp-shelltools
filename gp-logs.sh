@@ -301,9 +301,9 @@ fi
 if [[ $COMMAND = 'tail' ]]; then
 	echo " -- Starting to tail logs"
 	collect_logs
-	echo " -- Tailing files $LOG_FILES"
+	echo " -- Tailing files ${LOG_FILES[@]}"
 	start_logs
-        tail -f "$LOG_FILES"
+        tail -f "${LOG_FILES[@]}"
 elif [[ $COMMAND = 'last' ]]; then
 	echo " -- Starting to tail logs"
 	collect_logs
