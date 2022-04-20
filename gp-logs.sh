@@ -176,7 +176,8 @@ collect_nginx () {
         if [[ -f $NGINX_LOGS ]]; then
 			_error "Didn't find any Nginx Access logs"			
 		else
-			echo " -- Found ${NGINX_LOGS}"
+			for LOG in "${NGINX_LOGS[@]}"; do
+				_success "   -- Found $LOG"			
 		fi
 }
 
