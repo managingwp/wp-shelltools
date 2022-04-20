@@ -172,6 +172,7 @@ collect_nginx () {
                 NGINX_LOGS=$(ls -aSd $NGINX_LOG_PATH/* | egrep "$LOG_GREP" | grep -v '.gz' | tr '\n' ' ')
         fi
 		_debug "\$NGINX_LOGS = ${NGINX_LOGS}"
+		$NGINX_LOGS=(${NGINX_LOGS//$'\n'/ })
 
         if [[ -f $NGINX_LOGS ]]; then
 			_error "Didn't find any Nginx Access logs"			
@@ -195,13 +196,13 @@ collect_webserver-logs () {
 	# Nginx logs
 	if [[ -d $NGINX_LOG_PATH ]]; then
 		echo " -- Checking for NGINX webserver logs"
-		for NGINX_LOG in "${NGINX_LOGS[@]}"; do
-			echo -n "  -- Checking $NGINX_LOG"
-			if [ -f $NGINX_LOG ]; then
-		        	_success "   -- Found $NGINX_LOG"
-		                 LOG_FILES+=("$NGINX_LOG")
+		for LOG in "${NGINX_LOGS[@]}"; do
+			echo -n "  -- Checking $LOG"
+			if [ -f $LOG ]; then
+		        	_success "   -- Found $LOG"
+		                 LOG_FILES+=("LOG")
 		        else
-		        	_error "   -- Didn't find $NGINX_LOG"
+		        	_error "   -- Didn't find $LOG"
 		        fi
 		done
 	else
