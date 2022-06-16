@@ -175,3 +175,26 @@ tool_api () {
 	gp-api.sh $@
 }
 
+# -- _cexists -- Returns 0 if command exists or 1 if command doesn't exist
+_cexists () {
+        if (( $+commands[$@] )); then
+            _debug $(which $1)
+                if [[ $ZSH_DEBUG == 1 ]]; then
+                        _debug "$@ is installed";
+                fi
+                CMD_EXISTS="0"
+        else
+                if [[ $ZSH_DEBUG == 1 ]]; then
+                        _debug "$@ not installed";
+                fi
+                CMD_EXISTS="1"
+        fi
+        return $CMD_EXISTS
+}
+
+_checkroot () {
+        _debug_function
+    if [[ $EUID -ne 0 ]]; then
+        _error "Requires root...exiting."
+    return
+   
