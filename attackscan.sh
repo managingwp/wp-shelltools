@@ -68,7 +68,7 @@ scan () {
         LOG_FILES=($(ls ${LOGS}/*.access.log))
         for SITE in "${LOG_FILES[@]}"; do
              echo "** Parsing ${SITE} for top common attack requests serving 200 status code"
-             cat ${SITE} | awk {' print $7 "," $1 "," $8 '} | sed 's/"//' | grep -v "redirect_to" | grep "200" | egrep -e "xmlrpc|wp-login" | sort | uniq -c | sort -nr | head -n ${LINES}
+             cat ${SITE} | awk {' print $3 "," $8 "," $10 '} | sed 's/"//' | grep -v "redirect_to" | grep "200" | egrep -e "xmlrpc|wp-login" | sort | uniq -c | sort -nr | head -n ${LINES}
              echo "======================"
         done	
 	fi
