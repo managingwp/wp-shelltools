@@ -51,6 +51,18 @@ top () {
 		fi
 }
 
+scan () {
+	SERVER=$1
+	LOGS=$2
+	
+	echo "Server: $SERVER - Logs: $LOGS"
+	if [[ $SERVER == "ols" ]]; then
+		echo "ols"
+	elif [[ $SERVER == "nginx" ]]; then
+		echo "nginx"
+	fi
+}
+
 # -- main
 if [[ -z $1 ]]; then
         usage
