@@ -54,10 +54,18 @@ top () {
 scan () {
 	SERVER=$1
 	LOGS=$2
+	LINES=$3
 	
-	echo "Server: $SERVER - Logs: $LOGS"
+	echo "Server: $SERVER - Logs: $LOGS - Lines: $LINES" 
 	if [[ $SERVER == "ols" ]]; then
 		echo "ols"
+		LOG_FILES=($(ls ${LOGS}/*.access.log))
+		for SITE in "${LOG_FILES[@]}"; do
+			 echo "** Parsing ${SITE} for top common attack requests serving 200 status code"
+             cat ${SITE} | awk {' print $7 " " $8'} | head -n ${LINES}
+             # | sort | uniq -c | sort -nr | head -n ${LINES}
+             echo "======================"
+        done
 	elif [[ $SERVER == "nginx" ]]; then
 		echo "nginx"
 	fi
@@ -83,19 +91,21 @@ else
     exit 1
 fi
 
+# -- lines
+LINES=""
+if [[ -n $2 ]]; then
+	LINES="$2"
+else
+	LINES="10"
+fi
+
 # -- top command
 if [[ $1 == "-top" ]]; then
-        # -- lines to output
-    LINES=""
-    if [[ -n $2 ]]; then
-        LINES="$2"
-    else
-        LINES="10"
-    fi
     echo " -- Showing top $LINES requests per log file"
-        top $SERVER $LOGS $LINES
+    top $SERVER $LOGS $LINES
 # -- scan command
 elif [[ $1 == "-scan" ]]; then
-        echo " - Running a scan for common attack requests"
-        scan ols
+    echo " - Running a scan for common attack requests"
+	scan $SERVER $LOGS $LINES
 fi
+
