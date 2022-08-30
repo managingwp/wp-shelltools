@@ -78,4 +78,4 @@ elif [[ $1 == "-scan" ]]; then
         echo " - Running a scan for common attack requests"
 
         scan ols
-fi#  
+fi
