@@ -9,10 +9,17 @@ TIME_FORMAT='%H:%M:%S %Z\'
 
 
 # -- Check args.
-if [ -v $1 ]; then
+if [[ -v $1 ]]; then
 	echo "usage: gp-goaccess <domain.com>"
 	return
 fi	
+
+# -- check for goaccess binary
+if [[ _cexists goaccess == "1" ]]; then
+	echo " -- goaccess installed"
+else
+	echo " -- goaccess not installed"
+fi
 
 # Main
 if [ $1 = "-a" ]; then

@@ -9,8 +9,8 @@ VERSION="0.4.0"
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 REQUIRED_APPS=("jq" "column")
-[[ -f .test ]] && TEST=$(<$SCRIPTPATH/.test) || TEST="0"
-[[ -f .debug ]] && DEBUG=$(<$SCRIPTPATH/.debug) || DEBUG="0"
+[[ -f $SCRIPTPATH/.test ]] && TEST=$($SCRIPTPATH/.test) || TEST="0"
+[[ -f $SCRIPTPATH/.debug ]] && DEBUG=$($SCRIPTPATH/.debug) || DEBUG="0"
 [[ -z $DEBUG ]] && DEBUG="0"
 [[ -z $TEST ]] && TEST="0"
 
@@ -175,3 +175,26 @@ tool_api () {
 	gp-api.sh $@
 }
 
+# -- _cexists -- Returns 0 if command exists or 1 if command doesn't exist
+_cexists () {
+        if (( $+commands[$@] )); then
+            _debug $(which $1)
+                if [[ $ZSH_DEBUG == 1 ]]; then
+                        _debug "$@ is installed";
+                fi
+                CMD_EXISTS="0"
+        else
+                if [[ $ZSH_DEBUG == 1 ]]; then
+                        _debug "$@ not installed";
+                fi
+                CMD_EXISTS="1"
+        fi
+        return $CMD_EXISTS
+}
+
+_checkroot () {
+        _debug_function
+    if [[ $EUID -ne 0 ]]; then
+        _error "Requires root...exiting."
+    return
+   
