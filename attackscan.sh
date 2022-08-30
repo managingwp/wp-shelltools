@@ -58,16 +58,19 @@ scan () {
 	
 	echo "Server: $SERVER - Logs: $LOGS - Lines: $LINES" 
 	if [[ $SERVER == "ols" ]]; then
-		echo "ols"
 		LOG_FILES=($(ls ${LOGS}/*.access.log))
 		for SITE in "${LOG_FILES[@]}"; do
 			 echo "** Parsing ${SITE} for top common attack requests serving 200 status code"
-             cat ${SITE} | awk {' print $7 " " $8'} | head -n ${LINES}
-             # | sort | uniq -c | sort -nr | head -n ${LINES}
+             cat ${SITE} | awk {' print $7 "," $1 "," $9 '} | sed 's/"//' | grep -v "redirect_to" | grep "200" | egrep -e "xmlrpc|wp-login" | sort | uniq -c | sort -nr | head -n ${LINES}
              echo "======================"
         done
 	elif [[ $SERVER == "nginx" ]]; then
-		echo "nginx"
+        LOG_FILES=($(ls ${LOGS}/*.access.log))
+        for SITE in "${LOG_FILES[@]}"; do
+             echo "** Parsing ${SITE} for top common attack requests serving 200 status code"
+             cat ${SITE} | awk {' print $7 "," $1 "," $8 '} | sed 's/"//' | grep -v "redirect_to" | grep "200" | egrep -e "xmlrpc|wp-login" | sort | uniq -c | sort -nr | head -n ${LINES}
+             echo "======================"
+        done	
 	fi
 }
 
