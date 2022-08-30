@@ -55,7 +55,7 @@ if [[ -d $OLS_LOG_DIR ]]; then
         LOGS="/var/log/ols"
 elif [[ -d /var/log/nginx ]]; then
         echo " -- Found Nginx logs at /var/log/nginx"
-        server="nginx"
+        SERVER="nginx"
         LOGS="/var/log/nginx"
 else
         _error "Didn't find any logs"
