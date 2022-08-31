@@ -71,3 +71,8 @@ You can now simply type the following at anytime.
 attackscan.sh
 ```
 
+# FAQ
+## Why would I use this script?
+This should will help identify requests that could potentially be causing an increase in resource usage on your server. Or highlight potential common attacks that spike resource usage, effectively causing your server to be at capacity prematurely.
+## Do you support other platforms beside GridPane
+Yes, simply create an issue with the platform and we'll look into support it.
