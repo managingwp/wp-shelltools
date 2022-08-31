@@ -2,29 +2,34 @@
 Table of Contents
 =================
 
-* [gp-tools](#gp-tools)
-* [Resources](#resources)
+* [Table of Contents](#table-of-contents)
+* [wp-shelltools](#wp-shelltools)
+* [Rename from gp-tools to wp-shelltools](#rename-from-gp-tools-to-wp-shelltools)
 * [Donate](#donate)
 * [Install](#install)
    * [Requirements](#requirements)
-* [Tools](#tools)
-   * [<a href="gp-goaccess.md">gp-goaccess</a>](#gp-goaccess)
-   * [<a href="gp-api.md">gp-api</a>](#gp-api)
-   * [<a href="gp-plugins.md">gp-plugins</a>](#gp-plugins)
-* [Debugging](#debugging)
+* [Help](#help)
+   * [Help Command](#help-command)
+   * [Advanced Documentation](#advanced-documentation)
+      * [<a href="gp-goaccess.md">gp-goaccess</a>](#gp-goaccess)
+      * [<a href="gp-api.md">gp-api</a>](#gp-api)
+      * [<a href="gp-plugins.md">gp-plugins</a>](#gp-plugins)
+      * [<a href="attackscan.md">attackscan.sh</a>](#attackscansh)
+   * [Debugging](#debugging)
 * [Future Features](#future-features)
+* [Donate](#donate-1)
+* [Resources](#resources)
 <!--te--> 
 
-# gp-tools
-The goal of this project is to make it easy to manage and maintain GridPane servers.
+# wp-shelltools
+The goal of this project is to make it easy to manage and maintain WordPress servers.
 
-# Resources
-* [Managing WP](https://mangingwp.io) - WordPress Articles and more!
-* [Managing WordPress](https://www.facebook.com/groups/managingwordpress) - Created and managed by me.
-* [Managing WordPress Discord](https://discord.gg/QCsHM234zh) - Come and chat about WordPress
-* [GridPane Facebook Group](https://www.facebook.com/groups/selfmanagedwordpress) - Managed by GridPane and full of customers and WordPress community members.
+## Rename from gp-tools to wp-shelltools
+I made the decision to change the name of this repository from gp-tools to wp-shelltools as the focus is not provider agnostic.
 
-# Donate
+You might find that there are still tools and functions that have gridpane or gp in their name. This will change when it becomes a priority.
+
+## Donate
 Stepped Tea, ocasional Coffee, Beer, Scotch, Chicken Wings help me through the day, so feel free to buy me one :0
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://wpinfo.net/sponsor/)
@@ -41,15 +46,16 @@ git clone https://github.com/jordantrizz/gpcli.git ~/gpcli;~/gpcli/gpcli -c inst
 ```
 
 # Help
+## Help Command
 Simply run the following command to get a list of available tools
 ```
-gp-tools help
+wp-shelltools help
 ```
 Here's a list of all commands
 ```
--- Loading gp-tools - v0.0.1
+-- Loading wp-shelltools - v0.0.1
 
-gp-tools help
+wp-shelltools help
 -----------------------------------
   help goaccess        - Process GridPane logs with goaccess
   help backups         - List backups for all sites on the server.
@@ -61,21 +67,23 @@ gp-tools help
 
 Examples:
  --
-  gp-tools goaccess
-  gp-tools log
+  wp-shelltools goaccess
+  wp-shelltools log
 ```
 
-# Advanced Help
+## Advanced Documentation
 Below is help for the advanced tools.
 
-## [gp-goaccess](gp-goaccess.md)
+### [gp-goaccess](gp-goaccess.md)
 * Provides the appropriate commands to run goaccess on GridPane Nginx log files.
-## [gp-api](gp-api.md)
+### [gp-api](gp-api.md)
 * Wrapper to the GP API.
-## [gp-plugins](gp-plugins.md)
+### [gp-plugins](gp-plugins.md)
 * Traverses all sites on a server (excluding system sites) and lists plugins or gets status on a single plugin
+### [attackscan.sh](attackscan.md)
+* Parses Nginx and OLS web server access logs to find top number of requests and common attack requests for WordPress.
 
-# Debugging
+## Debugging
 Add a .debug file to any directory to get debug information.
 
 # Future Features
@@ -83,3 +91,14 @@ Add a .debug file to any directory to get debug information.
 * MySQL Database Checks - Check for anomiles, myisam, large table sizes, large databases. 
 * MySQL Database Report - Largest Databases + more.
 * CLI to API - A CLI to the GridPane API.
+
+# Donate
+Stepped Tea or Coffee, help me thrugh the day. :0
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://managingwp.io/sponsor/)
+
+# Resources
+* [Managing WP](https://mangingwp.io) - WordPress Articles and more!
+* [Managing WordPress](https://www.facebook.com/groups/managingwordpress) - Created and managed by me.
+* [Managing WordPress Discord](https://discord.gg/QCsHM234zh) - Come and chat about WordPress
+* [GridPane Facebook Group](https://www.facebook.com/groups/selfmanagedwordpress) - Managed by GridPane and full of customers and WordPress community members.

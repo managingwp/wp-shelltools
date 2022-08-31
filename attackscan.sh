@@ -1,8 +1,6 @@
 #!/bin/bash
-# v0.0.2
-
 # -- Variables
-VERSION="0.0.2"
+VERSION="0.0.3"
 SCRIPT="attackscan.sh"
 OLS_LOG_DIR="/var/log/ols"
 NGINX_LOG_DIR="/var/log/nginx"
@@ -14,16 +12,22 @@ _error () {
 
 # -- usage
 usage () {
-        echo "$SCRIPT [-top <number>|-scan]"
+        echo "$SCRIPT [-top <lines>|-scan]"
         echo "Version: $VERSION"
+		echo ""
+		echo "Parses Nginx and OLS web server access logs to find top number of requests and common attack requests for WordPress."
         echo ""
-        echo "Commands"
-        echo " -top      -Show top number of requests, defaults to 10 unless specified"
-        echo " -scan     -Scan for common attack requests that return a 200 status code"
+        echo "Commands:"
+        echo " -top         -List top number of requests from the webserver access log."
+        echo " -scan        -List common attack requests that return a 200 status code, by IP address."
+		echo ""
+		echo "Options:"
+		echo " <lines>   -How many lines to show, if not specified defaults to 10"
         echo ""
         echo "Examples"
         echo "   $SCRIPT -top 20"
         echo "   $SCRIPT -scan"
+        echo ""
 }
 
 # -- top-ols $SERVER $LOGS $LINES
@@ -60,14 +64,14 @@ scan () {
 	if [[ $SERVER == "ols" ]]; then
 		LOG_FILES=($(ls ${LOGS}/*.access.log))
 		for SITE in "${LOG_FILES[@]}"; do
-			 echo "** Parsing ${SITE} for top common attack requests serving 200 status code"
+			 echo "** Parsing ${SITE}"
              cat ${SITE} | awk {' print $7 "," $1 "," $9 '} | sed 's/"//' | grep -v "redirect_to" | grep "200" | egrep -e "xmlrpc|wp-login" | sort | uniq -c | sort -nr | head -n ${LINES}
              echo "======================"
         done
 	elif [[ $SERVER == "nginx" ]]; then
         LOG_FILES=($(ls ${LOGS}/*.access.log))
         for SITE in "${LOG_FILES[@]}"; do
-             echo "** Parsing ${SITE} for top common attack requests serving 200 status code"
+             echo "** Parsing ${SITE}"
              cat ${SITE} | awk {' print $3 "," $8 "," $10 '} | sed 's/"//' | grep -v "redirect_to" | grep "200" | egrep -e "xmlrpc|wp-login" | sort | uniq -c | sort -nr | head -n ${LINES}
              echo "======================"
         done	
