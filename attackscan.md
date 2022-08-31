@@ -74,5 +74,7 @@ attackscan.sh
 # FAQ
 ## Why would I use this script?
 This should will help identify requests that could potentially be causing an increase in resource usage on your server. Or highlight potential common attacks that spike resource usage, effectively causing your server to be at capacity prematurely.
+## Why did you create this script?
+I required a quick way to see what were the top requests being served, and to confirm if common resource based attacks on WordPress were being carried out due to no preventative measures being in place.
 ## Do you support other platforms beside GridPane
 Yes, simply create an issue with the platform and we'll look into support it.
