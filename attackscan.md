@@ -78,3 +78,11 @@ This should will help identify requests that could potentially be causing an inc
 I required a quick way to see what were the top requests being served, and to confirm if common resource based attacks on WordPress were being carried out due to no preventative measures being in place.
 ## Do you support other platforms beside GridPane
 Yes, simply create an issue with the platform and we'll look into support it.
+
+# Documentation
+## Parsing Method for -scan command
+The parsing method for -scan is rather simple using grep. Here is the full command.
+```
+grep -v "redirect_to" | grep "200" | egrep -e "xmlrpc|wp-login"
+```
+As you can see "redirect_to" is parsed out because the request was answered and redirecting, versus a direct POST request to the wp-login page.
