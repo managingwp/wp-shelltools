@@ -86,3 +86,10 @@ The parsing method for -scan is rather simple using grep. Here is the full comma
 grep -v "redirect_to" | grep "200" | egrep -e "xmlrpc|wp-login"
 ```
 As you can see "redirect_to" is parsed out because the request was answered and redirecting, versus a direct POST request to the wp-login page.
+## Log File Formats
+### GP OLS
+* ```logFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"```
+* ```"192.168.1.1 - - [01/Sep/2022:20:16:55 -0700] "GET /favicon.ico HTTP/1.1" 200 103639 "https://domain.com/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36"```
+### GP Nginx
+* ```'[$time_local] $remote_addr $upstream_response_time $upstream_cache_status $http_host "$request" $status $body_bytes_sent $request_time "$http_referer" "$http_user_agent" "$http3"';```
+* ```[01/Sep/2022:20:20:07 -0700] 192.168.1.1 1.360 - domain.com "GET /favicon.ico HTTP/2.0" 302 0 1.362 "https://domain.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36"```

@@ -11,10 +11,10 @@ Table of Contents
 * [Help](#help)
    * [Help Command](#help-command)
    * [Advanced Documentation](#advanced-documentation)
-      * [<a href="gp-goaccess.md">gp-goaccess</a>](#gp-goaccess)
-      * [<a href="gp-api.md">gp-api</a>](#gp-api)
-      * [<a href="gp-plugins.md">gp-plugins</a>](#gp-plugins)
-      * [<a href="attackscan.md">attackscan.sh</a>](#attackscansh)
+      * [<a href="docs/gp-goaccess.md">gp-goaccess</a>](#gp-goaccess)
+      * [<a href="docs/gp-api.md">gp-api</a>](#gp-api)
+      * [<a href="docs/gp-plugins.md">gp-plugins</a>](#gp-plugins)
+      * [<a href="docs/attackscan.md">attackscan.sh</a>](#attackscansh)
    * [Debugging](#debugging)
 * [Future Features](#future-features)
 * [Donate](#donate-1)
@@ -74,13 +74,13 @@ Examples:
 ## Advanced Documentation
 Below is help for the advanced tools.
 
-### [gp-goaccess](gp-goaccess.md)
+### [gp-goaccess](docs/gp-goaccess.md)
 * Provides the appropriate commands to run goaccess on GridPane Nginx log files.
-### [gp-api](gp-api.md)
+### [gp-api](docs/gp-api.md)
 * Wrapper to the GP API.
-### [gp-plugins](gp-plugins.md)
+### [gp-plugins](docs/gp-plugins.md)
 * Traverses all sites on a server (excluding system sites) and lists plugins or gets status on a single plugin
-### [attackscan.sh](attackscan.md)
+### [attackscan.sh](docs/attackscan.md)
 * Parses Nginx and OLS web server access logs to find top number of requests and common attack requests for WordPress.
 
 ## Debugging
