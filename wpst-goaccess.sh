@@ -18,7 +18,7 @@ DEBUG_ON="0"
 # ------------
 
 usage () {
-    echo "Usage: wpst-goaccess [-d|-c] [-f (nginx|ols) [--domain domain.com|--all]"
+    echo "Usage: wpst-goaccess [-d|-c] [-f (nginx|ols) [-domain domain.com|--all]"
 	echo ""
 	echo "This script will try and detect log files in common locations, you can also"
 	echo "specify the platform and format using the options below"
@@ -183,14 +183,14 @@ case $key in
     DCMD+="DRY_RUN=1 "
     shift # past argument
     ;;
-    --domain)
+    -domain)
     ACTION="DOMAIN"
     DOMAIN="$2"
     DCMD+="ACTION=DOMAIN DOMAIN=$2 "
     shift # past argument
     shift # past value
     ;;
-	--all)
+	-all)
     ACTION="ALL"
     DCMD+="ACTION=ALL "
     shift # past argument
@@ -206,7 +206,7 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 _debug "Running wpst-goaccess $DCMD"
 _debug_all $@
 
-if [[ -n $ACTION ]]; then
+if [[ -z $ACTION ]]; then
 	usage
 	echo "Error: No action specified"
 else
