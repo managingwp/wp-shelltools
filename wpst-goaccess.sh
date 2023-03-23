@@ -39,20 +39,20 @@ usage () {
 }
 
 # -- check_goaccess
-check_goaccess () {	
+check_goaccess () {
 	_debug "Checking if goaccess is installed"
 	_cexists goaccess
 	_debug "\$CMD_EXISTS: $CMD_EXISTS"
 	if [[ $CMD_EXISTS == "1" ]]; then
 		_error "goaccess is not installed"
-		return 1
+		exit
 	else
 		_debug "Confirmed goaccess is installed"
 	fi
 }
 
 # -- set_format
-set_format () {		
+set_format () {
 	# Formats for goaccess
 	# OLS
 	# logformat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"
@@ -62,7 +62,7 @@ set_format () {
 		DATE_FORMAT='%d/%b/%Y'
 		TIME_FORMAT='%H:%M:%S %Z'
 	fi
-	
+
 	# NGINX
 	# log_format we_log '[$time_local] $remote_addr $upstream_response_time $upstream_cache_status $http_host "$request" $status $body_bytes_sent $request_time "$http_referer" "$http_user_agent" "$http3"';
 	# [14/Sep/2022:10:12:55 -0700] 129.168.0.1 - domain.com "GET /request.html HTTP/1.1" 200 47 1.538 "https://domain.com/referer.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36"
@@ -78,14 +78,14 @@ set_format () {
 		DATE_FORMAT='%d/%b/%Y'
 		TIME_FORMAT='%H:%M:%S %Z'
 	fi
-	
+
 	# GRIDPANE-OLS
 	if [[ $FORMAT == "GRIDPANE-OLS" ]]; then
         LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b \"%R\" \"%u\"\'
         DATE_FORMAT='%d/%b/%Y'
         TIME_FORMAT='%H:%M:%S %Z'
     fi
-	
+
     _debug "goaccess LOG_FORMAT = $LOG_FORMAT ## DATE_FORMAT = $DATE_FORMAT ## TIME_FORMAT = $TIME_FORMAT"
 }
 
@@ -93,7 +93,7 @@ detect_logs () {
 	echo "Detecting log files"
 
 	# GRIDPANE-OLS
-    if [[ -d /usr/local/lsws && -d /var/www/ ]]; then
+    if [[ -d /usr/local/lsws ]] && [[ -d /var/www/ ]]; then
         echo "Detected GridPane OLS logs"
         FORMAT="OLS"
         if [[ $ACTION == "ALL" ]]; then
@@ -103,8 +103,19 @@ detect_logs () {
             LOG_FILE_LOCATION="/var/www/$DOMAIN/logs"
             LOG_FILTER="*.access.log"
         fi
+    elif [[ -d /var/log/nginx ]] && [[ -d /var/www/ ]]; then
+        echo "Detected GridPane NGINX logs"
+        FORMAT="NGINX"
+        if [[ $ACTION == "ALL" ]]; then
+            LOG_FILE_LOCATION="/var/log/nginx"
+            LOG_FILTER="*.access.log*gz"
+        elif [[ $ACTION == "DOMAIN" ]]; then
+            LOG_FILE_LOCATION="/var/log/nginx"
+            LOG_FILTER="*${DOMAIN}*.access.log"
+        fi
 	# OLS
     elif [[ -d /usr/local/lsws ]]; then
+        echo "Detected OLS logs"
     	FORMAT="OLS"
     	if [[ $ACTION == "ALL" ]]; then
     		LOG_FILE_LOCATION="/var/www/*/logs"
@@ -115,6 +126,7 @@ detect_logs () {
 	    fi
 	# NGINX
     elif [[ -d /var/log/nginx ]]; then
+        echo "Detected GridPane Nginx logs"
     	LOG_FILE_LOCATION="/var/log/nginx"
 
 		if [[ $ACTION == "ALL" ]]; then
@@ -129,8 +141,8 @@ detect_logs () {
 }
 
 # -- do_goaccess
-do_goaccess () {    
-	_debug "Webserver detected as $WEB_SERVER"
+do_goaccess () {
+	_debug "Format: $FORMAT Log File Location:$LOG_FILE_LOCATION Log Filter: $LOG_FILTER"
 
 	if [[ $ACTION == "DOMAIN" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
@@ -209,7 +221,13 @@ _debug_all $@
 if [[ -z $ACTION ]]; then
 	usage
 	echo "Error: No action specified"
+    exit
 else
+    if [[ $ACTION == "DOMAIN" ]] && [[ -z $DOMAIN ]]; then
+        usage
+        echo "Error: specify a domain"
+        exit
+    fi
 	_debug "goaccess arguments - ${*}"
 	check_goaccess
 	detect_logs
