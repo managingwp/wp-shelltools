@@ -22,16 +22,11 @@ Table of Contents
 <!--te--> 
 
 # wp-shelltools
-The goal of this project is to make it easy to manage and maintain WordPress servers.
-
-## Rename from gp-tools to wp-shelltools
-I made the decision to change the name of this repository from gp-tools to wp-shelltools as the focus is not provider agnostic.
+The goal of this project is to make it easy to manage and maintain WordPress servers using shell scripting. This repository was original named gp-tools, but decided to make it provider agnostic
 
 You might find that there are still tools and functions that have gridpane or gp in their name. This will change when it becomes a priority.
 
-## Donate
-Stepped Tea, ocasional Coffee, Beer, Scotch, Chicken Wings help me through the day, so feel free to buy me one :0
-
+# Donate
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://wpinfo.net/sponsor/)
 
 # Install
@@ -46,7 +41,6 @@ git clone https://github.com/jordantrizz/gpcli.git ~/gpcli;~/gpcli/gpcli -c inst
 ```
 
 # Help
-## Help Command
 Simply run the following command to get a list of available tools
 ```
 wp-shelltools help
@@ -71,19 +65,21 @@ Examples:
   wp-shelltools log
 ```
 
-## Advanced Documentation
+# Directories
+* dawn-mover - GridPane's prime-mover recoded but broken, it's a mess.
+* docs - Advanced documentation.
+* tests - any test data.
+* unfinished - code that is untested or needs to be moved into core.
+
+# Advanced Documentation
 Below is help for the advanced tools.
+* [wpst-goaccess](docs/wpst-goaccess.md)
+* [gp-api](docs/gp-api.md)
+* [gp-plugins](docs/gp-plugins.md)
+* [attackscan.sh](docs/attackscan.md)
+* [dawn-mover](dawn-mover/README.md)
 
-### [gp-goaccess](docs/gp-goaccess.md)
-* Provides the appropriate commands to run goaccess on GridPane Nginx log files.
-### [gp-api](docs/gp-api.md)
-* Wrapper to the GP API.
-### [gp-plugins](docs/gp-plugins.md)
-* Traverses all sites on a server (excluding system sites) and lists plugins or gets status on a single plugin
-### [attackscan.sh](docs/attackscan.md)
-* Parses Nginx and OLS web server access logs to find top number of requests and common attack requests for WordPress.
-
-## Debugging
+# Debugging
 Add a .debug file to any directory to get debug information.
 
 # Future Features
@@ -92,9 +88,12 @@ Add a .debug file to any directory to get debug information.
 * MySQL Database Report - Largest Databases + more.
 * CLI to API - A CLI to the GridPane API.
 
-# Donate
-Stepped Tea or Coffee, help me thrugh the day. :0
+# ToDo
+* Go through unfinished directory code.
+* Better documentation
+* Place some scripts into functions or separate files not inside root for a cleaner directory structure and code management.    
 
+# Donate
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://managingwp.io/sponsor/)
 
 # Resources

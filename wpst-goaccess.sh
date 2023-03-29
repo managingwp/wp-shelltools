@@ -73,6 +73,7 @@ set_format () {
     fi
 
 	# GRIDPANE-NGINX
+	# ./common/logging.conf:log_format we_log '[$time_local] $remote_addr $upstream_response_time $upstream_cache_status $http_host "$request" $status $body_bytes_sent $request_time "$http_referer" "$http_user_agent"';
 	if [[ $FORMAT == "GRIDPANE-NGINX" ]]; then
 		LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b \"%R\" \"%u\"\'
 		DATE_FORMAT='%d/%b/%Y'
