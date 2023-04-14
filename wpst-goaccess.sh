@@ -254,22 +254,19 @@ key="$1"
 case $key in
     -platform)
     PLATFORM="$2"
+	DCMD+="PLATFORM=$2 "
     shift # past argument
     shift # past value
     ;;
 	-f|--format)
 	FORMAT="$2"
+	DCMD+="FORMAT=$2 "
 	shift # past argument
 	shift # past value
 	;;
     -d|--debug)
     DEBUG_ON="1"
     DCMD+="DEBUG_ON=1 "
-    shift # past argument
-    ;;
-    -c|--compess)
-	DCMD+="COMPRESS_FILES=1"
-    COMPRESS_FILES="1"
     shift # past argument
     ;;
     -dr)
@@ -305,6 +302,7 @@ case $key in
     ;;
 	-time)
 	CUSTOM_TIME="$2"
+	DCMD+="CUSTOM_TIME=$2"
 	shift # past argument
 	shift # past value
 	;;
