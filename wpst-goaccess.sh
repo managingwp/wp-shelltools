@@ -34,6 +34,7 @@ usage () {
 	    -p          - Specify platform (gridpane|runcloud)
         -f          - Override detected format, (nginx|ols)
         -c          - Process compressed log files
+		-t          - Use test log files
 
     "
 	echo $USAGE
@@ -94,6 +95,7 @@ set_format () {
 
 detect_logs () {
 	echo "Detecting log files"
+	# TODO figure out how to test and set the format better.
 
 	# GRIDPANE-OLS
     if [[ -d /usr/local/lsws ]] && [[ -d /var/www/ ]]; then
@@ -186,6 +188,14 @@ do_goaccess () {
 		else
 			$CATCMD ${LOG_FILE_LOCATION} | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 		fi
+	elif [[ $ACTION == "TEST" ]]; then
+		[[ $LOG_FILE_LOCATION == "*.gz" ]] && CATCMD="zcat"
+		if [[ $DRY_RUN == "1" ]]; then
+			ls -al ${LOG_FILE_LOCATION}
+			echo "cat ${LOG_FILE_LOCATION} | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
+		else
+			$CATCMD ${LOG_FILE_LOCATION} | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+		fi
 	else
 		echo "No action specified"
 		exit
@@ -242,6 +252,13 @@ case $key in
     ACTION="FILE"
 	FILE="$2"
     DCMD+="ACTION=FILE FILE=$2"
+    shift # past argument
+	shift # past value
+    ;;
+	-t)
+    ACTION="TEST"
+	FILE="$2"
+    DCMD+="ACTION=TEST FILE=$2"
     shift # past argument
 	shift # past value
     ;;
