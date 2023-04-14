@@ -24,17 +24,17 @@ usage () {
 	This script will try and detect log files in common locations, you can also
 	specify the platform and format using the options below
 	
-	  Commands
-	    -domain <domain>              - Domain name of log files to process
+	Commands
+        -domain <domain>              - Domain name of log files to process
         -all                          - Go through all the logs versus a single domain
 		-file <filename>              - Process a single file
 		-time <timerange>             - Specify a time range to process
 	
-      Options:
-	    -h		    - Help		
-	    -d          - Debug
+    Options:
+        -h		    - Help		
+        -d          - Debug
         -dr         - Dry Run
-	    -p          - Specify platform (gridpane|runcloud)
+        -p          - Specify platform (gridpane|runcloud)
         -f          - Override detected format, (nginx|ols)
         -c          - Process compressed log files
 		-t          - Use test log files
