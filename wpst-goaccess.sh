@@ -289,7 +289,7 @@ case $key in
 	-file)
     ACTION="FILE"
 	FILE="$2"
-    DCMD+="ACTION=FILE FILE=$2"
+    DCMD+="ACTION=FILE FILE=$2 "
     shift # past argument
 	shift # past value
     ;;
