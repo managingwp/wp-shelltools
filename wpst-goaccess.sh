@@ -226,7 +226,7 @@ do_goaccess () {
 function sed_logs() {
 	_debug "Processing logs using custom time - $CUSTOM_TIME"
 	SED_LOG=$(mktemp)
-    if [[ ! $CUSTOM_TIME =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}\s[0-9]{2}-[0-9]{2}-[0-9]{2},[0-9]{4}-[0-9]{2}-[0-9]{2}\s[0-9]{2}-[0-9]{2}-[0-9]{2}$ ]]; then
+    if [[ ! $CUSTOM_TIME =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]][0-9]{2}-[0-9]{2}-[0-9]{2},[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]][0-9]{2}-[0-9]{2}-[0-9]{2}$ ]]; then
         echo "Error: Please provide dates in the format yyyy-mm-dd hh-mm-ss,yyyy-mm-dd hh-mm-ss (e.g. 2017-01-01 05-00-00,2017-01-01 10-00-00)"
         exit 1
     fi
