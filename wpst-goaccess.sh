@@ -231,7 +231,7 @@ function sed_logs() {
 	SED_LOG=$(mktemp)
     if [[ ! $CUSTOM_TIME =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2},[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}$ ]]; then
         echo "Error: Please provide dates in the format yyyy-mm-dd-hh-mm-ss,yyyy-mm-dd-hh-mm-ss"
-        return 1
+        exit 1
     fi
     
     local start_date=$(date -d "${1%-*}" +"%d\/%b\/%Y:%H:%M:%S")
