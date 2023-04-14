@@ -334,6 +334,6 @@ else
 	detect_logs
 	set_format
 	collect_logs
-	[[ $CUSTOM_TIME ]] && sed_logs $CUSTOM_TIME
+	[[ ! -n $CUSTOM_TIME ]] && sed_logs $CUSTOM_TIME
 	do_goaccess $ACTION $LOG_DATA_FILE
 fi
