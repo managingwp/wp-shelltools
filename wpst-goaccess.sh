@@ -39,7 +39,7 @@ usage () {
 		-t          - Use test log files
 
     "
-	echo $USAGE
+	echo "$USAGE"
 }
 
 # -- check_goaccess
