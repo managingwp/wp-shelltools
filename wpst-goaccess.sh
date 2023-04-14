@@ -19,7 +19,7 @@ DEBUG_ON="0"
 
 usage () {
 	USAGE=\
-"Usage: wpst-goaccess [-d|-c|-dr|-f (nginx|ols)|-p [(gridpane|runcloud)] [-ld <log directory>|-l <log file>|-time <timerange>] [-domain domain.com|--all|-file <filename> [-p (gridpane|runcloud)]
+"Usage: wpst-goaccess [-h|-d|-c|-dr|-f (nginx|ols)|-p [(gridpane|runcloud)] [-ld <log directory>|-l <log file>|-time <timerange>] [-domain domain.com|--all|-file <filename> [-p (gridpane|runcloud)]
 	
 	This script will try and detect log files in common locations, you can also
 	specify the platform and format using the options below
@@ -31,6 +31,7 @@ usage () {
 		-time <timerange>             - Specify a time range to process
 	
       Options:
+	    -h		    - Help		
 	    -d          - Debug
         -dr         - Dry Run
 	    -p          - Specify platform (gridpane|runcloud)
@@ -248,6 +249,11 @@ while [[ $# -gt 0 ]]
 do
 key="$1"
 case $key in
+    -h)
+    ACTION="HELP"
+	DCMD+="ACTION=$2 "
+    shift # past argument
+    ;;
     -platform)
     PLATFORM="$2"
 	DCMD+="PLATFORM=$2 "
@@ -313,7 +319,7 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 _debug "Running wpst-goaccess $DCMD"
 _debug_all "${*}"
 
-if [[ -z $ACTION ]]; then
+if [[ -z $ACTION ]] || [[ $ACTION="HELP" ]]; then
 	usage
 	echo "Error: No action specified"
     exit
