@@ -231,8 +231,8 @@ function sed_logs() {
         exit 1
     fi
     
-    local start_date=$(date -d "${1%-*}" +"%d\/%b\/%Y:%H:%M:%S")
-    local end_date=$(date -d "${1#*-}" +"%d\/%b\/%Y:%H:%M:%S")
+    local start_date=$(date -d "${CUSTOM_TIME%-*}" +"%d\/%b\/%Y:%H:%M:%S")
+    local end_date=$(date -d "${CUSTOM_TIME#*-}" +"%d\/%b\/%Y:%H:%M:%S")
 	if [[ $DRY_RUN == "1" ]]; then
 		echo "sed -n "/$start_date/,/$end_date/ p" $LOG_DATA_FILE > $SED_LOG"
 	else
