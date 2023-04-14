@@ -28,7 +28,8 @@ usage () {
         -domain <domain>              - Domain name of log files to process
         -all                          - Go through all the logs versus a single log file
         -file <filename>              - Process a single file
-        -time <timerange>             - Specify a time range to process
+        -time <timerange>             - Specify a time range to process dates in the format yyyy-mm-dd-hh-mm-ss,yyyy-mm-dd-hh-mm-ss (e.g. 2017-01-01-00-00-00,2017-01-01-23-59-59)
+                                      - First portion is start time and second part is end time.
 	
     Options:
         -h          - Help		
@@ -230,7 +231,7 @@ function sed_logs() {
 	_debug "Processing logs using custom time - $CUSTOM_TIME"
 	SED_LOG=$(mktemp)
     if [[ ! $CUSTOM_TIME =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2},[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}$ ]]; then
-        echo "Error: Please provide dates in the format yyyy-mm-dd-hh-mm-ss,yyyy-mm-dd-hh-mm-ss"
+        echo "Error: Please provide dates in the format yyyy-mm-dd-hh-mm-ss,yyyy-mm-dd-hh-mm-ss (e.g. 2017-01-01-00-00-00,2017-01-01-23-59-59)"
         exit 1
     fi
     
