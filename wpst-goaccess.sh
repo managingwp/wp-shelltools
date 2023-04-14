@@ -26,7 +26,7 @@ usage () {
 	
     Commands
         -domain <domain>              - Domain name of log files to process
-        -all                          - Go through all the logs versus a single domain
+        -all                          - Go through all the logs versus a single log file
         -file <filename>              - Process a single file
         -time <timerange>             - Specify a time range to process
 	
@@ -36,7 +36,6 @@ usage () {
         -dr         - Dry Run
         -p          - Specify platform (gridpane|runcloud)
         -f          - Override detected format, (nginx|ols)
-        -c          - Process compressed log files
         -t          - Use test log files
 
     "
@@ -319,7 +318,7 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 _debug "Running wpst-goaccess $DCMD"
 _debug_all "${*}"
 
-if [[ -z $ACTION ]] || [[ $ACTION="HELP" ]]; then
+if [[ -z $ACTION ]] || [[ $ACTION == "HELP" ]]; then
 	usage
 	echo "Error: No action specified"
     exit
