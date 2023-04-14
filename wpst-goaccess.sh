@@ -21,10 +21,10 @@ usage () {
 	USAGE=\
 "Usage: wpst-goaccess [-h|-d|-c|-dr|-f (nginx|ols)|-p [(gridpane|runcloud)] [-ld <log directory>|-l <log file>|-time <timerange>] [-domain domain.com|--all|-file <filename> [-p (gridpane|runcloud)]
 	
-	This script will try and detect log files in common locations, you can also
-	specify the platform and format using the options below
+    This script will try and detect log files in common locations, you can also
+    specify the platform and format using the options below
 	
-	Commands
+    Commands
         -domain <domain>              - Domain name of log files to process
         -all                          - Go through all the logs versus a single domain
         -file <filename>              - Process a single file
