@@ -161,7 +161,7 @@ detect_logs () {
 do_goaccess () {
 	_debug "Format: $FORMAT Log File Location:$LOG_FILE_LOCATION Log Filter: $LOG_FILTER"
 
-	local $CATCMD="cat"
+	local CATCMD="cat"
 
 	if [[ $ACTION == "DOMAIN" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
@@ -180,10 +180,10 @@ do_goaccess () {
 	elif [[ $ACTION == "FILE" ]]; then
 		[[ $LOG_FILE_LOCATION == "*.gz" ]] && CATCMD="zcat"
 		if [[ $DRY_RUN == "1" ]]; then
-			ls -al ${LOG_FILE_LOCATION}/${LOG_FILTER}
-			echo "cat ${LOG_FILE_LOCATION}/${LOG_FILTER} | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
+			ls -al ${LOG_FILE_LOCATION}
+			echo "cat ${LOG_FILE_LOCATION} | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
 		else
-			cat ${LOG_FILE_LOCATION}/${LOG_FILTER} | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+			$CATCMD ${LOG_FILE_LOCATION} | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 		fi
 	else
 		echo "No action specified"
