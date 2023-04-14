@@ -111,7 +111,6 @@ detect_logs () {
             LOG_FILTER="*.access.log"
         elif [[ $ACTION == "FILE" ]]; then
 			LOG_FILE_LOCATION="$FILE"
-            LOG_FILTER=""
 		fi
     elif [[ -d /var/log/nginx ]] && [[ -d /var/www/ ]]; then
         echo "Detected GridPane NGINX logs"
@@ -124,7 +123,6 @@ detect_logs () {
             LOG_FILTER="*${DOMAIN}*.access.log"
         elif [[ $ACTION == "FILE" ]]; then
 			LOG_FILE_LOCATION="$FILE"
-            LOG_FILTER=""
 		fi
 	# OLS
     elif [[ -d /usr/local/lsws ]]; then
@@ -137,9 +135,7 @@ detect_logs () {
 	    	LOG_FILE_LOCATION="/var/www/$DOMAIN/logs"
 	    	LOG_FILTER="*.access.log"
 	    elif [[ $ACTION == "FILE" ]]; then
-			LOG_FILE_LOCATION="$FILE"
-            LOG_FILTER=""
-		fi
+			LOG_FILE_LOCATION="$FILE"		fi
 	# NGINX
     elif [[ -d /var/log/nginx ]]; then
         echo "Detected GridPane Nginx logs"
@@ -152,7 +148,6 @@ detect_logs () {
 			LOG_FILTER="$DOMAIN.access.log"
 		elif [[ $ACTION == "FILE" ]]; then
 			LOG_FILE_LOCATION="$FILE"
-            LOG_FILTER=""
 		fi
     else
     	_error "Can't detect webserver logs"
@@ -181,10 +176,10 @@ collect_logs () {
 		fi
 	elif [[ $ACTION == "FILE" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
-			ls -al ${LOG_FILE_LOCATION}/${LOG_FILTER}
+			ls -al ${LOG_FILE_LOCATION}
 		else
 			[[ $LOG_FILE_LOCATION == "*.gz" ]] && CATCMD="zcat"
-			$CATCMD ${LOG_FILE_LOCATION}/${LOG_FILTER} > $LOG_COLLECT_DATA
+			$CATCMD ${LOG_FILE_LOCATION} > $LOG_COLLECT_DATA
 		fi
 	fi
 	LOG_DATA_FILE=$LOG_COLLECT_DATA
