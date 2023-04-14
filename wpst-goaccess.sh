@@ -18,24 +18,25 @@ DEBUG_ON="0"
 # ------------
 
 usage () {
-    echo "Usage: wpst-goaccess [-d|-c] [-f (nginx|ols) [-domain domain.com|--all]"
-	echo ""
-	echo "This script will try and detect log files in common locations, you can also"
-	echo "specify the platform and format using the options below"
-	echo ""
-	echo "  Commands"
-	echo "    -domain <domain>              - Domain name of log files to process"
-    echo "    -all                          - Go through all the logs versus a single domain"
-	echo ""
-    echo "  Options:"
-	echo "    -ld         - Specify directory of log files"
-	echo "    -l          - Specify log file"
-	echo "    -p          - Specify platform (gridpane|runcloud)"
-    echo "    -f          - Override detected format, (nginx|ols)"
-    echo "    -c          - Process compressed log files"
-    echo "    -d          - Debug"
-    echo "    -dr         - Dry Run"
-    echo ""
+	USAGE = \
+"Usage: wpst-goaccess [-d|-c|-dr|-f (nginx|ols)|-p [(gridpane|runcloud)] [-ld <log directory>|-l <log file>] [-domain domain.com|--all|-file <filename> [-p (gridpane|runcloud)]
+	
+	This script will try and detect log files in common locations, you can also
+	specify the platform and format using the options below
+	
+	  Commands
+	    -domain <domain>              - Domain name of log files to process
+        -all                          - Go through all the logs versus a single domain
+	
+      Options:
+	    -d          - Debug
+        -dr         - Dry Run
+	    -p          - Specify platform (gridpane|runcloud)
+        -f          - Override detected format, (nginx|ols)
+        -c          - Process compressed log files
+
+    "
+	echo $USAGE
 }
 
 # -- check_goaccess
@@ -75,14 +76,14 @@ set_format () {
 	# GRIDPANE-NGINX
 	# ./common/logging.conf:log_format we_log '[$time_local] $remote_addr $upstream_response_time $upstream_cache_status $http_host "$request" $status $body_bytes_sent $request_time "$http_referer" "$http_user_agent"';
 	# [14/Apr/2023:06:30:32 -0500] 127.0.0.1 1.732 - domain.com "GET /?pwgc=1628918241 HTTP/2.0" 200 39563 1.731 "-" "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm) Chrome/103.0.5060.134 Safari/537.36"
-	if [[ $FORMAT == "GRIDPANE-NGINX" ]]; then
+	if [[ $FORMAT == "GPNGINX" ]]; then
 		LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b \"%R\" \"%u\"\'
 		DATE_FORMAT='%d/%b/%Y'
 		TIME_FORMAT='%H:%M:%S %Z'
 	fi
 
 	# GRIDPANE-OLS
-	if [[ $FORMAT == "GRIDPANE-OLS" ]]; then
+	if [[ $FORMAT == "GPOLS" ]]; then
         LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b \"%R\" \"%u\"\'
         DATE_FORMAT='%d/%b/%Y'
         TIME_FORMAT='%H:%M:%S %Z'
