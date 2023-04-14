@@ -230,7 +230,9 @@ function sed_logs() {
     	echo "Error: Please provide dates in the format dd/Mon/yyyy:hh:mm:ss"
     	exit 1
 	fi
-    local START_DATE=$(echo $CUSTOM_TIME | cut -d, -f1)
+    #local START_DATE=$(echo $CUSTOM_TIME | cut -d, -f1)
+	date -d "$(echo "${CUSTOM_TIME%%,*}" | sed 's/\// /g;s/:/ /')" +%s | xargs -I{} date -d "@{}" +'%d\/%b\/%Y:%H:%M:%S'
+	exit
 	local END_DATE=$(echo $CUSTOM_TIME | cut -d, -f2)
 
 	if [[ $DRY_RUN == "1" ]]; then
