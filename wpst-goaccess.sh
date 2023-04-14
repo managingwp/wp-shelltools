@@ -27,17 +27,17 @@ usage () {
 	Commands
         -domain <domain>              - Domain name of log files to process
         -all                          - Go through all the logs versus a single domain
-		-file <filename>              - Process a single file
-		-time <timerange>             - Specify a time range to process
+        -file <filename>              - Process a single file
+        -time <timerange>             - Specify a time range to process
 	
     Options:
-        -h		    - Help		
+        -h          - Help		
         -d          - Debug
         -dr         - Dry Run
         -p          - Specify platform (gridpane|runcloud)
         -f          - Override detected format, (nginx|ols)
         -c          - Process compressed log files
-		-t          - Use test log files
+        -t          - Use test log files
 
     "
 	echo "$USAGE"
