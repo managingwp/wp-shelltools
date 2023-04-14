@@ -226,12 +226,12 @@ do_goaccess () {
 function sed_logs() {
 	_debug "Processing logs using custom time - $CUSTOM_TIME"
 	SED_LOG=$(mktemp)
-    if [[ ! $CUSTOM_TIME =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]][0-9]{2}-[0-9]{2}-[0-9]{2},[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]][0-9]{2}-[0-9]{2}-[0-9]{2}$ ]]; then
-        echo "Error: Please provide dates in the format yyyy-mm-dd hh-mm-ss,yyyy-mm-dd hh-mm-ss (e.g. 2017-01-01 05-00-00,2017-01-01 10-00-00)"
-        exit 1
-    fi
-    local START_DATE=$(echo $CUSTOM_TIME | cut -d, -f1 |  date -d +"%d-%b-%Y-%H-%M-%S")
-	local END_DATE=$(echo $CUSTOM_TIME | cut -d, -f2 | date -d +"%d-%b-%Y-%H-%M-%S")
+	if ! [[ $CUSTOM_TIME =~ ^[0-9]{2}/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/[0-9]{4}:[0-9]{2}:[0-9]{2}:[0-9]{2}$ ]]; then
+    	echo "Error: Please provide dates in the format dd/Mon/yyyy:hh:mm:ss"
+    	exit 1
+	fi
+    local START_DATE=$(echo $CUSTOM_TIME | cut -d, -f1)
+	local END_DATE=$(echo $CUSTOM_TIME | cut -d, -f2)
 
 	if [[ $DRY_RUN == "1" ]]; then
 		echo "sed -n "/$START_DATE/,/$END_DATE/ p" $LOG_DATA_FILE > $SED_LOG"
