@@ -104,7 +104,10 @@ detect_logs () {
         elif [[ $ACTION == "DOMAIN" ]]; then
             LOG_FILE_LOCATION="/var/www/$DOMAIN/logs"
             LOG_FILTER="*.access.log"
-        fi
+        elif [[ $ACTION == "FILE" ]]; then
+			LOG_FILE_LOCATION="$FILE"
+            LOG_FILTER=""
+		fi
     elif [[ -d /var/log/nginx ]] && [[ -d /var/www/ ]]; then
         echo "Detected GridPane NGINX logs"
         FORMAT="NGINX"
@@ -114,7 +117,10 @@ detect_logs () {
         elif [[ $ACTION == "DOMAIN" ]]; then
             LOG_FILE_LOCATION="/var/log/nginx"
             LOG_FILTER="*${DOMAIN}*.access.log"
-        fi
+        elif [[ $ACTION == "FILE" ]]; then
+			LOG_FILE_LOCATION="$FILE"
+            LOG_FILTER=""
+		fi
 	# OLS
     elif [[ -d /usr/local/lsws ]]; then
         echo "Detected OLS logs"
@@ -125,7 +131,10 @@ detect_logs () {
     	elif [[ $ACTION == "DOMAIN" ]]; then
 	    	LOG_FILE_LOCATION="/var/www/$DOMAIN/logs"
 	    	LOG_FILTER="*.access.log"
-	    fi
+	    elif [[ $ACTION == "FILE" ]]; then
+			LOG_FILE_LOCATION="$FILE"
+            LOG_FILTER=""
+		fi
 	# NGINX
     elif [[ -d /var/log/nginx ]]; then
         echo "Detected GridPane Nginx logs"
@@ -135,6 +144,9 @@ detect_logs () {
 		   	LOG_FILTER="*.access.log"
 		elif [[ $ACTION == "DOMAIN" ]]; then
 			LOG_FILTER="$DOMAIN.access.log"
+		elif [[ $ACTION == "FILE" ]]; then
+			LOG_FILE_LOCATION="$FILE"
+            LOG_FILTER=""
 		fi
     else
     	_error "Can't detect webserver logs"
@@ -188,7 +200,7 @@ case $key in
     shift # past argument
     ;;
     -c|--compess)
-	DCMD+="COMPRESS_FILES=1 "
+	DCMD+="COMPRESS_FILES=1"
     COMPRESS_FILES="1"
     shift # past argument
     ;;
@@ -200,7 +212,7 @@ case $key in
     -domain)
     ACTION="DOMAIN"
     DOMAIN="$2"
-    DCMD+="ACTION=DOMAIN DOMAIN=$2 "
+    DCMD+="ACTION=DOMAIN DOMAIN=$2"
     shift # past argument
     shift # past value
     ;;
@@ -208,6 +220,13 @@ case $key in
     ACTION="ALL"
     DCMD+="ACTION=ALL "
     shift # past argument
+    ;;
+	-file)
+    ACTION="FILE"
+	FILE="$2"
+    DCMD+="ACTION=FILE FILE=$2"
+    shift # past argument
+	shift # past value
     ;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
