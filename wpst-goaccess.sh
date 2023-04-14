@@ -97,7 +97,7 @@ detect_logs () {
 	# GRIDPANE-OLS
     if [[ -d /usr/local/lsws ]] && [[ -d /var/www/ ]]; then
         echo "Detected GridPane OLS logs"
-        FORMAT="OLS"
+        FORMAT="GPOLS"
         if [[ $ACTION == "ALL" ]]; then
             LOG_FILE_LOCATION="/var/www/*/logs"
             LOG_FILTER="*.access.log*gz"
@@ -110,7 +110,7 @@ detect_logs () {
 		fi
     elif [[ -d /var/log/nginx ]] && [[ -d /var/www/ ]]; then
         echo "Detected GridPane NGINX logs"
-        FORMAT="NGINX"
+        FORMAT="GPNGINX"
         if [[ $ACTION == "ALL" ]]; then
             LOG_FILE_LOCATION="/var/log/nginx"
             LOG_FILTER="*.access.log*gz"
@@ -138,6 +138,7 @@ detect_logs () {
 	# NGINX
     elif [[ -d /var/log/nginx ]]; then
         echo "Detected GridPane Nginx logs"
+		FORMAT="OLS"
     	LOG_FILE_LOCATION="/var/log/nginx"
 
 		if [[ $ACTION == "ALL" ]]; then
@@ -152,6 +153,8 @@ detect_logs () {
     	_error "Can't detect webserver logs"
     	exit
     fi
+
+	_debug "FORMAT:$FORMAT LOG_FILE_LOCATION:$LOG_FILE_LOCATION LOG_FILTER:$LOG_FILTER"
 }
 
 # -- do_goaccess
