@@ -237,7 +237,11 @@ function sed_logs() {
     
     local start_date=$(date -d "${1%-*}" +"%d\/%b\/%Y:%H:%M:%S")
     local end_date=$(date -d "${1#*-}" +"%d\/%b\/%Y:%H:%M:%S")
-    sed -n "/$start_date/,/$end_date/ p" $LOG_DATA_FILE > $SED_LOG
+	if [[ $DRY_RUN == "1" ]]; then
+		echo "sed -n "/$start_date/,/$end_date/ p" $LOG_DATA_FILE > $SED_LOG"
+	else
+		sed -n "/$start_date/,/$end_date/ p" $LOG_DATA_FILE > $SED_LOG
+	fi	
 	LOG_DATA=$SED_LOG
 }
 
