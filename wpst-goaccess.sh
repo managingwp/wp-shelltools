@@ -135,7 +135,8 @@ detect_logs () {
 	    	LOG_FILE_LOCATION="/var/www/$DOMAIN/logs"
 	    	LOG_FILTER="*.access.log"
 	    elif [[ $ACTION == "FILE" ]]; then
-			LOG_FILE_LOCATION="$FILE"		fi
+			LOG_FILE_LOCATION="$FILE"		
+		fi
 	# NGINX
     elif [[ -d /var/log/nginx ]]; then
         echo "Detected GridPane Nginx logs"
