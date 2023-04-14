@@ -226,7 +226,7 @@ do_goaccess () {
 function sed_logs() {
 	_debug "Processing logs using custom time - $CUSTOM_TIME"
 	SED_LOG=$(mktemp)
-	if ! [[ $CUSTOM_TIME =~ ^[0-9]{2}/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/[0-9]{4}:[0-9]{2}:[0-9]{2}:[0-9]{2}$ ]]; then
+	if ! [[ $CUSTOM_TIME =~ ^[0-9]{2}/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/[0-9]{4}:[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{2}/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/[0-9]{4}:[0-9]{2}:[0-9]{2}:[0-9]{2}$ ]]; then
     	echo "Error: Please provide dates in the format dd/Mon/yyyy:hh:mm:ss"
     	exit 1
 	fi
