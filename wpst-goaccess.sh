@@ -18,7 +18,7 @@ DEBUG_ON="0"
 # ------------
 
 usage () {
-	USAGE = \
+	USAGE=\
 "Usage: wpst-goaccess [-d|-c|-dr|-f (nginx|ols)|-p [(gridpane|runcloud)] [-ld <log directory>|-l <log file>|-time <timerange>] [-domain domain.com|--all|-file <filename> [-p (gridpane|runcloud)]
 	
 	This script will try and detect log files in common locations, you can also
@@ -187,7 +187,7 @@ collect_logs () {
 			$CATCMD ${LOG_FILE_LOCATION}/${LOG_FILTER} > $LOG_COLLECT_DATA
 		fi
 	fi
-	$LOG_DATA_FILE=$LOG_COLLECT_DATA
+	LOG_DATA_FILE=$LOG_COLLECT_DATA
 }
 
 # -- do_goaccess
@@ -206,7 +206,7 @@ do_goaccess () {
 			ls -al ${LOG_FILE_LOCATION}/${LOG_FILTER}
 			echo "zcat ${LOG_FILE_LOCATION}/${LOG_FILTER} | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
 		else
-			( cat $LOG_DATA_FILE | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+			cat $LOG_DATA_FILE | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 		fi
 	elif [[ $ACTION == "FILE" ]]; then
 		[[ $LOG_FILE_LOCATION == "*.gz" ]] && CATCMD="zcat"
@@ -317,7 +317,7 @@ done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
 _debug "Running wpst-goaccess $DCMD"
-_debug_all $@
+_debug_all "${*}"
 
 if [[ -z $ACTION ]]; then
 	usage

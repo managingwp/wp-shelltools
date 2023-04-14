@@ -29,10 +29,10 @@ ECOL="\033[0;0m"
 # -- Core Functions
 # ----------------
 
-_error () { echo -e "${RED}** ERROR ** - $@ ${ECOL}"; }
-_warning () { echo -e "${RED}** WARNING ** - $@ ${ECOL}"; }
-_notice () { echo -e "${BLUE}** NOTICE ** - $@ ${ECOL}"; }
-_success () { echo -e "${GREEN}** SUCCESS ** - $@ ${ECOL}"; }
+_error () { echo -e "${RED}** ERROR ** - ${*} ${ECOL}"; }
+_warning () { echo -e "${RED}** WARNING ** - ${*} ${ECOL}"; }
+_notice () { echo -e "${BLUE}** NOTICE ** - ${*} ${ECOL}"; }
+_success () { echo -e "${GREEN}** SUCCESS ** - ${*} ${ECOL}"; }
 _running () { echo -e "${BLUEBG}${@}${ECOL}"; }
 _creating () { echo -e "${DARKGREYBG}${@}${ECOL}"; }
 _separator () { echo -e "${YELLOWBG}****************${ECOL}"; }
@@ -40,14 +40,14 @@ _separator () { echo -e "${YELLOWBG}****************${ECOL}"; }
 # -- _debug
 _debug () {
     if [[ $DEBUG_ON == "1" ]]; then
-        echo -e "${CYAN}** DEBUG: $@${ECOL}"
+        echo -e "${CYAN}** DEBUG: ${*}${ECOL}"
     fi
 }
 
 # -- show debug information
 _debug_all () {
         _debug "--------------------------"
-        _debug "arguments: $@"
+        _debug "arguments: ${*}"
         _debug "funcname: ${FUNCNAME[@]}"
         _debug "basename: $SCRIPTPATH"
         _debug "sourced files: ${BASH_SOURCE[@]}"
@@ -57,7 +57,7 @@ _debug_all () {
 # -- debug curl
 _debug_curl () {
                 if [[ $DEBUG == "2" ]]; then
-                        echo -e "${CCYAN}**** DEBUG $@${NC}"
+                        echo -e "${CCYAN}**** DEBUG ${*}${NC}"
                 fi
 }
 
@@ -66,12 +66,12 @@ _cexists () {
 		if [[ "$(command -v $1)" ]]; then
             _debug $(which $1)
 			if [[ $ZSH_DEBUG == 1 ]]; then
-            	_debug "$@ is installed";
+            	_debug "${*} is installed";
             fi
             CMD_EXISTS="0"
         else
             if [[ $ZSH_DEBUG == 1 ]]; then
-            	_debug "$@ not installed";
+            	_debug "${*} not installed";
             fi
             CMD_EXISTS="1"
         fi
@@ -95,31 +95,31 @@ _checkroot () {
 # - logs
 help_cmd[logs]='tail or show last lines on all GridPane logs.'
 tool_logs () {
-        gp-logs.sh $@
+        gp-logs.sh ${*}
 }
  
 # - logcode
 help_cmd[logcode]='Look for specifc HTTP codes in web server logfiles and return top hits.'
 tool_logcode () {
-        gp-logcode.sh $@
+        gp-logcode.sh ${*}
 }
 
 # - mysqlmem
 help_cmd[mysqlmem]='GridPane monit memory calculation'
 tool_mysqlmem () {
-        gp-mysqlmem.sh $@
+        gp-mysqlmem.sh ${*}
 }
 
 # - plugins
 help_cmd[plugins]='Lists WordPress plugins on all websites on a GridPane Server'
 tool_plugins () {
-        gp-plugins.sh $@
+        gp-plugins.sh ${*}
 }
 
 # - goaccess - execute log functions
 help_cmd[goaccess]='Process GridPane logs with goaccess'
 tool_goaccess () {
-	_debug_all $@
+	_debug_all ${*}
 	
     if [[ -z $2 ]]; then
         echo "Usage: goaccess -c [domain.com|all]"
@@ -218,5 +218,5 @@ tool_backups () {
 # - api - GridPane api
 help_cmd[api]='Interact with the GridPane API'
 tool_api () {
-	gp-api.sh $@
+	gp-api.sh ${*}
 }
