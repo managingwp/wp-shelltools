@@ -234,11 +234,7 @@ function sed_logs() {
 	local EDATE=$(echo $CUSTOM_TIME | cut -d, -f1)
 	local SDATE=$(echo $CUSTOM_TIME | cut -d, -f2)
     local START_DATE=$(date -d "$(echo "$SDATE" | sed 's/\// /g;s/:/ /')" +%s | xargs -I{} date -d "@{}" +'%d\/%b\/%Y:%H:%M:%S')
-	echo $START_DATE
 	local END_DATE=$(date -d "$(echo "$EDATE" | sed 's/\// /g;s/:/ /')" +%s | xargs -I{} date -d "@{}" +'%d\/%b\/%Y:%H:%M:%S')
-	echo $END_DATE
-	exit
-	local END_DATE=$(echo $CUSTOM_TIME | cut -d, -f2)
 
 	if [[ $DRY_RUN == "1" ]]; then
 		echo "sed -n "/$START_DATE/,/$END_DATE/ p" $LOG_DATA_FILE > $SED_LOG"
