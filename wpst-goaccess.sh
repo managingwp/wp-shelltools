@@ -230,7 +230,7 @@ function sed_logs() {
         echo "Error: Please provide dates in the format yyyy-mm-dd-hh-mm-ss,yyyy-mm-dd-hh-mm-ss (e.g. 2017-01-01-00-00-00,2017-01-01-23-59-59)"
         exit 1
     fi
-    local START_DATE="echo $CUSTOM_TIME | cut -d, -f1 | date -d +"%d-%b-%Y-%H-%M-%S""
+    local START_DATE=$(echo $CUSTOM_TIME | cut -d, -f1 | date -d +"%d-%b-%Y-%H-%M-%S")
 	local END_DATE="echo $CUSTOM_TIME | cut -d, -f2"
 	echo $START_DATE
 	exit
