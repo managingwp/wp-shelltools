@@ -19,7 +19,7 @@ DEBUG_ON="0"
 
 usage () {
 	USAGE = \
-"Usage: wpst-goaccess [-d|-c|-dr|-f (nginx|ols)|-p [(gridpane|runcloud)] [-ld <log directory>|-l <log file>] [-domain domain.com|--all|-file <filename> [-p (gridpane|runcloud)]
+"Usage: wpst-goaccess [-d|-c|-dr|-f (nginx|ols)|-p [(gridpane|runcloud)] [-ld <log directory>|-l <log file>|-time <timerange>] [-domain domain.com|--all|-file <filename> [-p (gridpane|runcloud)]
 	
 	This script will try and detect log files in common locations, you can also
 	specify the platform and format using the options below
@@ -27,6 +27,8 @@ usage () {
 	  Commands
 	    -domain <domain>              - Domain name of log files to process
         -all                          - Go through all the logs versus a single domain
+		-file <filename>              - Process a single file
+		-time <timerange>             - Specify a time range to process
 	
       Options:
 	    -d          - Debug
@@ -160,33 +162,59 @@ detect_logs () {
 	_debug "FORMAT:$FORMAT LOG_FILE_LOCATION:$LOG_FILE_LOCATION LOG_FILTER:$LOG_FILTER"
 }
 
+# -- collect_logs
+collect_logs () {
+	local CATCMD="cat"
+	_debug "Format: $FORMAT Log File Location:$LOG_FILE_LOCATION Log Filter: $LOG_FILTER"
+	LOG_COLLECT_DATA=$(mktemp)
+	if [[ $ACTION == "DOMAIN" ]]; then
+		if [[ $DRY_RUN == "1" ]]; then
+			ls -al ${LOG_FILE_LOCATION}/${LOG_FILTER}
+		else
+			cat ${LOG_FILE_LOCATION}/${LOG_FILTER} > $LOG_COLLECT_DATA
+		fi
+	elif [[ $ACTION == "ALL" ]]; then
+		if [[ $DRY_RUN == "1" ]]; then
+			ls -al ${LOG_FILE_LOCATION}/${LOG_FILTER}
+		else
+			cat ${LOG_FILE_LOCATION}/*.access.log > $LOG_COLLECT_DATA; zcat ${LOG_FILE_LOCATION}/${LOG_FILTER} >> $LOG_COLLECT_DATA
+		fi
+	elif [[ $ACTION == "FILE" ]]; then
+		if [[ $DRY_RUN == "1" ]]; then
+			ls -al ${LOG_FILE_LOCATION}/${LOG_FILTER}
+		else
+			[[ $LOG_FILE_LOCATION == "*.gz" ]] && CATCMD="zcat"
+			$CATCMD ${LOG_FILE_LOCATION}/${LOG_FILTER} > $LOG_COLLECT_DATA
+		fi
+	fi
+	$LOG_DATA_FILE=$LOG_COLLECT_DATA
+}
+
 # -- do_goaccess
 do_goaccess () {
-	_debug "Format: $FORMAT Log File Location:$LOG_FILE_LOCATION Log Filter: $LOG_FILTER"
-
-	local CATCMD="cat"
+	_debug "Format: $FORMAT Log File Location:$LOG_FILE_LOCATION Log Filter: $LOG_FILTER Log Data: $LOG_DATA_FILE"
 
 	if [[ $ACTION == "DOMAIN" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
 			ls -al ${LOG_FILE_LOCATION}/${LOG_FILTER}
 			echo "cat ${LOG_FILE_LOCATION}/${LOG_FILTER} | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
 		else
-			cat ${LOG_FILE_LOCATION}/${LOG_FILTER} | goaccess --log-format="${LOG_FORMAT}" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+			cat $LOG_DATA_FILE | goaccess --log-format="${LOG_FORMAT}" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 		fi
 	elif [[ $ACTION == "ALL" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
 			ls -al ${LOG_FILE_LOCATION}/${LOG_FILTER}
 			echo "zcat ${LOG_FILE_LOCATION}/${LOG_FILTER} | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
 		else
-			( cat ${LOG_FILE_LOCATION}/*.access.log; zcat ${LOG_FILE_LOCATION}/${LOG_FILTER} ) | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+			( cat $LOG_DATA_FILE | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 		fi
 	elif [[ $ACTION == "FILE" ]]; then
 		[[ $LOG_FILE_LOCATION == "*.gz" ]] && CATCMD="zcat"
 		if [[ $DRY_RUN == "1" ]]; then
 			ls -al ${LOG_FILE_LOCATION}
-			echo "cat ${LOG_FILE_LOCATION} | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
+			echo "cat $LOG_DATA_FILE | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
 		else
-			$CATCMD ${LOG_FILE_LOCATION} | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+			cat $LOG_DATA_FILE | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 		fi
 	elif [[ $ACTION == "TEST" ]]; then
 		[[ $LOG_FILE_LOCATION == "*.gz" ]] && CATCMD="zcat"
@@ -200,6 +228,19 @@ do_goaccess () {
 		echo "No action specified"
 		exit
 	fi
+}
+
+function sed_logs() {
+	SED_LOG=$(mktemp)
+    if [[ ! $CUSTOM_TIME =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2},[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}$ ]]; then
+        echo "Error: Please provide dates in the format yyyy-mm-dd-hh-mm-ss,yyyy-mm-dd-hh-mm-ss"
+        return 1
+    fi
+    
+    local start_date=$(date -d "${1%-*}" +"%d\/%b\/%Y:%H:%M:%S")
+    local end_date=$(date -d "${1#*-}" +"%d\/%b\/%Y:%H:%M:%S")
+    sed -n "/$start_date/,/$end_date/ p" $LOG_DATA_FILE > $SED_LOG
+	LOG_DATA=$SED_LOG
 }
 
 # ---------------
@@ -262,6 +303,11 @@ case $key in
     shift # past argument
 	shift # past value
     ;;
+	-time)
+	CUSTOM_TIME="$2"
+	shift # past argument
+	shift # past value
+	;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -287,5 +333,7 @@ else
 	check_goaccess
 	detect_logs
 	set_format
-	do_goaccess $ACTION
+	collect_logs
+	[[ $CUSTOM_TIME ]] && sed_logs $CUSTOM_TIME
+	do_goaccess $ACTION $LOG_DATA_FILE
 fi
