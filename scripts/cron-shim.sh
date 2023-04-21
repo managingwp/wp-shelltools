@@ -17,7 +17,7 @@ POST_CRON_CMD="" # - Command to run after cron completes
 [[ -d "$WP_ROOT" ]] || { echo "Error: $WP_ROOT does not exist." >&2; exit 1; }
 
 # Check if $WP_ROOT contains a WordPress install
-[[ $(wp --skip-plugins --skip-themes core is-installed --path=$WP_ROOT 2> /dev/null) ]] || { echo "Error: $WP_ROOT is not a WordPress install." >&2; exit 1; }
+[[ WP_ROOT_INSTALL=$(wp --skip-plugins --skip-themes core is-installed --path=$WP_ROOT 2> /dev/null) ]] || { echo "Error: $WP_ROOT is not a WordPress install.\n$WP_ROOT_INSTALL " >&2; exit 1; }
 
 # Log the start time
 START_TIME=$(date +%s.%N)
