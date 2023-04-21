@@ -2,7 +2,7 @@
 # --------------------------
 # Lazy way to provide help and a wrapper to related tools.
 # -------------------------
-WPST_VERSION=0.7.0
+WPST_VERSION=0.7.1
 SCRIPT_NAME=wpst
 DEBUG_ON="0"
 
