@@ -1,8 +1,9 @@
 #!/bin/bash
 # --------------------------
-# -- wpst wrapper script v0.0.1
+# -- wpst version v0.1.0
 # Lazy way to provide help and a wrapper to related tools.
 # -------------------------
+VERSION=0.1.0
 SCRIPT_NAME=wpst
 DEBUG_ON="0"
 
