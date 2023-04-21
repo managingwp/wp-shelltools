@@ -9,7 +9,7 @@ LOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
 LOG_FILE="${WP_ROOT}/wordpress-crons.log" # Location for wordpress cron.
 HEARTBEAT_URL="https://betteruptime.com/api/v1/heartbeat/v25v234v4634b636v3" # - Heartbeat monitoring URL
 POST_CRON_CMD="" # - Command to run after cron completes
-SCRIPT_DIR="dirname "$(realpath "$0")"
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
 
 # Check if wp-cli is installed
 [[ $(command -v $WP_CLI) ]]  || { echo 'Error: wp-cli is not installed.' >&2; exit 1; }
@@ -26,11 +26,11 @@ if [[ ! -d "$WP_ROOT" ]]; then
 fi
 
 # Check if $WP_ROOT contains a WordPress install
-[[ WP_ROOT_INSTALL=$(wp --skip-plugins --skip-themes core is-installed --path=$WP_ROOT 2> /dev/null) ]] || { echo "Error: $WP_ROOT is not a WordPress install.\n$WP_ROOT_INSTALL " >&2; exit 1; }
+[[ WP_ROOT_INSTALL=$(wp --path=$WP_ROOT --skip-plugins --skip-themes core is-installed  2> /dev/null) ]] || { echo "Error: $WP_ROOT is not a WordPress install.\n$WP_ROOT_INSTALL " >&2; exit 1; }
 
 # Get the domain name of the WordPress install
-DOMAIN_NAME=$($WP_CLI --skip-plugins --skip-themes option get siteurl 2> /dev/null | grep -oP '(?<=//)[^/]+')
-[[ $? -ne 0 ]]; && { echo "Error: Could not get domain name.\n$DOMAIN_NAME"; exit 1 }
+DOMAIN_NAME=$($WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes option get siteurl 2> /dev/null | grep -oP '(?<=//)[^/]+')
+[[ $? -ne 0 ]] && { echo "Error: Could not get domain name.\n$DOMAIN_NAME"; exit 1; }
 
 # Log the start time
 START_TIME=$(date +%s.%N)
