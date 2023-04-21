@@ -1,7 +1,5 @@
 #!/bin/bash
 # -- Created by Jordan - hello@managingwp.io - https://managingwp.io
-# TODO check if WordPress is installed before running cron
-# TODO check if WP_ROOT directory exists before running cron
 
 # Set up the necessary variables
 WP_CLI="/usr/local/bin/wp" # - Location of wp-cli
