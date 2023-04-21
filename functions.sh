@@ -9,7 +9,6 @@
 # ------------
 # -- Variables
 # ------------
-WPST_VERSION="0.0.2"
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 REQUIRED_APPS=("jq" "column")
