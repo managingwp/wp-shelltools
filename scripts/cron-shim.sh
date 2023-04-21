@@ -4,7 +4,7 @@
 # Set up the necessary variables
 WP_CLI="/usr/local/bin/wp" # - Location of wp-cli
 WP_ROOT="/path/to/wordpress" # - Path to WordPress
-LOG_TO_SYSLOG="0" # - Log to syslog? 0 = no, 1 = yes
+LOG_TO_SYSLOG="1" # - Log to syslog? 0 = no, 1 = yes
 LOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
 LOG_FILE="${WP_ROOT}/wordpress-crons.log" # Location for wordpress cron.
 HEARTBEAT_URL="https://betteruptime.com/api/v1/heartbeat/v25v234v4634b636v3" # - Heartbeat monitoring URL
