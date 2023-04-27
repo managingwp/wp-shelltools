@@ -191,7 +191,7 @@ collect_logs () {
 do_goaccess () {
 	_debug "Proceeding with d_goaccess"
     if [[ -n $TIME_SPEC ]]; then
-        $GOACCESS_EXTRA=+"--hour-spec=$TIME_SPEC"
+        GOACCESS_EXTRA=+"--hour-spec=$TIME_SPEC"
     fi
 
 	if [[ $ACTION == "DOMAIN" ]]; then
