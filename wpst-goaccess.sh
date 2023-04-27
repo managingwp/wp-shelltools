@@ -237,7 +237,7 @@ function sed_logs() {
 	local END_DATE=$(date -d "$(echo "$EDATE" | sed 's/\// /g;s/:/ /')" +%s | xargs -I{} date -d "@{}" +'%d\/%b\/%Y:%H:%M:%S')
 
 	if [[ $DRY_RUN == "1" ]]; then
-		echo "sed -n "/$START_DATE/,/$END_DATE/ p" $LOG_DATA_FILE > $SED_LOG"
+		echo "sed -n \"/$START_DATE/,/$END_DATE/ p\" $LOG_DATA_FILE > $SED_LOG"
 	else
 		sed -n "/$START_DATE/,/$END_DATE/ p" $LOG_DATA_FILE > $SED_LOG
 	fi	
