@@ -176,7 +176,7 @@ collect_logs () {
 		else
 			cat ${LOG_FILE_LOCATION}/*.access.log > $LOG_COLLECT_DATA; zcat ${LOG_FILE_LOCATION}/${LOG_FILTER} >> $LOG_COLLECT_DATA
 		fi
-	elif [[ $ACTION == "FILE" ]]; then
+	elif [[ $ACTION == "FILE" ]]; thengc 
 		if [[ $DRY_RUN == "1" ]]; then
 			echo "$CATCMD ${LOG_FILE_LOCATION} > $LOG_COLLECT_DATA"
 		else
@@ -241,7 +241,7 @@ function sed_logs() {
 	else
 		sed -n "/$START_DATE/,/$END_DATE/ p" $LOG_DATA_FILE > $SED_LOG
 	fi	
-	LOG_DATA=$SED_LOG
+	LOG_DATA_FILE=$SED_LOG
 }
 
 # ---------------
