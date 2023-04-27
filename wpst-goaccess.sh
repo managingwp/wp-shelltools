@@ -213,9 +213,8 @@ do_goaccess () {
 		if [[ $DRY_RUN == "1" ]]; then
 			echo "cat $LOG_DATA_FILE | goaccess ${GOACCESS_EXTRA} --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
 		else
-            GOACCESS_CMD=("cat ""$LOG_DATA_FILE"" | goaccess --log-format=""$LOG_FORMAT"" --date-format=""$DATE_FORMAT"" --time-format=""$TIME_FORMAT""")
-            eval "${GOACCESS_CMD[*]}"
-            echo "Command ran - ${GOACCESS_CMD[*]}"
+		    cat $LOG_DATA_FILE | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+            echo "Command Ran $(history | tail -n 1)"
 		fi
 	elif [[ $ACTION == "TEST" ]]; then
 		[[ $LOG_FILE_LOCATION == "*.gz" ]] && CATCMD="zcat"
