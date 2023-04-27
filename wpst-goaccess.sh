@@ -196,29 +196,29 @@ do_goaccess () {
 
 	if [[ $ACTION == "DOMAIN" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
-			echo "cat ${LOG_FILE_LOCATION}/${LOG_FILTER} | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
+			echo "cat ${LOG_FILE_LOCATION}/${LOG_FILTER} | goaccess ${GOACCESS_EXTRA} --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
 		else
-			cat $LOG_DATA_FILE | goaccess --log-format="${LOG_FORMAT}" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+			cat $LOG_DATA_FILE | goaccess ${GOACCESS_EXTRA} --log-format="${LOG_FORMAT}" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 		fi
 	elif [[ $ACTION == "ALL" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
-			echo "cat $LOG_DATA_FILE | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
+			echo "cat $LOG_DATA_FILE | goaccess ${GOACCESS_EXTRA} --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
 		else
-			cat $LOG_DATA_FILE | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+			cat $LOG_DATA_FILE | goaccess ${GOACCESS_EXTRA} --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 		fi
 	elif [[ $ACTION == "FILE" ]]; then
 		[[ $LOG_FILE_LOCATION == "*.gz" ]] && CATCMD="zcat"
 		if [[ $DRY_RUN == "1" ]]; then
-			echo "cat $LOG_DATA_FILE | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
+			echo "cat $LOG_DATA_FILE | goaccess ${GOACCESS_EXTRA} --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
 		else
 			cat $LOG_DATA_FILE | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 		fi
 	elif [[ $ACTION == "TEST" ]]; then
 		[[ $LOG_FILE_LOCATION == "*.gz" ]] && CATCMD="zcat"
 		if [[ $DRY_RUN == "1" ]]; then
-			echo "cat ${LOG_FILE_LOCATION} | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
+			echo "cat ${LOG_FILE_LOCATION} | goaccess ${GOACCESS_EXTRA} --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
 		else
-			$CATCMD ${LOG_FILE_LOCATION} | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+			$CATCMD ${LOG_FILE_LOCATION} | goaccess ${GOACCESS_EXTRA} --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 		fi
 	else
 		echo "No action specified"
