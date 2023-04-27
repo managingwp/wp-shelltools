@@ -166,19 +166,19 @@ collect_logs () {
 	LOG_COLLECT_DATA=$(mktemp)
 	if [[ $ACTION == "DOMAIN" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
-			ls -al ${LOG_FILE_LOCATION}/${LOG_FILTER}
+			echo "cat ${LOG_FILE_LOCATION}/${LOG_FILTER} > $LOG_COLLECT_DATA"
 		else
 			cat ${LOG_FILE_LOCATION}/${LOG_FILTER} > $LOG_COLLECT_DATA
 		fi
 	elif [[ $ACTION == "ALL" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
-			ls -al ${LOG_FILE_LOCATION}/${LOG_FILTER}
+			echo "cat ${LOG_FILE_LOCATION}/*.access.log > $LOG_COLLECT_DATA; zcat ${LOG_FILE_LOCATION}/${LOG_FILTER} >> $LOG_COLLECT_DATA"
 		else
 			cat ${LOG_FILE_LOCATION}/*.access.log > $LOG_COLLECT_DATA; zcat ${LOG_FILE_LOCATION}/${LOG_FILTER} >> $LOG_COLLECT_DATA
 		fi
 	elif [[ $ACTION == "FILE" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
-			ls -al ${LOG_FILE_LOCATION}
+			echo "$CATCMD ${LOG_FILE_LOCATION} > $LOG_COLLECT_DATA"
 		else
 			[[ $LOG_FILE_LOCATION == "*.gz" ]] && CATCMD="zcat"
 			$CATCMD ${LOG_FILE_LOCATION} > $LOG_COLLECT_DATA
