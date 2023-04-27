@@ -176,7 +176,7 @@ collect_logs () {
 		else
 			cat ${LOG_FILE_LOCATION}/*.access.log > $LOG_COLLECT_DATA; zcat ${LOG_FILE_LOCATION}/${LOG_FILTER} >> $LOG_COLLECT_DATA
 		fi
-	elif [[ $ACTION == "FILE" ]]; thengc 
+	elif [[ $ACTION == "FILE" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
 			echo "$CATCMD ${LOG_FILE_LOCATION} > $LOG_COLLECT_DATA"
 		else
