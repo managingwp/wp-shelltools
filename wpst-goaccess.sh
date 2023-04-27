@@ -190,6 +190,9 @@ collect_logs () {
 # -- do_goaccess
 do_goaccess () {
 	_debug "Proceeding with d_goaccess"
+    if [[ -n $TIME_SPEC ]]; then
+        $GOACCESS_EXTRA+="--hour-spec=$TIME_SPEC"
+    fi
 
 	if [[ $ACTION == "DOMAIN" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
@@ -255,7 +258,7 @@ key="$1"
 case $key in
     -h)
     ACTION="HELP"
-	DCMD+="ACTION=$2 "
+	DCMD+="ACTION=HELP "
     shift # past argument
     ;;
     -platform)
@@ -283,7 +286,7 @@ case $key in
     -domain)
     ACTION="DOMAIN"
     DOMAIN="$2"
-    DCMD+="ACTION=DOMAIN DOMAIN=$2"
+    DCMD+="ACTION=DOMAIN DOMAIN=$2 "
     shift # past argument
     shift # past value
     ;;
@@ -302,16 +305,22 @@ case $key in
 	-t)
     ACTION="TEST"
 	FILE="$2"
-    DCMD+="ACTION=TEST FILE=$2"
+    DCMD+="ACTION=TEST FILE=$2 "
     shift # past argument
 	shift # past value
     ;;
 	-time)
 	CUSTOM_TIME="$2"
-	DCMD+="CUSTOM_TIME=$2"
+	DCMD+="CUSTOM_TIME=$2 "
 	shift # past argument
 	shift # past value
 	;;
+    -timespec)
+    TIME_SPEC="$2"
+    DCMD+="TIME_SPEC=$2 "
+    shift # past argument
+    shift # past value
+    ;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -320,8 +329,27 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
+
+
+# ----------------------------#
+# -- Debugging
+# ----------------------------#
 _debug "Running wpst-goaccess $DCMD"
 _debug_all "${*}"
+
+# ----------------------------#
+# --- Check Arguments
+# ----------------------------#
+if [[ -n $TIME_SPEC ]]; then
+    if [[ $TIME_SPEC != "min" && $TIME_SPEC != "hour" ]]; then
+        echo "Error: Invalid time specification"
+        exit
+    fi
+fi
+
+# ----------------------------#
+# --- Main
+# ----------------------------#
 
 if [[ -z $ACTION ]] || [[ $ACTION == "HELP" ]]; then
 	usage
