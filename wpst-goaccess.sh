@@ -79,9 +79,11 @@ set_format () {
 
 	# GRIDPANE-NGINX
 	# ./common/logging.conf:log_format we_log '[$time_local] $remote_addr $upstream_response_time $upstream_cache_status $http_host "$request" $status $body_bytes_sent $request_time "$http_referer" "$http_user_agent"';
+    # $request_time = seconds with a milliseconds resolution
 	# [14/Apr/2023:06:30:32 -0500] 127.0.0.1 1.732 - domain.com "GET /?pwgc=1628918241 HTTP/2.0" 200 39563 1.731 "-" "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm) Chrome/103.0.5060.134 Safari/537.36"
+    # [27/Apr/2023:06:38:01 -0500] 2600:1700:4dce:28f0:ed74:ea35:b8e5:ece6 - - domain.com "GET /image.jpg HTTP/2.0" 304 0 0.000 "https://yahoo.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/107.0.5304.66 Mobile/15E148 Safari/604.1"
 	if [[ $FORMAT == "GPNGINX" ]]; then
-		LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b \"%R\" \"%u\"\'
+		LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b %T \"%R\" \"%u\"\'
 		DATE_FORMAT='%d/%b/%Y'
 		TIME_FORMAT='%H:%M:%S %Z'
 	fi
