@@ -4,6 +4,7 @@
 # Set up the necessary variables
 WP_CLI="/usr/local/bin/wp" # - Location of wp-cli
 WP_ROOT="/path/to/wordpress" # - Path to WordPress
+LOG_TO_STDOUT="1" # - Log to stdout? 0 = no, 1 = yes
 LOG_TO_SYSLOG="1" # - Log to syslog? 0 = no, 1 = yes
 LOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
 LOG_FILE="${WP_ROOT}/wordpress-crons.log" # Location for wordpress cron.
@@ -65,7 +66,9 @@ fi
 CPU_USAGE=$(ps -p $$ -o %cpu | tail -n 1)
 
 # Check if logging to syslog is enabled
-if [[ $LOG_TO_SYSLOG == "1" ]]; then
+if [[ $LOG_TO_STDOUT == "1" ]]; then
+    echo -e "Cron job completed in $TIME_SPENT seconds with $CPU_USAGE% CPU usage. \nOutput: $CRON_OUTPUT"
+elif [[ $LOG_TO_SYSLOG == "1" ]]; then
     echo -e "Cron job completed in $TIME_SPENT seconds with $CPU_USAGE% CPU usage. \nOutput: $CRON_OUTPUT" | logger -t "wordpress-crons-$DOMAIN_NAME"
 elif [[ $LOG_TO_FILE == "1" ]]; then
     # Log to file in the WordPress install directory
