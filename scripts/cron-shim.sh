@@ -55,7 +55,9 @@ fi
 
 # Log the end time and CPU usage
 END_TIME=$(date +%s.%N)
-if (( $+commands[bc] )); then
+
+# check if bc installed otherwise use awk
+if [[ $(command -v bc) ]]; then
     TIME_SPENT=$(echo "$END_TIME - $START_TIME" | bc)
 else
     TIME_SPENT=$(echo "$END_TIME - $START_TIME" | awk '{printf "%f", $1 - $2}')
