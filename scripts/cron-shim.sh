@@ -1,5 +1,9 @@
 #!/bin/bash
 # -- Created by Jordan - hello@managingwp.io - https://managingwp.io
+# -- Version 1.0.0 -- Last Updated: 2020-05-09
+# -- Purpose: Run WordPress crons via wp-cli and log the output to stdout, syslog, or a file.
+# -- Usage: Add the following to your crontab (replacing /path/to/wordpress with the path to your WordPress install):
+# */5 * * * * /home/systemuser/cron-shim.sh
 
 # Set up the necessary variables
 WP_CLI="/usr/local/bin/wp" # - Location of wp-cli
