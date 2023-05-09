@@ -55,7 +55,11 @@ fi
 
 # Log the end time and CPU usage
 END_TIME=$(date +%s.%N)
-TIME_SPENT=$(echo "$END_TIME - $START_TIME" | bc)
+if (( $+commands[bc] )); then
+    TIME_SPENT=$(echo "$END_TIME - $START_TIME" | bc)
+else
+    TIME_SPENT=$(echo "$END_TIME - $START_TIME" | awk '{printf "%f", $1 - $2}')
+fi
 CPU_USAGE=$(ps -p $$ -o %cpu | tail -n 1)
 
 # Check if logging to syslog is enabled
