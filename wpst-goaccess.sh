@@ -79,9 +79,11 @@ set_format () {
 
 	# GRIDPANE-NGINX
 	# ./common/logging.conf:log_format we_log '[$time_local] $remote_addr $upstream_response_time $upstream_cache_status $http_host "$request" $status $body_bytes_sent $request_time "$http_referer" "$http_user_agent"';
+    # $request_time = seconds with a milliseconds resolution
 	# [14/Apr/2023:06:30:32 -0500] 127.0.0.1 1.732 - domain.com "GET /?pwgc=1628918241 HTTP/2.0" 200 39563 1.731 "-" "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm) Chrome/103.0.5060.134 Safari/537.36"
+    # [27/Apr/2023:06:38:01 -0500] 2600:1700:4dce:28f0:ed74:ea35:b8e5:ece6 - - domain.com "GET /image.jpg HTTP/2.0" 304 0 0.000 "https://yahoo.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/107.0.5304.66 Mobile/15E148 Safari/604.1"
 	if [[ $FORMAT == "GPNGINX" ]]; then
-		LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b \"%R\" \"%u\"\'
+		LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b %T \"%R\" \"%u\"\'
 		DATE_FORMAT='%d/%b/%Y'
 		TIME_FORMAT='%H:%M:%S %Z'
 	fi
@@ -166,19 +168,19 @@ collect_logs () {
 	LOG_COLLECT_DATA=$(mktemp)
 	if [[ $ACTION == "DOMAIN" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
-			ls -al ${LOG_FILE_LOCATION}/${LOG_FILTER}
+			echo "cat ${LOG_FILE_LOCATION}/${LOG_FILTER} > $LOG_COLLECT_DATA"
 		else
 			cat ${LOG_FILE_LOCATION}/${LOG_FILTER} > $LOG_COLLECT_DATA
 		fi
 	elif [[ $ACTION == "ALL" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
-			ls -al ${LOG_FILE_LOCATION}/${LOG_FILTER}
+			echo "cat ${LOG_FILE_LOCATION}/*.access.log > $LOG_COLLECT_DATA; zcat ${LOG_FILE_LOCATION}/${LOG_FILTER} >> $LOG_COLLECT_DATA"
 		else
 			cat ${LOG_FILE_LOCATION}/*.access.log > $LOG_COLLECT_DATA; zcat ${LOG_FILE_LOCATION}/${LOG_FILTER} >> $LOG_COLLECT_DATA
 		fi
 	elif [[ $ACTION == "FILE" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
-			ls -al ${LOG_FILE_LOCATION}
+			echo "$CATCMD ${LOG_FILE_LOCATION} > $LOG_COLLECT_DATA"
 		else
 			[[ $LOG_FILE_LOCATION == "*.gz" ]] && CATCMD="zcat"
 			$CATCMD ${LOG_FILE_LOCATION} > $LOG_COLLECT_DATA
@@ -190,32 +192,36 @@ collect_logs () {
 # -- do_goaccess
 do_goaccess () {
 	_debug "Proceeding with d_goaccess"
+    if [[ -n $TIME_SPEC ]]; then
+        GOACCESS_EXTRA+="--hour-spec=$TIME_SPEC"
+    fi
 
 	if [[ $ACTION == "DOMAIN" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
-			echo "cat ${LOG_FILE_LOCATION}/${LOG_FILTER} | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
+			echo "cat ${LOG_FILE_LOCATION}/${LOG_FILTER} | goaccess ${GOACCESS_EXTRA} --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
 		else
-			cat $LOG_DATA_FILE | goaccess --log-format="${LOG_FORMAT}" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+			cat $LOG_DATA_FILE | goaccess ${GOACCESS_EXTRA} --log-format="${LOG_FORMAT}" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 		fi
 	elif [[ $ACTION == "ALL" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
-			echo "cat $LOG_DATA_FILE | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
+			echo "cat $LOG_DATA_FILE | goaccess ${GOACCESS_EXTRA} --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
 		else
-			cat $LOG_DATA_FILE | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+			cat $LOG_DATA_FILE | goaccess ${GOACCESS_EXTRA} --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 		fi
 	elif [[ $ACTION == "FILE" ]]; then
 		[[ $LOG_FILE_LOCATION == "*.gz" ]] && CATCMD="zcat"
 		if [[ $DRY_RUN == "1" ]]; then
-			echo "cat $LOG_DATA_FILE | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
+			echo "cat $LOG_DATA_FILE | goaccess ${GOACCESS_EXTRA} --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
 		else
-			cat $LOG_DATA_FILE | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+		    cat $LOG_DATA_FILE | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+            echo "Command Ran $(history | tail -n 1)"
 		fi
 	elif [[ $ACTION == "TEST" ]]; then
 		[[ $LOG_FILE_LOCATION == "*.gz" ]] && CATCMD="zcat"
 		if [[ $DRY_RUN == "1" ]]; then
-			echo "cat ${LOG_FILE_LOCATION} | goaccess --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
+			echo "cat ${LOG_FILE_LOCATION} | goaccess ${GOACCESS_EXTRA} --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
 		else
-			$CATCMD ${LOG_FILE_LOCATION} | goaccess --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
+			$CATCMD ${LOG_FILE_LOCATION} | goaccess ${GOACCESS_EXTRA} --log-format="$LOG_FORMAT" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
 		fi
 	else
 		echo "No action specified"
@@ -237,11 +243,11 @@ function sed_logs() {
 	local END_DATE=$(date -d "$(echo "$EDATE" | sed 's/\// /g;s/:/ /')" +%s | xargs -I{} date -d "@{}" +'%d\/%b\/%Y:%H:%M:%S')
 
 	if [[ $DRY_RUN == "1" ]]; then
-		echo "sed -n "/$START_DATE/,/$END_DATE/ p" $LOG_DATA_FILE > $SED_LOG"
+		echo "sed -n \"/$START_DATE/,/$END_DATE/ p\" $LOG_DATA_FILE > $SED_LOG"
 	else
 		sed -n "/$START_DATE/,/$END_DATE/ p" $LOG_DATA_FILE > $SED_LOG
 	fi	
-	LOG_DATA=$SED_LOG
+	LOG_DATA_FILE=$SED_LOG
 }
 
 # ---------------
@@ -255,7 +261,7 @@ key="$1"
 case $key in
     -h)
     ACTION="HELP"
-	DCMD+="ACTION=$2 "
+	DCMD+="ACTION=HELP "
     shift # past argument
     ;;
     -platform)
@@ -283,7 +289,7 @@ case $key in
     -domain)
     ACTION="DOMAIN"
     DOMAIN="$2"
-    DCMD+="ACTION=DOMAIN DOMAIN=$2"
+    DCMD+="ACTION=DOMAIN DOMAIN=$2 "
     shift # past argument
     shift # past value
     ;;
@@ -302,16 +308,22 @@ case $key in
 	-t)
     ACTION="TEST"
 	FILE="$2"
-    DCMD+="ACTION=TEST FILE=$2"
+    DCMD+="ACTION=TEST FILE=$2 "
     shift # past argument
 	shift # past value
     ;;
 	-time)
 	CUSTOM_TIME="$2"
-	DCMD+="CUSTOM_TIME=$2"
+	DCMD+="CUSTOM_TIME=$2 "
 	shift # past argument
 	shift # past value
 	;;
+    -timespec)
+    TIME_SPEC="$2"
+    DCMD+="TIME_SPEC=$2 "
+    shift # past argument
+    shift # past value
+    ;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -320,8 +332,27 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
+
+
+# ----------------------------#
+# -- Debugging
+# ----------------------------#
 _debug "Running wpst-goaccess $DCMD"
 _debug_all "${*}"
+
+# ----------------------------#
+# --- Check Arguments
+# ----------------------------#
+if [[ -n $TIME_SPEC ]]; then
+    if [[ $TIME_SPEC != "min" && $TIME_SPEC != "hour" ]]; then
+        echo "Error: Invalid time specification"
+        exit
+    fi
+fi
+
+# ----------------------------#
+# --- Main
+# ----------------------------#
 
 if [[ -z $ACTION ]] || [[ $ACTION == "HELP" ]]; then
 	usage

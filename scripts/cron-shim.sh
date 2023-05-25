@@ -1,9 +1,14 @@
 #!/bin/bash
 # -- Created by Jordan - hello@managingwp.io - https://managingwp.io
+# -- Version 1.0.0 -- Last Updated: 2020-05-09
+# -- Purpose: Run WordPress crons via wp-cli and log the output to stdout, syslog, or a file.
+# -- Usage: Add the following to your crontab (replacing /path/to/wordpress with the path to your WordPress install):
+# */5 * * * * /home/systemuser/cron-shim.sh
 
 # Set up the necessary variables
 WP_CLI="/usr/local/bin/wp" # - Location of wp-cli
 WP_ROOT="/path/to/wordpress" # - Path to WordPress
+LOG_TO_STDOUT="1" # - Log to stdout? 0 = no, 1 = yes
 LOG_TO_SYSLOG="1" # - Log to syslog? 0 = no, 1 = yes
 LOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
 LOG_FILE="${WP_ROOT}/wordpress-crons.log" # Location for wordpress cron.
@@ -55,11 +60,19 @@ fi
 
 # Log the end time and CPU usage
 END_TIME=$(date +%s.%N)
-TIME_SPENT=$(echo "$END_TIME - $START_TIME" | bc)
+
+# check if bc installed otherwise use awk
+if [[ $(command -v bc) ]]; then
+    TIME_SPENT=$(echo "$END_TIME - $START_TIME" | bc)
+else
+    TIME_SPENT=$(echo "$END_TIME - $START_TIME" | awk '{printf "%f", $1 - $2}')
+fi
 CPU_USAGE=$(ps -p $$ -o %cpu | tail -n 1)
 
 # Check if logging to syslog is enabled
-if [[ $LOG_TO_SYSLOG == "1" ]]; then
+if [[ $LOG_TO_STDOUT == "1" ]]; then
+    echo -e "Cron job completed in $TIME_SPENT seconds with $CPU_USAGE% CPU usage. \nOutput: $CRON_OUTPUT"
+elif [[ $LOG_TO_SYSLOG == "1" ]]; then
     echo -e "Cron job completed in $TIME_SPENT seconds with $CPU_USAGE% CPU usage. \nOutput: $CRON_OUTPUT" | logger -t "wordpress-crons-$DOMAIN_NAME"
 elif [[ $LOG_TO_FILE == "1" ]]; then
     # Log to file in the WordPress install directory
