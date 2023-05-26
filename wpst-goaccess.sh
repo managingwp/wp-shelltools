@@ -190,18 +190,22 @@ collect_logs () {
 }
 
 # -- do_goaccess
+# TODO Updated all the goaccess stuff to use the new format of $CMD
+# TODO add --browser-file='browsers.list' to all commands
 do_goaccess () {
-	_debug "Proceeding with d_goaccess"
+    _debug "Proceeding with d_goaccess"
     if [[ -n $TIME_SPEC ]]; then
         GOACCESS_EXTRA+="--hour-spec=$TIME_SPEC"
     fi
 
-	if [[ $ACTION == "DOMAIN" ]]; then
-		if [[ $DRY_RUN == "1" ]]; then
-			echo "cat ${LOG_FILE_LOCATION}/${LOG_FILTER} | goaccess ${GOACCESS_EXTRA} --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
-		else
-			cat $LOG_DATA_FILE | goaccess ${GOACCESS_EXTRA} --log-format="${LOG_FORMAT}" --date-format="$DATE_FORMAT" --time-format="$TIME_FORMAT"
-		fi
+    if [[ $ACTION == "DOMAIN" ]]; then
+        CMD="cat $LOG_DATA_FILE | goaccess ${GOACCESS_EXTRA} --log-format='${LOG_FORMAT}' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'  --browsers-file='browsers.list'"
+        if [[ $DRY_RUN == "1" ]]; then
+            echo $CMD
+        else            
+            eval "$CMD"
+            echo "CMD: $CMD"
+        fi
 	elif [[ $ACTION == "ALL" ]]; then
 		if [[ $DRY_RUN == "1" ]]; then
 			echo "cat $LOG_DATA_FILE | goaccess ${GOACCESS_EXTRA} --log-format='$LOG_FORMAT' --date-format='$DATE_FORMAT' --time-format='$TIME_FORMAT'"
