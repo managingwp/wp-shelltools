@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
-# - gp-logcode
-. $(dirname "$0")/functions.sh
-_debug "Loading functions.sh"
+# - gp-api.sh
 
-# --
 # -- Variables
-# --
 API_URL="https://my.gridpane.com/oauth/api/v1/$gp_api_endpoint"
 API_TOKEN=.gptoken
-gp_api_cmd=$(curl -s $gp_api_url --header 'Authorization: Bearer $gp_api_access_token')
+gp_api_cmd=$(curl -s $API_URL --header 'Authorization: Bearer $gp_api_access_token')
 
 ## - Color
 RED='\033[97;41m'
