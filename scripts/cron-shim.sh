@@ -1,6 +1,6 @@
 #!/bin/bash
 # -- Created by Jordan - hello@managingwp.io - https://managingwp.io
-# -- Version 1.1.0 -- Last Updated: 2023-06-07
+# -- Version 1.0.2 -- Last Updated: 2023-08-23
 #
 # Purpose: Run WordPress crons via wp-cli and log the output to stdout, syslog, or a file.
 # Usage: Add the following to your crontab (replacing /path/to/wordpress with the path to your WordPress install):
@@ -13,19 +13,27 @@
 #  TODO - Provide an example of passing an evnironment variable
 # Example: */5 * * * * /home/systemuser/cron-shim.sh
 
-# Set up the necessary variables
+# -- Where are we?
 SCRIPT_DIR=$(dirname "$(realpath "$0")") # - Directory of this script
-WP_CLI="/usr/local/bin/wp" # - Location of wp-cli
-WP_ROOT="" # - Path to WordPress, blank will try common directories.
-CRON_CMD="$WP_CLI --skip-plugins --skip-themes cron event run --due-now" # - Command to run
-HEARTBEAT_URL="" # - Heartbeat monitoring URL, example https://uptime.betterstack.com/api/v1/heartbeat/23v123v123c12312 leave blank to disable or pass in via environment variable
-POST_CRON_CMD="" # - Command to run after cron completes
 
-# Logging
-LOG_TO_STDOUT="1" # - Log to stdout? 0 = no, 1 = yes
-LOG_TO_SYSLOG="1" # - Log to syslog? 0 = no, 1 = yes
-LOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
-LOG_FILE="" # Location for WordPress cron log file if LOG_TO_FILE="1", if left blank then ${WP_ROOT}/../wordpress-crons.log"
+# -- Check if cron-shim.conf exists and source it
+if [[ -f $SCRIPT_DIR/cron-shim.conf ]]; then
+    echo "Found and sourcing $SCRIPT_DIR/cron-shim.conf"
+    source $SCRIPT_DIR/cron-shim.conf
+fi
+
+# -- Default Settings
+[[ -z $WP_CLI ]] && WP_CLI="/usr/local/bin/wp" # - Location of wp-cli
+[[ -z $WP_ROOT ]] && WP_ROOT="" # - Path to WordPress, blank will try common directories.
+[[ -z $CRON_CMD ]] && CRON_CMD="$WP_CLI cron event run --due-now" # - Command to run
+[[ -z $HEARTBEAT_URL ]] && HEARTBEAT_URL="" # - Heartbeat monitoring URL, example https://uptime.betterstack.com/api/v1/heartbeat/23v123v123c12312 leave blank to disable or pass in via environment variable
+[[ -z $POST_CRON_CMD ]] && POST_CRON_CMD="" # - Command to run after cron completes
+
+# -- Logging Settings
+[[ -z $LOG_TO_STDOUT ]] && LOG_TO_STDOUT="1" # - Log to stdout? 0 = no, 1 = yes
+[[ -z $LOG_TO_SYSLOG ]] && LOG_TO_SYSLOG="1" # - Log to syslog? 0 = no, 1 = yes
+[[ -z $LOG_TO_FILE ]] && LOG_TO_FILELOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
+[[ -z $LOG_FILE ]] && LOG_FILE="" # Location for WordPress cron log file if LOG_TO_FILE="1", if left blank then ${WP_ROOT}/../wordpress-crons.log"
 LOG="" # Clearing variable
 
 # Check if running as root
