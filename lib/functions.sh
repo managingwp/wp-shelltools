@@ -86,33 +86,31 @@ _checkroot () {
 
 # -- check_for_updates
 help_cmd[check-update]="Check for updates to wpst"
-function tool_check-update () {
-    local script_name="$1"
-    local github_url="$2"
-    
+function wpst_check_update () {    
     # Get the local version from the VERSION file
-    local local_version
+    local LOCAL_VERSION
     if [[ -f "VERSION" ]]; then
-        local_version=$(cat "VERSION")
+        LOCAL_VERSION=$(cat "VERSION")
     else
         echo "ERROR: VERSION file not found."
         return 1
     fi
     
     # Get the remote version from GitHub
-    local remote_version
-    remote_version=$(curl -sSL "$github_url/VERSION")
-    if [[ -z "$remote_version" ]]; then
+    local REMOTE_VERSION
+    REMOTE_VERSION=$(curl -sSL "$GITHUB_URL/VERSION")
+    if [[ -z "$REMOTE_VERSION" ]]; then
         echo "ERROR: Failed to retrieve remote version from GitHub."
         return 1
     fi
     
     # Compare local and remote versions
-    if [[ "$local_version" == "$remote_version" ]]; then
-        echo "Your script ($script_name) is up to date."
+    if [[ "$LOCAL_VERSION" == "$REMOTE_VERSION" ]]; then
+        echo "Up to date. Local:$LOCAL_VERSION - Latest: $REMOTE_VERSION"
+    # Check if local version is higher than remote version
+    elif [[ "$LOCAL_VERSION" > "$REMOTE_VERSION" ]]; then
+        echo "Local version ($LOCAL_VERSION) is higher than latest version ($REMOTE_VERSION)."
     else
-        echo "Your script ($script_name) is out of date."
-        echo "Local version: $local_version"
-        echo "Remote version: $remote_version"
+        echo "Out of date. Local:$LOCAL_VERSION - Latest: $REMOTE_VERSION"
     fi
 }

@@ -6,6 +6,7 @@
 SCRIPT_DIR="$( dirname "${BASH_SOURCE[0]}" )"
 WPST_VERSION="$(cat ${SCRIPT_DIR}/VERSION)"
 SCRIPT_NAME="wpst"
+GITHUB_URL="https://raw.githubusercontent.com/managingwp/wp-shelltools/main/"
 
 source $SCRIPT_DIR/lib/functions.sh # Core Functions
 source $SCRIPT_DIR/lib/functions-gp.sh # GP Functions
@@ -77,8 +78,8 @@ elif [[ $ACTION = "ajaxlog" ]]; then
 
 elif [[ $ACTION = gp-* ]]; then
     cmd_$@
-elif [[ $ACTION = "check-updates" ]]; then
-    wpst_check_updates
+elif [[ $ACTION = "check-update" ]]; then
+    wpst_check_update
 else
         usage
         exit 1
