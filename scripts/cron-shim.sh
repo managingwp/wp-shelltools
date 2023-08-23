@@ -1,6 +1,6 @@
 #!/bin/bash
 # -- Created by Jordan - hello@managingwp.io - https://managingwp.io
-# -- Version 1.0.2 -- Last Updated: 2023-08-23
+# -- Version 1.0.3 -- Last Updated: 2023-08-23
 #
 # Purpose: Run WordPress crons via wp-cli and log the output to stdout, syslog, or a file.
 # Usage: Add the following to your crontab (replacing /path/to/wordpress with the path to your WordPress install):
@@ -32,7 +32,7 @@ fi
 # -- Logging Settings
 [[ -z $LOG_TO_STDOUT ]] && LOG_TO_STDOUT="1" # - Log to stdout? 0 = no, 1 = yes
 [[ -z $LOG_TO_SYSLOG ]] && LOG_TO_SYSLOG="1" # - Log to syslog? 0 = no, 1 = yes
-[[ -z $LOG_TO_FILE ]] && LOG_TO_FILELOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
+[[ -z $LOG_TO_FILE ]] && LOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
 [[ -z $LOG_FILE ]] && LOG_FILE="" # Location for WordPress cron log file if LOG_TO_FILE="1", if left blank then ${WP_ROOT}/../wordpress-crons.log"
 LOG="" # Clearing variable
 
@@ -57,8 +57,8 @@ if [[ $WP_ROOT == "" ]]; then
 fi
 
 # Check if $LOG_TO_FILE is enabled and set the log file location
-if [[ $LOG_TO_FILE == "1" ]]; then
-    if [[ $LOG_FILE == "" ]]; then
+if [[ $LOG_TO_FILE == "1" ]];then
+    if [[ $LOG_FILE == "" ]];then
         LOG_FILE="${WP_ROOT}/../wordpress-crons.log"
         echo "Logging to $LOG_FILE"
     fi
