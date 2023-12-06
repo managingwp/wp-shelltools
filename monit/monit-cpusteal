@@ -1,0 +1,8 @@
+# -- Check if your system is suffering from CPU Steal
+# Requires monit 5.27 
+# For GridPane see https://gridpane.com/kb/how-to-upgrade-monit-version/ and replace with 5.27 where 5.26 exists
+# --
+check system $HOST-steal
+    if cpu (steal) > 0.1% for 1 cycles
+        then exec "/root/lmt-managed-host/gridpane/gp-slack-custom.sh 'WARNING: CPU Steal'"
+        AND repeat every 10 cycles%       

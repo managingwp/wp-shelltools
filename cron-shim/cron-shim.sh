@@ -1,6 +1,5 @@
 #!/bin/bash
 # -- Created by Jordan - hello@managingwp.io - https://managingwp.io
-# -- Version 1.0.3 -- Last Updated: 2023-08-23
 #
 # Purpose: Run WordPress crons via wp-cli and log the output to stdout, syslog, or a file.
 # Usage: Add the following to your crontab (replacing /path/to/wordpress with the path to your WordPress install):
@@ -13,13 +12,18 @@
 #  TODO - Provide an example of passing an evnironment variable
 # Example: */5 * * * * /home/systemuser/cron-shim.sh
 
+# -- Variables
+VERSION="1.0.4"
+PID_FILE="/tmp/cron-shim.pid"
+SCRIPT_NAME=$(basename "$0") # - Name of this script
+
 # -- Where are we?
 SCRIPT_DIR=$(dirname "$(realpath "$0")") # - Directory of this script
 
 # -- Check if cron-shim.conf exists and source it
 if [[ -f $SCRIPT_DIR/cron-shim.conf ]]; then
     echo "Found and sourcing $SCRIPT_DIR/cron-shim.conf"
-    source $SCRIPT_DIR/cron-shim.conf
+    source "$SCRIPT_DIR/cron-shim.conf"
 fi
 
 # -- Default Settings
@@ -28,13 +32,42 @@ fi
 [[ -z $CRON_CMD ]] && CRON_CMD="$WP_CLI cron event run --due-now" # - Command to run
 [[ -z $HEARTBEAT_URL ]] && HEARTBEAT_URL="" # - Heartbeat monitoring URL, example https://uptime.betterstack.com/api/v1/heartbeat/23v123v123c12312 leave blank to disable or pass in via environment variable
 [[ -z $POST_CRON_CMD ]] && POST_CRON_CMD="" # - Command to run after cron completes
+[[ -z $MONITOR_RUN ]] && MONITOR_RUN="0" # - Monitor the script run and don't execute again if existing PID exists or process is still running.
+[[ -z $MONITOR_RUN_TIMEOUT ]] && MONITOR_RUN_TIMEOUT="300" # - Time in seconds to consider script is stuck.
 
 # -- Logging Settings
 [[ -z $LOG_TO_STDOUT ]] && LOG_TO_STDOUT="1" # - Log to stdout? 0 = no, 1 = yes
 [[ -z $LOG_TO_SYSLOG ]] && LOG_TO_SYSLOG="1" # - Log to syslog? 0 = no, 1 = yes
 [[ -z $LOG_TO_FILE ]] && LOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
-[[ -z $LOG_FILE ]] && LOG_FILE="" # Location for WordPress cron log file if LOG_TO_FILE="1", if left blank then ${WP_ROOT}/../wordpress-crons.log"
+[[ -z $LOG_FILE ]] && LOG_FILE="cron-shim.log" # Location for WordPress cron log file if LOG_TO_FILE="1", if left blank then cron-shim.log"
 LOG="" # Clearing variable
+
+# -----------------------------------------------
+# -- Checks
+# -----------------------------------------------
+
+# Check if $LOG_TO_FILE is enabled and set the log file location
+if [[ $LOG_TO_FILE == "1" ]];then
+    echo "Logging to $LOG_FILE"    
+fi
+
+# Check if the PID file exists
+if [ -f "$PID_FILE" ]; then
+    PID=$(cat "$PID_FILE")
+    if ps -p $PID > /dev/null 2>&1; then
+        LOG+="Error: Script is already running with PID $PID."        
+        exit 1
+    else
+        echo "Warning: PID file exists but process is not running. Cleaning up and continuing."
+        rm -f "$PID_FILE"
+    fi
+fi
+
+# Create a new PID file
+echo $$ > "$PID_FILE"
+
+# Setup a trap to remove the PID file on script exit
+trap "rm -f '$PID_FILE'; exit" INT TERM EXIT
 
 # Check if running as root
 [ "$(id -u)" -eq 0 ] && { echo "Error: This script should not be run as root." >&2; exit 1; }
@@ -56,14 +89,6 @@ if [[ $WP_ROOT == "" ]]; then
     fi
 fi
 
-# Check if $LOG_TO_FILE is enabled and set the log file location
-if [[ $LOG_TO_FILE == "1" ]];then
-    if [[ $LOG_FILE == "" ]];then
-        LOG_FILE="${WP_ROOT}/../wordpress-crons.log"
-        echo "Logging to $LOG_FILE"
-    fi
-fi
-
 # Check if $WP_ROOT contains a WordPress install
 [[ WP_ROOT_INSTALL=$($WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes core is-installed  2> /dev/null) ]] || { echo "Error: $WP_ROOT is not a WordPress install.\n$WP_ROOT_INSTALL " >&2; exit 1; }
 
@@ -73,62 +98,73 @@ fi
 # -- Set $CRON_CMD with $WP_ROOT
 CRON_CMD="$CRON_CMD --path=$WP_ROOT" # - Command to run
 
-# ------------------
+# ===============================================
 # --- Start Cron Job
-# ------------------
+# ===============================================
 
 # Log the start time
 START_TIME=$(date +%s.%N)
 
 # Log header
-LOG="==================================================
-== Cron job start in $WP_ROOT $(echo $START_TIME|date +"%Y-%m-%d %H:%M:%S")
-==================================================
+LOG="===================================================================================================
+== Cron Shim ${VERSION} - job start in $WP_ROOT $(echo $START_TIME|date +"%Y-%m-%d_%H:%M:%S")
+===================================================================================================
 "
 
 # Run $CRON_CMD
-CRON_OUTPUT="$(eval $CRON_CMD)"
+if [[ $MONITOR_RUN == "1" ]]; then
+    LOG+="Monitoring script run for $MONITOR_RUN_TIMEOUT seconds.\n"
+    LOG+="timeout ${MONITOR_RUN_TIMEOUT} $CRON_CMD\n"
+    CRON_OUTPUT=$(timeout ${MONITOR_RUN_TIMEOUT} $CRON_CMD)
+else
+    LOG+="Running $CRON_CMD"
+    CRON_OUTPUT="$(eval $CRON_CMD)"
+fi
+
+# Check if timeout occurred
+if [ $? -eq 124 ]; then
+    LOG+="Error: Timeout occurred after $MONITOR_RUN_TIMEOUT seconds during $CRON_CMD" >&2
+    # Handle the timeout case, maybe some cleanup or a special message
+fi
 
 # Check if there was an error running $CRON_CMD
 if [[ $? -ne 0 ]]; then
     LOG+="Error: $CRON_CMD - command failed: $CRON_OUTPUT" >&2
     LOG+="$CRON_OUTPUT"
     if [[ -n "$POST_CRON_CMD" ]]; then
-        eval "$POST_CRON_CMD"
+        $(eval "$POST_CRON_CMD")
     fi
 else
-        LOG+="$CRON_OUTPUT"
-        # Check if heartbeat monitoring is enabled and send a request to the heartbeat URL if it is and there are no errors
-        if [[ -n "$HEARTBEAT_URL" ]] && [[ $? -eq 0 ]] ; then
+    LOG+="$CRON_OUTPUT"
+    # Check if heartbeat monitoring is enabled and send a request to the heartbeat URL if it is and there are no errors
+    if [[ -n "$HEARTBEAT_URL" ]] && [[ $? -eq 0 ]] ; then
         curl -I -s "$HEARTBEAT_URL" > /dev/null
         LOG+="\n==== Sent Heartbeat to $HEARTBEAT_URL"
-        fi
-
-        # Log the end time and CPU usage
-        END_TIME=$(date +%s.%N)
-
-        # check if bc installed otherwise use awk
-        if [[ $(command -v bc) ]]; then
-            TIME_SPENT=$(echo "$END_TIME - $START_TIME" | bc)
-        else
-            TIME_SPENT=$(echo "$END_TIME - $START_TIME" | awk '{printf "%f", $1 - $2}')
-        fi
-        # Get CPU Usage
-        CPU_USAGE=$(ps -p $$ -o %cpu | tail -n 1)
-
-        # POST_CRON_CMD
-        if [[ -n "$POST_CRON_CMD" ]]; then
-        LOG+="$(eval "$POST_CRON_CMD")"
     fi
 
-        # Write cron job completed time and cpu usage.
+    # Log the end time and CPU usage
+    END_TIME=$(date +%s.%N)
+
+    # check if bc installed otherwise use awk
+    if [[ $(command -v bc) ]]; then
+        TIME_SPENT=$(echo "$END_TIME - $START_TIME" | bc)
+    else
+        TIME_SPENT=$(echo "$END_TIME - $START_TIME" | awk '{printf "%f", $1 - $2}')
+    fi
+    # Get CPU Usage
+    CPU_USAGE=$(ps -p $$ -o %cpu | tail -n 1)
+
+    # POST_CRON_CMD
+    if [[ -n "$POST_CRON_CMD" ]]; then
+        LOG+="$(eval "$POST_CRON_CMD")"
+    fi
 fi
 
-LOG+="\n===============================================
+LOG+="\n===================================================================================================
 == Cron job completed in $TIME_SPENT seconds with $CPU_USAGE% CPU usage.
-===============================================
-== Cron job End - $(echo $END_TIME | date +"%Y-%m-%d %H:%M:%S")
-==============================================="
+===================================================================================================
+== Cron job End - $(echo $END_TIME | date +"%Y-%m-%d_%H:%M:%S")
+===================================================================================================\n"
 
 # --------------
 # --- Logging

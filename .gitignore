@@ -2,3 +2,4 @@
 .gptoken
 .debug
 .test
+cron-shim/cron-shim-output.csv
