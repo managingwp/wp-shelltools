@@ -14,10 +14,10 @@ dmp_usage () {
     echo ""
     echo "Example delete-mu-plugins.conf:"
     echo ""
-    echo "SOURCE_DIR=\"/var/www/domain.com/wp-content/mu-plugins\""
+    echo "SOURCE_DIR=\"/var/www\""
     echo "BACKUP_DIR=\"/root/backup\""
     echo "DOMAIN_LIST=('domain1.com' 'domain2.com' 'domain3.com')"
-    echo "FILES_FOLDERS_DELETE=('mu-plugins/pluginfile.php' 'plugins/testplugin' 'mu-plugins/test.php')"
+    echo "FILES_FOLDERS_DELETE=('htdocs/wp-content/mu-plugins/pluginfile.php' 'htdocs/wp-content/plugins/testplugin' 'htdocs/wp-content/mu-plugins/test.php')"
     echo "DRYRUN=0"
     echo ""
     echo "Note, DRYRUN is always set as default, so you must set it to 0 to run the script."
@@ -46,14 +46,14 @@ function move_files () {
     if [[ $DRYRUN == "1" ]]; then    
         echo "- Dry run enabled. Skipping move operation."
         for ITEM in "${FILES_FOLDERS_DELETE[@]}"; do
-            echo "- Processing $DOMAIN and in $SOURCE_DIR/$DOMAIN/$ITEM to $BACKUP_DIR/$DOMAIN/$ITEM"
-            echo "#> rsync -av --remove-source-files \"$SOURCE_DIR/$DOMAIN/$ITEM\" \"$BACKUP_DIR/$DOMAIN/$ITEM\""
+            echo "- Processing $DOMAIN and in $SOURCE_DIR/$DOMAIN/$ITEM to $BACKUP_DIR/$SOURCE_DIR/$DOMAIN/$ITEM"
+            echo "#> rsync -avR --remove-source-files \"$SOURCE_DIR/$DOMAIN/$ITEM\" \"$BACKUP_DIR\""
         done                
     else
         for ITEM in "${FILES_FOLDERS_DELETE[@]}"; do
-            echo "- Processing $DOMAIN and in $SOURCE_DIR/$DOMAIN/$ITEM to $BACKUP_DIR/$DOMAIN/$ITEM"             
+            echo "- Processing $DOMAIN and in $SOURCE_DIR/$DOMAIN/$ITEM to $BACKUP_DIR/$SOURCE_DIR/$DOMAIN/$ITEM"             
             # -- Use rsync to maintain directory tree
-            rsync -av --remove-source-files "$SOURCE_DIR/$DOMAIN/$ITEM" "$BACKUP_DIR/$DOMAIN/$ITEM"
+            rsync -av --remove-source-files "$SOURCE_DIR/$DOMAIN/$ITEM" "$BACKUP_DIR"
         done 
     fi
 
