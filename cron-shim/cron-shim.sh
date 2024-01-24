@@ -13,18 +13,12 @@
 # Example: */5 * * * * /home/systemuser/cron-shim.sh
 
 # -- Variables
-VERSION="1.0.4"
+VERSION="1.1.0"
 PID_FILE="/tmp/cron-shim.pid"
 SCRIPT_NAME=$(basename "$0") # - Name of this script
 
 # -- Where are we?
 SCRIPT_DIR=$(dirname "$(realpath "$0")") # - Directory of this script
-
-# -- Check if cron-shim.conf exists and source it
-if [[ -f $SCRIPT_DIR/cron-shim.conf ]]; then
-    echo "Found and sourcing $SCRIPT_DIR/cron-shim.conf"
-    source "$SCRIPT_DIR/cron-shim.conf"
-fi
 
 # -- Default Settings
 [[ -z $WP_CLI ]] && WP_CLI="/usr/local/bin/wp" # - Location of wp-cli
@@ -40,25 +34,58 @@ fi
 [[ -z $LOG_TO_SYSLOG ]] && LOG_TO_SYSLOG="1" # - Log to syslog? 0 = no, 1 = yes
 [[ -z $LOG_TO_FILE ]] && LOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
 [[ -z $LOG_FILE ]] && LOG_FILE="cron-shim.log" # Location for WordPress cron log file if LOG_TO_FILE="1", if left blank then cron-shim.log"
-LOG="" # Clearing variable
+
+# -- _log $message
+function _log () {
+    local MESSAGE="${*}"
+    # -- Logging
+    # Check if logging to stdout is enabled
+    [[ $LOG_TO_STDOUT == "1" ]] && { echo "$MESSAGE"; }
+    # Check if logging to syslog is enabled
+    [[ $LOG_TO_SYSLOG == "1" ]] && { echo "$MESSAGE" | logger -t "wordpress-cron-$DOMAIN_NAME"; }
+    # Check if logging to log file is enabled
+    [[ $LOG_TO_FILE == "1" ]] && { echo "$MESSAGE" >> $LOG_FILE; }
+}
+
+# -- Check if cron-shim.conf exists and source it
+if [[ -f $SCRIPT_DIR/cron-shim.conf ]]; then
+    STARTUP_LOG+="Found and sourcing $SCRIPT_DIR/cron-shim.conf"
+    source "$SCRIPT_DIR/cron-shim.conf"
+fi
+
+
 
 # -----------------------------------------------
 # -- Checks
 # -----------------------------------------------
 
+# Log the start time
+START_TIME=$(date +%s.%N)
+
+# Log header
+_log "==================================================================================================="
+_log "== Cron Shim ${VERSION} - job start $(echo $START_TIME|date +"%Y-%m-%d_%H:%M:%S")"
+_log "==================================================================================================="
+
 # Check if $LOG_TO_FILE is enabled and set the log file location
-if [[ $LOG_TO_FILE == "1" ]];then
-    echo "Logging to $LOG_FILE"    
-fi
+[[ $LOG_TO_FILE == "1" ]] && _log "Logging to $LOG_FILE"
+
+# -- Starting
+_log "Starting $SCRIPT_NAME $VERSION in $SCRIPT_DIR on $(hostname)"
+
+# -- Log where we're logging
+[[ $LOG_TO_STDOUT == "1" ]] && _log "Logging to - stdout"
+[[ $LOG_TO_SYSLOG == "1" ]] && _log "Logging to - syslog"
+[[ $LOG_TO_FILE == "1" ]] && _log "Logging to - $LOG_FILE"
 
 # Check if the PID file exists
 if [ -f "$PID_FILE" ]; then
     PID=$(cat "$PID_FILE")
     if ps -p $PID > /dev/null 2>&1; then
-        LOG+="Error: Script is already running with PID $PID."        
+        _log "Error: Script is already running with PID $PID."        
         exit 1
     else
-        echo "Warning: PID file exists but process is not running. Cleaning up and continuing."
+        _log "Warning: PID file exists but process is not running. Cleaning up and continuing."
         rm -f "$PID_FILE"
     fi
 fi
@@ -70,30 +97,44 @@ echo $$ > "$PID_FILE"
 trap "rm -f '$PID_FILE'; exit" INT TERM EXIT
 
 # Check if running as root
-[ "$(id -u)" -eq 0 ] && { echo "Error: This script should not be run as root." >&2; exit 1; }
+[ "$(id -u)" -eq 0 ] && { _log "Error: This script should not be run as root." >&2; exit 1; }
 
 # Check if wp-cli is installed
-[[ $(command -v $WP_CLI) ]]  || { echo 'Error: wp-cli is not installed.' >&2; exit 1; }
+[[ $(command -v $WP_CLI) ]]  || { _log 'Error: wp-cli is not installed.' >&2; exit 1; }
 
 # Check if $WP_ROOT exists and try common directories if it doesn't
 if [[ $WP_ROOT == "" ]]; then
     # -- $WP_ROOT Not Detected, Try Common Directories
+    WP_ROOT_CHECK=( "$SCRIPT_DIR/htdocs" "$SCRIPT_DIR/public_html")
+    WP_ROOT_CHECK+=("../htdocs" "../public_html" "../../htdocs" "../../public_html" "../../../htdocs" "../../../public_html")
+    WP_ROOT_CHECK+=("$HOME/htdocs" "$HOME/public_html" "$HOME/www")
+    for DIR in "${WP_ROOT_CHECK[@]}"; do
+        if [[ -d $DIR ]]; then
+            WP_ROOT="$DIR"
+            break
+        fi
+    done
     if [[ ! -d "$WP_ROOT" ]]; then
         if [[ -d $SCRIPT_DIR/htdocs ]]; then
             WP_ROOT="$SCRIPT_DIR/htdocs"
         elif [[ -d $SCRIPT_DIR/public_html ]]; then
             WP_ROOT="$SCRIPT_DIR/public_html"
         else
-            echo "Error: $WP_ROOT does not exist." >&2; exit 1;
+            _log "Error: $WP_ROOT does not exist." >&2; exit 1;
         fi
     fi
 fi
 
 # Check if $WP_ROOT contains a WordPress install
-[[ WP_ROOT_INSTALL=$($WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes core is-installed  2> /dev/null) ]] || { echo "Error: $WP_ROOT is not a WordPress install.\n$WP_ROOT_INSTALL " >&2; exit 1; }
+WP_ROOT_INSTALL=$($WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes core is-installed  2> /dev/null)
+[[ $? == 0 ]] && { _log "Success: $WP_ROOT is a WordPress install."; } || { _log "Error: $WP_ROOT is not a WordPress install - $WP_ROOT_INSTALL " >&2; exit 1; }
+
+# -- Resolve $WP_ROOT to an absolute path
+WP_ROOT=$(realpath "$WP_ROOT")
 
 # Get the domain name of the WordPress install
-[[ DOMAIN_NAME=$($WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes option get siteurl 2> /dev/null | grep -oP '(?<=//)[^/]+') ]] || { echo "Error: Could not get domain name: $DOMAIN_NAME"; exit 1; }
+DOMAIN_NAME=$($WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes option get siteurl 2> /dev/null | grep -oP '(?<=//)[^/]+')
+[[ $? == 0 ]] && { _log "Success: Domain name is $DOMAIN_NAME"; } || { _log "Error: Could not get domain name: $DOMAIN_NAME"; exit 1; }
 
 # -- Set $CRON_CMD with $WP_ROOT
 CRON_CMD="$CRON_CMD --path=$WP_ROOT" # - Command to run
@@ -102,44 +143,39 @@ CRON_CMD="$CRON_CMD --path=$WP_ROOT" # - Command to run
 # --- Start Cron Job
 # ===============================================
 
-# Log the start time
-START_TIME=$(date +%s.%N)
-
-# Log header
-LOG="===================================================================================================
-== Cron Shim ${VERSION} - job start in $WP_ROOT $(echo $START_TIME|date +"%Y-%m-%d_%H:%M:%S")
-===================================================================================================
-"
+_log ""
+_log "==================================================================================================="
+_log ""
 
 # Run $CRON_CMD
 if [[ $MONITOR_RUN == "1" ]]; then
-    LOG+="Monitoring script run for $MONITOR_RUN_TIMEOUT seconds.\n"
-    LOG+="timeout ${MONITOR_RUN_TIMEOUT} $CRON_CMD\n"
+    _log "Monitoring script run for $MONITOR_RUN_TIMEOUT seconds.\n"
+    _log "timeout ${MONITOR_RUN_TIMEOUT} $CRON_CMD\n"
     CRON_OUTPUT=$(timeout ${MONITOR_RUN_TIMEOUT} $CRON_CMD)
 else
-    LOG+="Running $CRON_CMD"
+    _log "Running $CRON_CMD"
     CRON_OUTPUT="$(eval $CRON_CMD)"
 fi
 
 # Check if timeout occurred
 if [ $? -eq 124 ]; then
-    LOG+="Error: Timeout occurred after $MONITOR_RUN_TIMEOUT seconds during $CRON_CMD" >&2
+    _log "Error: Timeout occurred after $MONITOR_RUN_TIMEOUT seconds during $CRON_CMD" >&2
     # Handle the timeout case, maybe some cleanup or a special message
 fi
 
 # Check if there was an error running $CRON_CMD
 if [[ $? -ne 0 ]]; then
-    LOG+="Error: $CRON_CMD - command failed: $CRON_OUTPUT" >&2
-    LOG+="$CRON_OUTPUT"
+    _log "Error: $CRON_CMD - command failed: $CRON_OUTPUT" >&2
+    _log "$CRON_OUTPUT"
     if [[ -n "$POST_CRON_CMD" ]]; then
         $(eval "$POST_CRON_CMD")
     fi
 else
-    LOG+="$CRON_OUTPUT"
+    _log "$CRON_OUTPUT"
     # Check if heartbeat monitoring is enabled and send a request to the heartbeat URL if it is and there are no errors
     if [[ -n "$HEARTBEAT_URL" ]] && [[ $? -eq 0 ]] ; then
         curl -I -s "$HEARTBEAT_URL" > /dev/null
-        LOG+="\n==== Sent Heartbeat to $HEARTBEAT_URL"
+        _log "\n==== Sent Heartbeat to $HEARTBEAT_URL"
     fi
 
     # Log the end time and CPU usage
@@ -156,23 +192,12 @@ else
 
     # POST_CRON_CMD
     if [[ -n "$POST_CRON_CMD" ]]; then
-        LOG+="$(eval "$POST_CRON_CMD")"
+        _log "$(eval "$POST_CRON_CMD")"
     fi
 fi
 
-LOG+="\n===================================================================================================
+_log ""
+_log "===================================================================================================
 == Cron job completed in $TIME_SPENT seconds with $CPU_USAGE% CPU usage.
-===================================================================================================
-== Cron job End - $(echo $END_TIME | date +"%Y-%m-%d_%H:%M:%S")
-===================================================================================================\n"
-
-# --------------
-# --- Logging
-# --------------
-
-# Check if logging to stdout is enabled
-[[ $LOG_TO_STDOUT == "1" ]] && { echo "Logging to stdout";echo -e "$LOG"; }
-# Check if logging to syslog is enabled
-[[ $LOG_TO_SYSLOG == "1" ]] && { echo "Logging to syslog";echo -e "$LOG" | logger -t "wordpress-cron-$DOMAIN_NAME"; }
-# Check if logging to log file is enabled
-[[ $LOG_TO_FILE == "1" ]] && { echo "Logging to stdout";echo -e "$LOG" >> $LOG_FILE; }
+== Cron job End Time - $(echo $END_TIME | date +"%Y-%m-%d_%H:%M:%S")
+==================================================================================================="
