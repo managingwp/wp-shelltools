@@ -91,7 +91,8 @@ Add a .debug file to any directory to get debug information.
 # ToDo
 * Go through unfinished directory code.
 * Better documentation
-* Place some scripts into functions or separate files not inside root for a cleaner directory structure and code management.    
+* Place some scripts into functions or separate files not inside root for a cleaner directory structure and code management.
+* goaccess: Add filtering for 403 forbidden as they're blocked and not resource intensive
 
 # Donate
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://managingwp.io/sponsor/)

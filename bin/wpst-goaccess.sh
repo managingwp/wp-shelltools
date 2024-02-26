@@ -175,13 +175,13 @@ function detect_logs () {
             echo "Detected GridPane OLS logs"
             FORMAT="GPOLS"
             [[ $ACTION == "ALL" ]] && { LOG_FILE_LOCATION="/var/www/*/logs"; LOG_FILTER="*.access.log*gz"; }
-            [[ $ACTION == "DOMAIN" ]] && { LOG_FILE_LOCATION="/var/www/$DOMAIN/logs"; LOG_FILTER="*.access.log*gz"; }
+            [[ $ACTION == "DOMAIN" ]] && { LOG_FILE_LOCATION="/var/www/$DOMAIN/logs"; LOG_FILTER="*.access.log*"; }
             [[ $ACTION == "FILE" ]] && { LOG_FILE_LOCATION="$FILE"; }
         elif [[ -d /var/log/nginx ]] && [[ -f /root/grid.id ]]; then
             echo "Detected GridPane NGINX logs"
             FORMAT="GPNGINX"
             [[ $ACTION == "ALL" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="*.access.log*gz"; }
-            [[ $ACTION == "DOMAIN" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="*.access.log*gz"; }
+            [[ $ACTION == "DOMAIN" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="*.access.log*"; }
             [[ $ACTION == "FILE" ]] && { LOG_FILE_LOCATION="$FILE"; }
         elif [[ -d /etc/nginx ]] && [[ -d /var/log/nginx ]]; then
             echo "Detected NGINX logs"
