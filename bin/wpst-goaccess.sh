@@ -8,6 +8,8 @@ source $SCRIPT_DIR/../lib/functions.sh
 # -- Variables
 TEST_LOG="$SCRIPT_DIR/../tests/wpst-goaccess-gpnginx.log"
 BROWSER_LIST_FILE="$SCRIPT_DIR/browsers.list"
+PLATFORM=""
+FORMAT=""
 
 #######################
 # -- Functions
@@ -15,67 +17,73 @@ BROWSER_LIST_FILE="$SCRIPT_DIR/browsers.list"
 
 # -- usage
 usage () {
+    DETECT_LOGS=$(detect_logs)
+    CHECK_GOACCESS=$(check_goaccess)
 	USAGE=\
-"Usage: wpst-goaccess [-domain domain.com|-all|-file <logfile> [-p (gridpane|runcloud)]
+"Usage: wpst-goaccess [-domain domain.com|-all|-file <logfile>] [-p (gridpane|runcloud)] [options]
 	
     This script will try and detect log files in common locations.
 	
-    Commands
-        -domain <domain>         - Domain name of log files to process
-        -all                     - Go through all the logs versus a single log file
-        -file <logfile>          - Process a single log file
+    Actions:
+        -domain <domain>         - Domain name of log files to process.
+        -domain-all <domain>       - Go through all logs for the domain.
+        -all-logs             - Go through all domains logs on the platform.
+        -file <logfile>          - Process a single log file.
+
+    Options:
         -time <timerange>        - Select time range, format yyyy-mm-dd-hh-mm-ss,yyyy-mm-dd-hh-mm-ss (e.g. 2017-01-01-00-00-00,2017-01-01-23-59-59)
         -compile                 - Compile latest goaccess from source      
-        -test                    - Use test log files                        
+        -403                     - Don't show 403 requests.
+        -test                    - Use test log files       
+        -p|--platform            - Override detected platform (gridpane|runcloud|custom)
+        -f|--format              - Override detected format, (nginx|ols|combined)
+        -b|--browsers            - Use browsers.list
+        -u                       - Log unknown user agents to unknown.log                 
 	
-    Options:
-        -h          - Help		
-        -d          - Debug
-        -dr         - Dry Run
-        -p          - Specify platform (gridpane|runcloud|custom)
-        -f          - Override detected format, (nginx|ols|combined)
-        -b          - Use browsers.list
-        -u          - Log unknown user agents to unknown.log
+    Help:
+        -h            - Help		
+        -d                       - Debug
+        -dr                      - Dry Run
+        
 
     Examples:
 
 Version: $WPST_VERSION
+-- $DETECT_LOGS
+-- $CHECK_GOACCESS
     "
-	echo "$USAGE"
-    check_goaccess_version
+	echo "$USAGE"    
 }
 
+# ==================================================
 # -- check_goaccess
-check_goaccess () {
+# ==================================================
+function check_goaccess () {
+    _debug "===== Running "
 	# -- Check if goaccess is installed
-    _debug "===== Checking if goaccess is installed"
 	_cexists goaccess
 	_debug "\$CMD_EXISTS: $CMD_EXISTS"
 	if [[ $CMD_EXISTS == "1" ]]; then
-		_error "goaccess is not installed"
+		 _error "goaccess is not installed"
 		exit
 	else
-		_debug "Confirmed goaccess is installed"
-	fi
-}
-
-# -- check_goaccess_version
-check_goaccess_version () {
-    # -- Get goaccess version
-    _debug "===== Getting goaccess version"
-    GOACCESS_VERSION=$(goaccess -V | awk '{print $3}')
-    _debug "\$GOACCESS_VERSION: $GOACCESS_VERSION"
-    
-    # -- Check if goaccess is at least version 1.7.2
-    _debug "Checking if goaccess is at least version 1.7.2"
-    if [[ $GOACCESS_VERSION < "1.7.2" ]]; then
-        _warning "goaccess is not at least version 1.7.2, some features might not be available"        
-    else
-        _debug "Confirmed goaccess is at least version 1.7.2"
+		_debug "goaccess is installed"
+        # -- Get goaccess version
+        GOACCESS_VERSION=$(goaccess -V | head -1 | awk '{print $3}')
+        _debug "\$GOACCESS_VERSION: $GOACCESS_VERSION"
+        
+        # -- Check if goaccess is at least version 1.7.2    
+        if [[ $GOACCESS_VERSION < "1.7.2" ]]; then            
+            _warning "goaccess $GOACCESS_VERSION installed. Require version 1.7.2 or greater, some features might not be available"        
+        else
+            _success "goaccess $GOACCESS_VERSION installed"
+        fi
     fi
 }
 
+# ==================================================
 # -- compile_goaccess
+# ==================================================
 function compile_goaccess () {
     _debug "===== Running compile_goaccess"
     
@@ -107,9 +115,10 @@ function compile_goaccess () {
     make install
 }
 
-
+# ==================================================
 # -- set_format
-set_format () {
+# ==================================================
+function set_format () {
     _debug "===== Running set_format on $FORMAT"
     # Checking if format is overridden
     _debug "Checking if format is overridden"
@@ -117,19 +126,19 @@ set_format () {
         _debug "Format is overridden to $SET_FORMAT"
         FORMAT="$SET_FORMAT"
     fi
-	if [[ $FORMAT == "COMBINED" ]]; then
+	if [[ $FORMAT == "combined" ]]; then
         _debug "Format is COMBINED"
         LOG_FORMAT="COMBINED"
-    elif [[ $FORMAT == "OLS" ]]; then
+    elif [[ $FORMAT == "ols" ]]; then
     	# -- Log Formats for goaccess
         # Default OLS
         # logformat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"
-        # "192.168.0.1 - - [13/Sep/2022:16:28:40 -0400] "GET /request.html HTTP/2" 200 46479 "https://domain.com/referer.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36"    
+        # "192.168.0.1 - - [13/Sep/2022:16:28:40 -0400] "GET /request.html HTTP/2" 200 46479 "https://domain.com/referer.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36"
         _debug "Setting OLS format"
 		LOG_FORMAT='\"%h - - [%d:%t %^] \"%r\" %s %b \"%R\" \"%u\"'
 		DATE_FORMAT='%d/%b/%Y'
 		TIME_FORMAT='%H:%M:%S %Z'
-	elif [[ $FORMAT == "NGINX" ]]; then
+	elif [[ $FORMAT == "nginx" ]]; then
         # Default NGINX
         # log_format we_log '[$time_local] $remote_addr $upstream_response_time $upstream_cache_status $http_host "$request" $status $body_bytes_sent $request_time "$http_referer" "$http_user_agent" "$http3"';
         # [14/Sep/2022:10:12:55 -0700] 129.168.0.1 - domain.com "GET /request.html HTTP/1.1" 200 47 1.538 "https://domain.com/referer.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36"
@@ -138,7 +147,7 @@ set_format () {
 		LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b \"%R\" \"%u\"\'
 		DATE_FORMAT='%d/%b/%Y'
     	TIME_FORMAT='%H:%M:%S %Z'
-    elif [[ $FORMAT == "GPNGINX" ]]; then
+    elif [[ $FORMAT == "gpnginx" ]]; then
         # GRIDPANE-NGINX
         # ./common/logging.conf:log_format we_log '[$time_local] $remote_addr $upstream_response_time $upstream_cache_status $http_host "$request" $status $body_bytes_sent $request_time "$http_referer" "$http_user_agent"';
         # $request_time = seconds with a milliseconds resolution
@@ -149,7 +158,8 @@ set_format () {
 		LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b %T \"%R\" \"%u\"\'
 		DATE_FORMAT='%d/%b/%Y'
 		TIME_FORMAT='%H:%M:%S %Z'
-	elif [[ $FORMAT == "GPOLS" ]]; then
+	# -- Not sure what this was for but doesn't work on GridPane currently
+    elif [[ $FORMAT == "gpols" ]]; then
         # GRIDPANE-OLS
         _debug "Setting GPOLS format"
         LOG_FORMAT='[%d:%t %^] %h %^ - %v \"%r\" %s %b \"%R\" \"%u\"\'
@@ -163,34 +173,43 @@ set_format () {
     _debug "goaccess LOG_FORMAT = $LOG_FORMAT ## DATE_FORMAT = $DATE_FORMAT ## TIME_FORMAT = $TIME_FORMAT"
 }
 
+# ==================================================
 # -- detect_logs
+# ==================================================
 function detect_logs () {
-	echo "Detecting log files"
     _debug "===== Running detect_logs"
 
     # -- Check if $FORMAT is set
     if [[ -z $FORMAT ]]; then
-        echo "No format set, checking for log files"
-        if [[ -d /usr/local/lsws ]] && [[ -f /root/grid.id ]]; then
-            echo "Detected GridPane OLS logs"
-            FORMAT="GPOLS"
-            [[ $ACTION == "ALL" ]] && { LOG_FILE_LOCATION="/var/www/*/logs"; LOG_FILTER="*.access.log*gz"; }
-            [[ $ACTION == "DOMAIN" ]] && { LOG_FILE_LOCATION="/var/www/$DOMAIN/logs"; LOG_FILTER="*.access.log*"; }
+        _debug "No format set, checking for log files"
+        if [[ -d /usr/local/lsws ]] && [[ -f /root/grid.id ]]; then            
+            FORMAT="ols"
+            PLATFORM="gridpane"
+            [[ $ACTION == "DOMAIN" ]] && { LOG_FILE_LOCATION="/var/www/$DOMAIN/logs"; LOG_FILTER="*.access.log"; }
+            [[ $ACTION == "DOMAIN_ALL" ]] && { LOG_FILE_LOCATION="/var/www/$DOMAIN/logs"; LOG_FILTER="*.access.log*gz"; }
+            [[ $ACTION == "ALL" ]] && { LOG_FILE_LOCATION="/var/www/*/logs"; LOG_FILTER="*.access.log"; }
+            [[ $ACTION == "FILE" ]] && { LOG_FILE_LOCATION="$FILE"; }            
+        elif [[ -d /var/log/nginx ]] && [[ -f /root/grid.id ]]; then            
+            FORMAT="gpnginx"
+            PLATFORM="gridpane"
+            [[ $ACTION == "DOMAIN" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="$DOMAIN.access.log"; }
+            [[ $ACTION == "DOMAIN_ALL" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="$DOMAIN.access.log*"; }
+            [[ $ACTION == "ALL" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="*.access.log"; }            
             [[ $ACTION == "FILE" ]] && { LOG_FILE_LOCATION="$FILE"; }
-        elif [[ -d /var/log/nginx ]] && [[ -f /root/grid.id ]]; then
-            echo "Detected GridPane NGINX logs"
-            FORMAT="GPNGINX"
-            [[ $ACTION == "ALL" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="*.access.log*gz"; }
-            [[ $ACTION == "DOMAIN" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="*.access.log*"; }
+        elif [[ -d /etc/nginx ]] && [[ -d /var/log/nginx ]]; then            
+            FORMAT="nginx"
+            PLATFORM="custom"
+            [[ $ACTION == "DOMAIN" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="${DOMAIN}*access.log"; }
+            [[ $ACTION == "DOMAIN_ALL" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="${DOMAIN}*access.log*"; }
+            [[ $ACTION == "ALL" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="*access.log"; }            
+            [[ $ACTION == "FILE" ]] && { LOG_FILE_LOCATION="$FILE"; }            
+        elif [[ -d /usr/local/lsws ]]; then            
+            FORMAT="ols"
+            PLATFORM="custom"
+            [[ $ACTION == "DOMAIN" ]] && { LOG_FILE_LOCATION="/usr/local/lsws/logs"; LOG_FILTER="$DOMAIN.access.log"; }
+            [[ $ACTION == "DOMAIN_ALL" ]] && { LOG_FILE_LOCATION="/usr/local/lsws/logs"; LOG_FILTER="$DOMAIN.access.log*"; }
+            [[ $ACTION == "ALL" ]] && { LOG_FILE_LOCATION="/usr/local/lsws/logs"; LOG_FILTER="*.access.log*"; }
             [[ $ACTION == "FILE" ]] && { LOG_FILE_LOCATION="$FILE"; }
-        elif [[ -d /etc/nginx ]] && [[ -d /var/log/nginx ]]; then
-            echo "Detected NGINX logs"
-            FORMAT="NGINX"
-            [[ $ACTION == "ALL" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="*access*log*"; }
-            [[ $ACTION == "DOMAIN" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="${DOMAIN}*access*log*"; }
-        elif [[ -d /usr/local/lsws ]]; then
-            echo "Detected OLS logs"
-            FORMAT="OLS"
         else
             echo "No logs detected"
             exit
@@ -199,28 +218,49 @@ function detect_logs () {
         echo "Format set to ${FORMAT^^}"
         FORMAT="${FORMAT^^}"
     fi
+    echo "Platform: $PLATFORM - Format: $FORMAT"
 
 	_debug "FORMAT:$FORMAT LOG_FILE_LOCATION:$LOG_FILE_LOCATION LOG_FILTER:$LOG_FILTER"
 }
 
+# ==================================================
 # -- collect_logs
+# ==================================================
 collect_logs () {
-    _debug "===== Collecting logs"
+    _debug "===== Running collect_logs"
+    _debug "Collecting logs"
 	local CATCMD="cat"
     local LOGCMD
+    LOG_COLLECT_DATA=$(mktemp)
 
     # Collect logs
-	_debug "Format: $FORMAT Log File Location:$LOG_FILE_LOCATION Log Filter: $LOG_FILTER"
-	LOG_COLLECT_DATA=$(mktemp)
+	_debug "Format: $FORMAT Log File Location:$LOG_FILE_LOCATION Log Filter: $LOG_FILTER Action: $ACTION TEMP: $LOG_COLLECT_DATA"    
 
     # -- Check if $LOG_FILE_LOCATION and $LOG_FILTER are set
-    [[ -z $LOG_FILE_LOCATION ]] && { echo "No log file location set, exiting"; exit; }
-    [[ -z $LOG_FILTER ]] && { echo "No log filter set, exiting"; exit; }    
-
-    # -- Domain Action
+    [[ -z $LOG_FILE_LOCATION ]] && { _error "No log file location set, exiting"; exit; }
+    [[ -z $LOG_FILTER ]] && { _error "No log filter set, exiting"; exit; }    
+    
+    # -- Single Domain Action
 	if [[ $ACTION == "DOMAIN" ]]; then
+        # Get the single access log
+        PROCESS_LOGS=($(find $LOG_FILE_LOCATION -type f -name "$LOG_FILTER"))        
+        _debug "Running -- find $LOG_FILE_LOCATION -type f -name \"$LOG_FILTER\""
+
+        # Process log
+        [[ -z $PROCESS_LOGS ]] && { _error "No logs found, exiting"; exit; }
+        [[ $PROCESS_LOGS[0] == *gz ]] && CATCMD="zcat" || CATCMD="cat"
+        LOGCMD="$CATCMD ${PROCESS_LOGS[0]} > $LOG_COLLECT_DATA"
+        if [[ $DRY_RUN == "1" ]]; then
+            echo $LOGCMD
+        else
+            eval $LOGCMD
+            echo $LOGCMD
+        fi        
+    # -- Domain Action
+	elif [[ $ACTION == "DOMAIN_ALL" ]]; then
         # Get all logs into an array
-        PROCESS_LOGS=($(find $LOG_FILE_LOCATION -type f -name "$LOG_FILTER"))
+        PROCESS_LOGS=($(find $LOG_FILE_LOCATION -type f -name "$LOG_FILTER"))        
+        _debug "Running -- find $LOG_FILE_LOCATION -type f -name \"$LOG_FILTER\""
         
         # Go through each log and process it
         for LOG in "${PROCESS_LOGS[@]}"; do
@@ -234,11 +274,11 @@ collect_logs () {
                 echo $LOGCMD
             fi
         done
-    
     # -- All Action
 	elif [[ $ACTION == "ALL" ]]; then
         [[ -z $LOG_FILE_LOCATION ]] && { echo "No log file location set, exiting"; exit; }
 		LOGCMD="cat ${LOG_FILE_LOCATION}/*.access.log > $LOG_COLLECT_DATA; zcat ${LOG_FILE_LOCATION}/${LOG_FILTER} >> $LOG_COLLECT_DATA"
+        _debug "Running -- cat ${LOG_FILE_LOCATION}/*.access.log > $LOG_COLLECT_DATA; zcat ${LOG_FILE_LOCATION}/${LOG_FILTER} >> $LOG_COLLECT_DATA"
         if [[ $DRY_RUN == "1" ]]; then
 			echo $LOGCMD            
 		else
@@ -249,7 +289,9 @@ collect_logs () {
 	LOG_DATA_FILE=$LOG_COLLECT_DATA
 }
 
+# ==================================================
 # -- do_goaccess
+# ==================================================
 function do_goaccess () {
     _debug "===== Running do_goaccess"
     [[ $LOG_DATA_FILE == *.gz ]] && { CATCMD="zcat"; _debug "Detected gzip file, setting \$CAT_CMD to zcat"; } || { CATCMD="cat"; _debug "Detected non-gzip file, setting \$CAT_CMD to cat"; }
@@ -280,7 +322,7 @@ function do_goaccess () {
     fi
     
     # -- If log format is combined
-    if [[ $FORMAT == "COMBINED" ]]; then
+    if [[ $FORMAT == "combined" ]]; then
         _debug "Setting COMBINED format"
         GOACCESS_EXTRA+="--log-format='COMBINED' "
     else        
@@ -294,8 +336,9 @@ function do_goaccess () {
     [[ $DRY_RUN == "1" ]] && { echo $CMD; } || { eval "$CMD"; echo "CMD: $CMD"; }
 }
 
-
+# ==================================================
 # -- sed_logs
+# ==================================================
 function sed_logs() {
 	_debug "===== Processing logs using custom time - $CUSTOM_TIME"
 	SED_LOG=$(mktemp)
@@ -317,17 +360,34 @@ function sed_logs() {
 	LOG_DATA_FILE=$SED_LOG
 }
 
+# ==================================================
+# -- debug_run
+# ==================================================
+function debug_run () {
+    _debug "===== Running debug_run"
+    _debug "ACTION: $ACTION"
+    _debug "PLATFORM: $PLATFORM"
+    _debug "FORMAT: $FORMAT"
+    _debug "DRY_RUN: $DRY_RUN"
+    _debug "DEBUG_ON: $DEBUG_ON"
+    _debug "LOG_DATA_FILE: $LOG_DATA_FILE"
+    _debug "CUSTOM_TIME: $CUSTOM_TIME"
+    _debug "TIME_SPEC: $TIME_SPEC"
+    _debug "BROWSER_LIST: $BROWSER_LIST"
+    _debug "UNKNOWN_UA: $UNKNOWN_UA"
+    _debug "NO_403: $NO_403"
+}
 
-########################################
-# -- Main 
-########################################
+# ==================================================
+# -- Process Args
+# ==================================================
 ALLARGS="$@"
 POSITIONAL=()
 while [[ $# -gt 0 ]]
 do
 key="$1"
 case $key in
-    -h)
+    -h|--help)
     ACTION="HELP"	
     shift # past argument
     ;;
@@ -345,7 +405,7 @@ case $key in
     DEBUG_ON="1"
     shift # past argument
     ;;
-    -dr)
+    -dr|--dryrun)
     DRY_RUN="1"
     shift # past argument
     ;;
@@ -355,7 +415,13 @@ case $key in
     shift # past argument
     shift # past value
     ;;
-	-all)
+    -domain-all)
+    ACTION="DOMAIN_ALL"
+    DOMAIN="$2"
+    shift # past argument
+    shift # past value
+    ;;
+	-all-logs)
     ACTION="ALL"
     shift # past argument
     ;;
@@ -391,6 +457,10 @@ case $key in
     UNKNOWN_UA="1"
     shift # past argument
     ;;
+    -403)
+    NO_403="1"
+    shift # past argument
+    ;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -401,22 +471,10 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 
 # -- Debugging
 _debug "\$ALLARGS: $ALLARGS"
-_debug "============="
-_debug "\$ACTION: $ACTION"
-_debug "\$PLATFORM: $PLATFORM"
-_debug "\$SET_FORMAT: $SET_FORMAT"
-_debug "\$DOMAIN: $DOMAIN"
-_debug "\$FILE: $FILE"
-_debug "\$TIME_SPEC: $TIME_SPEC"
-_debug "\$CUSTOM_TIME: $CUSTOM_TIME"
-_debug "\$BROWSER_LIST: $BROWSER_LIST"
-_debug "\$DRY_RUN: $DRY_RUN"
-_debug "\$DEBUG_ON: $DEBUG_ON"
-_debug "============="
 
-# ----------------------------#
+# ==================================================
 # --- Check Arguments
-# ----------------------------#
+# ==================================================
 if [[ -n $TIME_SPEC ]]; then
     if [[ $TIME_SPEC != "min" && $TIME_SPEC != "hour" ]]; then
         echo "Error: Invalid time specification"
@@ -424,11 +482,12 @@ if [[ -n $TIME_SPEC ]]; then
     fi
 fi
 
+# ==================================================
 # --- Action
-
+# ==================================================
 if [[ -z $ACTION ]] || [[ $ACTION == "HELP" ]]; then
 	usage
-	echo "Error: No action specified"
+	_error "Error: No action specified"
     exit
 elif [[ $ACTION == "DOMAIN" ]]; then
     [[ -z $DOMAIN ]] && usage && echo "Error: specify a domain" && exit
@@ -440,38 +499,46 @@ elif [[ $ACTION == "DOMAIN" ]]; then
 	set_format
 	collect_logs
 	[[ ! -z $CUSTOM_TIME ]] && sed_logs $CUSTOM_TIME
+    debug_run
 	do_goaccess $ACTION $LOG_DATA_FILE
 # ------------
 # -- FILE
 # ------------
 elif [[ $ACTION == "FILE" ]]; then
     [[ -z $FILE ]] && usage && echo "Error: specify a file" && exit
-    _debug "Running for file $FILE"
     # -- Process logs on file
+    _debug "Running for file $FILE"
+    
     check_goaccess
     detect_logs
     LOG_DATA_FILE=$FILE    
     set_format
     [[ ! -z $CUSTOM_TIME ]] && sed_logs $CUSTOM_TIME
+    debug_run
     do_goaccess $ACTION $LOG_DATA_FILE
 # ------------
 # -- ALL
 # ------------
 elif [[ $ACTION == "ALL" ]]; then
-    _debug "Running for all domains"
     # -- Process logs on all domains
+    _debug "Running for all domains"
+
     check_goaccess
     detect_logs
     set_format
     collect_logs
     [[ ! -z $CUSTOM_TIME ]] && sed_logs $CUSTOM_TIME
+    debug_run
     do_goaccess $ACTION $LOG_DATA_FILE
 elif [[ $ACTION == "TEST" ]]; then
-    _debug "Running for test"
-    # -- Process logs on all domains
+    # -- Process logs on all domains test
+    _debug "Running for test"    
+    
+    # -- Run
     check_goaccess
     LOG_DATA_FILE=$TEST_LOG
     set_format
+    debug_run
     do_goaccess $ACTION $LOG_DATA_FILE
 elif [[ $ACTION == "COMPILE" ]]; then
     _debug "Compiling goaccess"
