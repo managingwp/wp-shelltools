@@ -186,28 +186,28 @@ function detect_logs () {
             FORMAT="ols"
             PLATFORM="gridpane"
             [[ $ACTION == "DOMAIN" ]] && { LOG_FILE_LOCATION="/var/www/$DOMAIN/logs"; LOG_FILTER="*.access.log"; }
-            [[ $ACTION == "DOMAIN_ALL" ]] && { LOG_FILE_LOCATION="/var/www/$DOMAIN/logs"; LOG_FILTER="*.access.log*gz"; }
+            [[ $ACTION == "DOMAINALL" ]] && { LOG_FILE_LOCATION="/var/www/$DOMAIN/logs"; LOG_FILTER="*.access.log*"; }
             [[ $ACTION == "ALL" ]] && { LOG_FILE_LOCATION="/var/www/*/logs"; LOG_FILTER="*.access.log"; }
             [[ $ACTION == "FILE" ]] && { LOG_FILE_LOCATION="$FILE"; }            
         elif [[ -d /var/log/nginx ]] && [[ -f /root/grid.id ]]; then            
             FORMAT="gpnginx"
             PLATFORM="gridpane"
             [[ $ACTION == "DOMAIN" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="$DOMAIN.access.log"; }
-            [[ $ACTION == "DOMAIN_ALL" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="$DOMAIN.access.log*"; }
+            [[ $ACTION == "DOMAINALL" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="$DOMAIN.access.log*"; }
             [[ $ACTION == "ALL" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="*.access.log"; }            
             [[ $ACTION == "FILE" ]] && { LOG_FILE_LOCATION="$FILE"; }
         elif [[ -d /etc/nginx ]] && [[ -d /var/log/nginx ]]; then            
             FORMAT="nginx"
             PLATFORM="custom"
             [[ $ACTION == "DOMAIN" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="${DOMAIN}*access.log"; }
-            [[ $ACTION == "DOMAIN_ALL" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="${DOMAIN}*access.log*"; }
+            [[ $ACTION == "DOMAINALL" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="${DOMAIN}*access.log*"; }
             [[ $ACTION == "ALL" ]] && { LOG_FILE_LOCATION="/var/log/nginx"; LOG_FILTER="*access.log"; }            
             [[ $ACTION == "FILE" ]] && { LOG_FILE_LOCATION="$FILE"; }            
         elif [[ -d /usr/local/lsws ]]; then            
             FORMAT="ols"
             PLATFORM="custom"
             [[ $ACTION == "DOMAIN" ]] && { LOG_FILE_LOCATION="/usr/local/lsws/logs"; LOG_FILTER="$DOMAIN.access.log"; }
-            [[ $ACTION == "DOMAIN_ALL" ]] && { LOG_FILE_LOCATION="/usr/local/lsws/logs"; LOG_FILTER="$DOMAIN.access.log*"; }
+            [[ $ACTION == "DOMAINALL" ]] && { LOG_FILE_LOCATION="/usr/local/lsws/logs"; LOG_FILTER="$DOMAIN.access.log*"; }
             [[ $ACTION == "ALL" ]] && { LOG_FILE_LOCATION="/usr/local/lsws/logs"; LOG_FILTER="*.access.log*"; }
             [[ $ACTION == "FILE" ]] && { LOG_FILE_LOCATION="$FILE"; }
         else
@@ -257,7 +257,7 @@ collect_logs () {
             echo $LOGCMD
         fi        
     # -- Domain Action
-	elif [[ $ACTION == "DOMAIN_ALL" ]]; then
+	elif [[ $ACTION == "DOMAINALL" ]]; then
         # Get all logs into an array
         PROCESS_LOGS=($(find $LOG_FILE_LOCATION -type f -name "$LOG_FILTER"))        
         _debug "Running -- find $LOG_FILE_LOCATION -type f -name \"$LOG_FILTER\""
@@ -416,7 +416,7 @@ case $key in
     shift # past value
     ;;
     -domain-all)
-    ACTION="DOMAIN_ALL"
+    ACTION="DOMAINALL"
     DOMAIN="$2"
     shift # past argument
     shift # past value
@@ -489,6 +489,9 @@ if [[ -z $ACTION ]] || [[ $ACTION == "HELP" ]]; then
 	usage
 	_error "Error: No action specified"
     exit
+# =========================
+# -- DOMAIN
+# =========================
 elif [[ $ACTION == "DOMAIN" ]]; then
     [[ -z $DOMAIN ]] && usage && echo "Error: specify a domain" && exit
     _debug "Running for domain $DOMAIN"
@@ -501,9 +504,38 @@ elif [[ $ACTION == "DOMAIN" ]]; then
 	[[ ! -z $CUSTOM_TIME ]] && sed_logs $CUSTOM_TIME
     debug_run
 	do_goaccess $ACTION $LOG_DATA_FILE
-# ------------
+# =========================
+# -- DOMAINALL
+# =========================
+elif [[ $ACTION == "DOMAINALL" ]]; then
+    [[ -z $DOMAIN ]] && usage && echo "Error: specify a domain" && exit
+    _debug "Running for all logs on domain $DOMAIN"
+    
+    # -- Process logs on all logs for domain
+    check_goaccess
+    detect_logs
+    set_format
+    collect_logs
+    [[ ! -z $CUSTOM_TIME ]] && sed_logs $CUSTOM_TIME
+    debug_run
+    do_goaccess $ACTION $LOG_DATA_FILE
+# =========================
+# -- ALL
+# =========================
+elif [[ $ACTION == "ALL" ]]; then
+    # -- Process logs on all domains
+    _debug "Running for all domains"
+
+    check_goaccess
+    detect_logs
+    set_format
+    collect_logs
+    [[ ! -z $CUSTOM_TIME ]] && sed_logs $CUSTOM_TIME
+    debug_run
+    do_goaccess $ACTION $LOG_DATA_FILE
+# =========================
 # -- FILE
-# ------------
+# =========================
 elif [[ $ACTION == "FILE" ]]; then
     [[ -z $FILE ]] && usage && echo "Error: specify a file" && exit
     # -- Process logs on file
@@ -513,20 +545,6 @@ elif [[ $ACTION == "FILE" ]]; then
     detect_logs
     LOG_DATA_FILE=$FILE    
     set_format
-    [[ ! -z $CUSTOM_TIME ]] && sed_logs $CUSTOM_TIME
-    debug_run
-    do_goaccess $ACTION $LOG_DATA_FILE
-# ------------
-# -- ALL
-# ------------
-elif [[ $ACTION == "ALL" ]]; then
-    # -- Process logs on all domains
-    _debug "Running for all domains"
-
-    check_goaccess
-    detect_logs
-    set_format
-    collect_logs
     [[ ! -z $CUSTOM_TIME ]] && sed_logs $CUSTOM_TIME
     debug_run
     do_goaccess $ACTION $LOG_DATA_FILE
