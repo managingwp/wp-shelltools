@@ -1,8 +1,5 @@
 #!/bin/bash
 # -- Created by Jordan - hello@managingwp.io - https://managingwp.io
-# -- Last Updated: 2023-12-06
-
-# -- Ger version from VERSION
 VERSION="1.0.5"
 SCRIPT_NAME="cron-shim"
 

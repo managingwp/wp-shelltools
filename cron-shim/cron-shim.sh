@@ -13,7 +13,7 @@
 # Example: */5 * * * * /home/systemuser/cron-shim.sh
 
 # -- Variables
-VERSION="1.2.0"
+VERSION="1.2.1"
 PID_FILE="/tmp/cron-shim.pid"
 SCRIPT_NAME=$(basename "$0") # - Name of this script
 declare -A SITE_MAP # - Map of sites to run cron on
@@ -64,14 +64,29 @@ function _time_spent () {
 # -- prune_old_logs
 function prune_old_logs () {
     # -- Prune old logs
+    _log "Starting log pruning"
     if [[ $LOG_TO_FILE == "1" ]]; then
         # -- Prune logs larger than 10MB
-        if [[ $(stat -c %s $LOG_FILE) -gt 10485760 ]]; then
-            _log "Pruning $LOG_FILE"
-          
-            mv $LOG_FILE.tmp $LOG_FILE
+        if [[ $(stat -c %s "$LOG_FILE") -gt 10485760 ]]; then
+            _log "-- Pruning $LOG_FILE"
+            truncate -s 1M "$LOG_FILE"
+            _log "-- Log file $LOG_FILE pruned"
+        else
+            _log "-- Log file $LOG_FILE is less than 10MB"
         fi
+    else
+        _log "-- Log file logging is disabled"
     fi
+}
+
+function seconds_to_human_readable (){
+    local SECONDS HOURS MINUTES SECS
+    local SECONDS_ARG=$1
+    SECONDS=$(printf "%.0f" $SECONDS_ARG)  # Round the input to the nearest integer        
+    HOURS=$((SECONDS/3600%24))
+    MINUTES=$((SECONDS/60%60))
+    SECS=$((SECONDS%60))
+    printf "%02dh %02dm %02ds\n" $DAYS $HOURS $MINUTES $SECS
 }
 
 # -----------------------------------------------
@@ -81,10 +96,13 @@ function prune_old_logs () {
 # Log the start time
 START_TIME=$(date +%s.%N)
 
+
+
 # Log header
 _log "==================================================================================================="
 _log "== Cron Shim ${VERSION} - job start $(echo $START_TIME|date +"%Y-%m-%d_%H:%M:%S")"
 _log "==================================================================================================="
+
 
 # -- Check if cron-shim.conf exists and source it
 if [[ -f $SCRIPT_DIR/cron-shim.conf ]]; then
@@ -96,6 +114,9 @@ fi
 
 # Check if $LOG_TO_FILE is enabled and set the log file location
 [[ $LOG_TO_FILE == "1" ]] && _log "Logging to $LOG_FILE"
+
+# Prune old logs
+prune_old_logs
 
 # -- Starting
 _log "Starting $SCRIPT_NAME $VERSION in $SCRIPT_DIR on $(hostname)"
@@ -197,7 +218,6 @@ _log "==========================================================================
 _log ""
 
 # Gather cron run data.
-JOB_RUN_SITES=()
 JOB_RUN_SITES_TIME=()
 JOB_RUN=""
 JOB_RUN_COUNT=0
@@ -206,6 +226,7 @@ CRON_ERROR_COUNT=0
 CRON_TIMEOUT_COUNT=0
 SITE_ID=""
 MULTISITE_SITES=""
+COUNTER=0
 
 _log "==================================================================================================="
 _log "- Starting queue run for $DOMAIN_NAME"
@@ -232,9 +253,11 @@ _log ""
 _log "==================================================================================================="
 _log "Cron queue type:$JOB_RUN count: $JOB_RUN_COUNT"
 _log "==================================================================================================="
+
 for SITE in "${!SITE_MAP[@]}"; do
+    COUNTER=$((COUNTER + 1))
     _log "==================================================================================================="
-    _log "- Running cron job for $DOMAIN_NAME - $SITE ${SITE_MAP[$site]}"
+    _log "- Running cron job $COUNTER/$JOB_RUN_COUNT for $DOMAIN_NAME - $SITE ${SITE_MAP[$site]}"
     _log "==================================================================================================="
     if [[ $JOB_RUN == "multi" ]]; then
         CRON_CMD="$WP_CLI --path=$WP_ROOT --url=$SITE $CRON_CMD_SETTINGS"
@@ -337,6 +360,7 @@ _log "==========================================================================
 
 _log ""
 _log "===================================================================================================
-== Cron run completed in $TIME_SPENT seconds with $CPU_USAGE% CPU usage.
+== Cron run completed in $TIME_SPENT seconds / $(seconds_to_human_readable "$TIME_SPENT") / with $CPU_USAGE% CPU usage.
+== Cron Errors: $CRON_ERROR_COUNT Cron Timeouts: $CRON_TIMEOUT_COUNT 
 == Cron run End Time - $(echo $END_TIME | date +"%Y-%m-%d_%H:%M:%S")
 ==================================================================================================="

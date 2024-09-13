@@ -2,32 +2,31 @@
 Table of Contents
 =================
 
-* [Table of Contents](#table-of-contents)
-* [wp-shelltools](#wp-shelltools)
-* [Rename from gp-tools to wp-shelltools](#rename-from-gp-tools-to-wp-shelltools)
-* [Donate](#donate)
-* [Install](#install)
-   * [Requirements](#requirements)
-* [Help](#help)
-   * [Help Command](#help-command)
-   * [Advanced Documentation](#advanced-documentation)
-      * [<a href="docs/gp-goaccess.md">gp-goaccess</a>](#gp-goaccess)
-      * [<a href="docs/gp-api.md">gp-api</a>](#gp-api)
-      * [<a href="docs/gp-plugins.md">gp-plugins</a>](#gp-plugins)
-      * [<a href="docs/attackscan.md">attackscan.sh</a>](#attackscansh)
-   * [Debugging](#debugging)
-* [Future Features](#future-features)
-* [Donate](#donate-1)
-* [Resources](#resources)
+- [Table of Contents](#table-of-contents)
+- [Donate](#donate)
+- [wp-shelltools](#wp-shelltools)
+- [Install](#install)
+  - [Requirements](#requirements)
+- [Help](#help)
+- [Directories](#directories)
+- [Advanced Documentation](#advanced-documentation)
+- [Debugging](#debugging)
+- [Future Features](#future-features)
+- [ToDo](#todo)
+- [Resources](#resources)
 <!--te--> 
+
+# Donate
+If you like any of the scripts or tools, please consider donating to help support the development of these tools.
+
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://ko-fi.com/jordantrask)
+[![ManagingWP](https://i.imgur.com/x5SjITX.png)](https://managingwp.io/sponsor)
+
 
 # wp-shelltools
 The goal of this project is to make it easy to manage and maintain WordPress servers using shell scripting. This repository was original named gp-tools, but decided to make it provider agnostic
 
 You might find that there are still tools and functions that have gridpane or gp in their name. This will change when it becomes a priority.
-
-# Donate
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://wpinfo.net/sponsor/)
 
 # Install
 ## Requirements
@@ -94,11 +93,8 @@ Add a .debug file to any directory to get debug information.
 * Place some scripts into functions or separate files not inside root for a cleaner directory structure and code management.
 * goaccess: Add filtering for 403 forbidden as they're blocked and not resource intensive
 
-# Donate
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://managingwp.io/sponsor/)
 
 # Resources
 * [Managing WP](https://mangingwp.io) - WordPress Articles and more!
 * [Managing WordPress](https://www.facebook.com/groups/managingwordpress) - Created and managed by me.
 * [Managing WordPress Discord](https://discord.gg/QCsHM234zh) - Come and chat about WordPress
-* [GridPane Facebook Group](https://www.facebook.com/groups/selfmanagedwordpress) - Managed by GridPane and full of customers and WordPress community members.
