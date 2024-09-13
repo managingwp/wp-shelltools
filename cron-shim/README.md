@@ -1,3 +1,9 @@
+# Donate
+If you like any of the scripts or tools, please consider donating to help support the development of these tools.
+
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://ko-fi.com/jordantrask)
+[![ManagingWP](https://i.imgur.com/x5SjITX.png)](https://managingwp.io/sponsor)
+
 # cron-shim.sh
 A shim between linux cron and WordPress.
 
@@ -33,6 +39,10 @@ LOG_FILE="cron-shim.log" # Location for WordPress cron log file if LOG_TO_FILE="
 ```
 
 # Changelog
+## 1.2.1
+* Added human readable time to log output at end of run.
+* Added log pruning to keep log files below 10MB
+
 ## 1.2.0
 * Implemented multisite detection and running of cron for all sites.
 * Implemented queue for running cronjobs to support multisite.
