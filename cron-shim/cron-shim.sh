@@ -13,9 +13,10 @@
 # Example: */5 * * * * /home/systemuser/cron-shim.sh
 
 # -- Variables
-VERSION="1.1.0"
+VERSION="1.2.0"
 PID_FILE="/tmp/cron-shim.pid"
 SCRIPT_NAME=$(basename "$0") # - Name of this script
+declare -A SITE_MAP # - Map of sites to run cron on
 
 # -- Where are we?
 SCRIPT_DIR=$(dirname "$(realpath "$0")") # - Directory of this script
@@ -23,7 +24,7 @@ SCRIPT_DIR=$(dirname "$(realpath "$0")") # - Directory of this script
 # -- Default Settings
 [[ -z $WP_CLI ]] && WP_CLI="/usr/local/bin/wp" # - Location of wp-cli
 [[ -z $WP_ROOT ]] && WP_ROOT="" # - Path to WordPress, blank will try common directories.
-[[ -z $CRON_CMD ]] && CRON_CMD="$WP_CLI cron event run --due-now" # - Command to run
+[[ -z $CRON_CMD_SETTINGS ]] && CRON_CMD_SETTINGS="cron event run --due-now" # - Command to run
 [[ -z $HEARTBEAT_URL ]] && HEARTBEAT_URL="" # - Heartbeat monitoring URL, example https://uptime.betterstack.com/api/v1/heartbeat/23v123v123c12312 leave blank to disable or pass in via environment variable
 [[ -z $POST_CRON_CMD ]] && POST_CRON_CMD="" # - Command to run after cron completes
 [[ -z $MONITOR_RUN ]] && MONITOR_RUN="0" # - Monitor the script run and don't execute again if existing PID exists or process is still running.
@@ -40,20 +41,38 @@ function _log () {
     local MESSAGE="${*}"
     # -- Logging
     # Check if logging to stdout is enabled
-    [[ $LOG_TO_STDOUT == "1" ]] && { echo "$MESSAGE"; }
+    [[ $LOG_TO_STDOUT == "1" ]] && { echo -e "$MESSAGE"; }
     # Check if logging to syslog is enabled
-    [[ $LOG_TO_SYSLOG == "1" ]] && { echo "$MESSAGE" | logger -t "wordpress-cron-$DOMAIN_NAME"; }
+    [[ $LOG_TO_SYSLOG == "1" ]] && { echo -e "$MESSAGE" | logger -t "wordpress-cron-$DOMAIN_NAME"; }
     # Check if logging to log file is enabled
-    [[ $LOG_TO_FILE == "1" ]] && { echo "$MESSAGE" >> $LOG_FILE; }
+    [[ $LOG_TO_FILE == "1" ]] && { echo -e "$MESSAGE" >> $LOG_FILE; }
 }
 
-# -- Check if cron-shim.conf exists and source it
-if [[ -f $SCRIPT_DIR/cron-shim.conf ]]; then
-    STARTUP_LOG+="Found and sourcing $SCRIPT_DIR/cron-shim.conf"
-    source "$SCRIPT_DIR/cron-shim.conf"
-fi
+# -- _time_spent $START_TIME $END_TIME
+function _time_spent () {
+    local START_TIME=$1
+    local END_TIME=$2
+    # check if bc installed otherwise use awk
+    if [[ $(command -v bc) ]]; then
+        TIME_SPENT=$(echo "$END_TIME - $START_TIME" | bc)
+    else
+        TIME_SPENT=$(echo "$END_TIME - $START_TIME" | awk '{printf "%f", $1 - $2}')
+    fi
+    echo "$TIME_SPENT"
+}
 
-
+# -- prune_old_logs
+function prune_old_logs () {
+    # -- Prune old logs
+    if [[ $LOG_TO_FILE == "1" ]]; then
+        # -- Prune logs larger than 10MB
+        if [[ $(stat -c %s $LOG_FILE) -gt 10485760 ]]; then
+            _log "Pruning $LOG_FILE"
+          
+            mv $LOG_FILE.tmp $LOG_FILE
+        fi
+    fi
+}
 
 # -----------------------------------------------
 # -- Checks
@@ -66,6 +85,14 @@ START_TIME=$(date +%s.%N)
 _log "==================================================================================================="
 _log "== Cron Shim ${VERSION} - job start $(echo $START_TIME|date +"%Y-%m-%d_%H:%M:%S")"
 _log "==================================================================================================="
+
+# -- Check if cron-shim.conf exists and source it
+if [[ -f $SCRIPT_DIR/cron-shim.conf ]]; then
+    _log "Found and sourcing $SCRIPT_DIR/cron-shim.conf"
+    source "$SCRIPT_DIR/cron-shim.conf"
+else
+    _log "No $SCRIPT_DIR/cron-shim.conf found."
+fi
 
 # Check if $LOG_TO_FILE is enabled and set the log file location
 [[ $LOG_TO_FILE == "1" ]] && _log "Logging to $LOG_FILE"
@@ -105,6 +132,7 @@ trap "rm -f '$PID_FILE'; exit" INT TERM EXIT
 # Check if $WP_ROOT exists and try common directories if it doesn't
 if [[ $WP_ROOT == "" ]]; then
     # -- $WP_ROOT Not Detected, Try Common Directories
+    _log "Warning: \$WP_ROOT not set, trying common directories."
     WP_ROOT_CHECK=( "$SCRIPT_DIR/htdocs" "$SCRIPT_DIR/public_html")
     WP_ROOT_CHECK+=("../htdocs" "../public_html" "../../htdocs" "../../public_html" "../../../htdocs" "../../../public_html")
     WP_ROOT_CHECK+=("$HOME/htdocs" "$HOME/public_html" "$HOME/www")
@@ -120,84 +148,195 @@ if [[ $WP_ROOT == "" ]]; then
         elif [[ -d $SCRIPT_DIR/public_html ]]; then
             WP_ROOT="$SCRIPT_DIR/public_html"
         else
-            _log "Error: $WP_ROOT does not exist." >&2; exit 1;
+            _log "Error: \$WP_ROOT does not exist." >&2; exit 1;
         fi
     fi
 fi
 
+_log "Success: \$WP_ROOT set to $WP_ROOT"
+
 # Check if $WP_ROOT contains a WordPress install
 WP_ROOT_INSTALL=$($WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes core is-installed  2> /dev/null)
-[[ $? == 0 ]] && { _log "Success: $WP_ROOT is a WordPress install."; } || { _log "Error: $WP_ROOT is not a WordPress install - $WP_ROOT_INSTALL " >&2; exit 1; }
+WP_ROOT_INSTALL_EXIT=$?
+if [[ $WP_ROOT_INSTALL_EXIT == 0 ]]; then
+    _log "Success: $WP_ROOT is a WordPress install - $WP_ROOT_INSTALL - $WP_ROOT_INSTALL_EXIT"
+else 
+    _log "Error: $WP_ROOT is not a WordPress install - $WP_ROOT_INSTALL - $WP_ROOT_INSTALL_EXIT" >&2
+    exit 1
+fi
 
 # -- Resolve $WP_ROOT to an absolute path
 WP_ROOT=$(realpath "$WP_ROOT")
 
 # Get the domain name of the WordPress install
 DOMAIN_NAME=$($WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes option get siteurl 2> /dev/null | grep -oP '(?<=//)[^/]+')
-[[ $? == 0 ]] && { _log "Success: Domain name is $DOMAIN_NAME"; } || { _log "Error: Could not get domain name: $DOMAIN_NAME"; exit 1; }
+DOMAIN_NAME_EXIT=$?
+if [[ $DOMAIN_NAME_EXIT == 0 ]]; then
+    _log "Success: Domain name is $DOMAIN_NAME"
+else
+    _log "Error: Could not get domain name: $DOMAIN_NAME" >&2
+    exit 1
+fi
 
-# -- Set $CRON_CMD with $WP_ROOT
-CRON_CMD="$CRON_CMD --path=$WP_ROOT" # - Command to run
+# Check if site is a multisite
+MULTISITE=$($WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes wp config get MULTISITE 2> /dev/null)
+MULTISITE_EXIT=$?
+if [[ $MULTISITE_EXIT ==  1 ]]; then
+    WP_MULTISITE="1"
+    _log "Success: Multi-site detected - $MULTISITE_EXIT - $MULTISITE"
+else
+    WP_MULTISITE="0"
+    _log "Success: Single site detected"
+fi
 
 # ===============================================
-# --- Start Cron Job
+# --- Start Cron Job Queue
 # ===============================================
 
-_log ""
 _log "==================================================================================================="
 _log ""
 
-# Run $CRON_CMD
-if [[ $MONITOR_RUN == "1" ]]; then
-    _log "Monitoring script run for $MONITOR_RUN_TIMEOUT seconds.\n"
-    _log "timeout ${MONITOR_RUN_TIMEOUT} $CRON_CMD\n"
-    CRON_OUTPUT=$(timeout ${MONITOR_RUN_TIMEOUT} $CRON_CMD)
+# Gather cron run data.
+JOB_RUN_SITES=()
+JOB_RUN_SITES_TIME=()
+JOB_RUN=""
+JOB_RUN_COUNT=0
+CRON_ERROR=""
+CRON_ERROR_COUNT=0
+CRON_TIMEOUT_COUNT=0
+SITE_ID=""
+MULTISITE_SITES=""
+
+_log "==================================================================================================="
+_log "- Starting queue run for $DOMAIN_NAME"
+# Check if multi-site is enabled and run cron for all sites
+if [[ $WP_MULTISITE == "1" ]]; then
+    _log "-- Multi-site detected, running cron for all sites."        
+    JOB_RUN="multi"
+    MULTISITE_SITES=$($WP_CLI --path=$WP_ROOT site list --format=csv 2> /dev/null | tail -n +2)
+    while IFS=, read -r SITE_ID SITE_URL _; do
+        _log "  - Processing site ID: $SITE_ID, URL: $SITE_URL"
+        JOB_RUN_COUNT=$((JOB_RUN_COUNT+1))
+        SITE_MAP[$SITE_URL]=$SITE_ID
+    done <<< "$MULTISITE_SITES"
 else
-    _log "Running $CRON_CMD"
-    CRON_OUTPUT="$(eval $CRON_CMD)"
+    _log "-- Single instance detected running $CRON_CMD"    
+    JOB_RUN="single"
+    JOB_RUN_COUNT=1
+    SITE_MAP[$DOMAIN_NAME]="1"    
 fi
+_log "==================================================================================================="
+_log ""
 
-# Check if timeout occurred
-if [ $? -eq 124 ]; then
-    _log "Error: Timeout occurred after $MONITOR_RUN_TIMEOUT seconds during $CRON_CMD" >&2
-    # Handle the timeout case, maybe some cleanup or a special message
-fi
-
-# Check if there was an error running $CRON_CMD
-if [[ $? -ne 0 ]]; then
-    _log "Error: $CRON_CMD - command failed: $CRON_OUTPUT" >&2
-    _log "$CRON_OUTPUT"
-    if [[ -n "$POST_CRON_CMD" ]]; then
-        $(eval "$POST_CRON_CMD")
+# Run $CRON_CMD queue
+_log "==================================================================================================="
+_log "Cron queue type:$JOB_RUN count: $JOB_RUN_COUNT"
+_log "==================================================================================================="
+for SITE in "${!SITE_MAP[@]}"; do
+    _log "==================================================================================================="
+    _log "- Running cron job for $DOMAIN_NAME - $SITE ${SITE_MAP[$site]}"
+    _log "==================================================================================================="
+    if [[ $JOB_RUN == "multi" ]]; then
+        CRON_CMD="$WP_CLI --path=$WP_ROOT --url=$SITE $CRON_CMD_SETTINGS"
+    else
+        CRON_CMD="$WP_CLI --path=$WP_ROOT $CRON_CMD_SETTINGS"        
     fi
+
+    QUEUE_START_TIME=$(date +%s.%N)
+    _log "-- Starting $QUEUE_START_TIME"
+    CRON_EXIT_CODE=""
+    
+    if [[ $MONITOR_RUN == "1" ]]; then
+        _log "-- Monitoring script run for $MONITOR_RUN_TIMEOUT seconds.\n"
+        _log "-- timeout ${MONITOR_RUN_TIMEOUT} $CRON_CMD\n"
+        CRON_OUTPUT="$(timeout ${MONITOR_RUN_TIMEOUT} $CRON_CMD 2>&1)"
+        CRON_EXIT_CODE=$?
+    else
+        _log "-- Running $CRON_CMD"
+        # Log stdout and stderr to seperate variables and run the command        
+        CRON_STDOUT=$(mktemp)
+        CRON_STDERR=$(mktemp)
+        
+        $CRON_CMD >"$CRON_STDOUT" 2>"$CRON_STDERR"
+        CRON_EXIT_CODE=$?
+
+        CRON_OUTPUT=""
+        while IFS= read -r LINE; do
+            CRON_OUTPUT+="    - $LINE\n"
+        done < "$CRON_STDOUT"
+        
+        while IFS= read -r LINE; do
+            CRON_OUTPUT+="    !! $LINE\n"
+        done < "$CRON_STDERR"
+        
+        rm "$CRON_STDOUT" "$CRON_STDERR"
+    fi
+
+    # Check if timeout occurred
+    if [ $? -eq 124 ]; then
+        _log "-- Error: Timeout occurred after $MONITOR_RUN_TIMEOUT seconds during $CRON_CMD" >&2
+        # Handle the timeout case, maybe some cleanup or a special message
+        CRON_TIMEOUT_COUNT=$((CRON_TIMEOUT_COUNT+1))
+    fi
+
+    # Log the end time
+    QUEUE_END_TIME=$(date +%s.%N)
+    QUEUE_TIME_SPENT="$(_time_spent $QUEUE_START_TIME $QUEUE_END_TIME)"
+
+    # Check if there was an error running $CRON_CMD
+    if [[ $CRON_EXIT_CODE -ne 0 ]]; then
+        CRON_ERROR="1"
+        CRON_ERROR_COUNT=$((CRON_ERROR_COUNT+1))
+        _log "Error: $CRON_CMD - command failed: $CRON_OUTPUT" >&2
+        _log "$CRON_OUTPUT"
+        if [[ -n "$POST_CRON_CMD" ]]; then
+            eval "$POST_CRON_CMD"
+        fi
+    else
+        _log "$CRON_OUTPUT"
+        # Log the end time and CPU usage        
+    fi
+
+    # If $CRON_OUTPUT is empty, log the exit code
+    if [[ -z "$CRON_OUTPUT" ]]; then
+        _log "Error: Cron output is empty. Exit code: $CRON_EXIT_CODE" >&2
+    fi
+
+    # Get CPU Usage
+    _log "-- Ending - $QUEUE_END_TIME"
+    QUEUE_CPU_USAGE=$(ps -p $$ -o %cpu | tail -n 1)
+    _log ">>>> Cron job completed in $QUEUE_TIME_SPENT seconds with $QUEUE_CPU_USAGE% CPU usage."
+    JOB_RUN_SITES_TIME+=("- $DOMAIN_NAME - $CRON = Time:$QUEUE_TIME_SPENT CPU: $QUEUE_CPU_USAGE")
+done
+END_TIME=$(date +%s.%N)
+
+# Check if heartbeat monitoring is enabled and send a request to the heartbeat URL if it is and there are no errors
+if [[ $CRON_ERROR == "1" ]]; then
+    _log "Error: Cron job failed with $CRON_ERROR_COUNT errors."
 else
-    _log "$CRON_OUTPUT"
-    # Check if heartbeat monitoring is enabled and send a request to the heartbeat URL if it is and there are no errors
-    if [[ -n "$HEARTBEAT_URL" ]] && [[ $? -eq 0 ]] ; then
+    _log "Success: Cron job completed with $CRON_ERROR_COUNT errors."
+    if [[ -n "$HEARTBEAT_URL" ]]; then        
         curl -I -s "$HEARTBEAT_URL" > /dev/null
         _log "\n==== Sent Heartbeat to $HEARTBEAT_URL"
     fi
-
-    # Log the end time and CPU usage
-    END_TIME=$(date +%s.%N)
-
-    # check if bc installed otherwise use awk
-    if [[ $(command -v bc) ]]; then
-        TIME_SPENT=$(echo "$END_TIME - $START_TIME" | bc)
-    else
-        TIME_SPENT=$(echo "$END_TIME - $START_TIME" | awk '{printf "%f", $1 - $2}')
-    fi
-    # Get CPU Usage
-    CPU_USAGE=$(ps -p $$ -o %cpu | tail -n 1)
-
-    # POST_CRON_CMD
-    if [[ -n "$POST_CRON_CMD" ]]; then
-        _log "$(eval "$POST_CRON_CMD")"
-    fi
 fi
+
+# POST_CRON_CMD
+if [[ -n "$POST_CRON_CMD" ]]; then
+    _log "$(eval "$POST_CRON_CMD")"
+fi
+TIME_SPENT="$(_time_spent $START_TIME $END_TIME)"
+
+# -- Print out the time spent on the each queue item.
+_log "==================================================================================================="
+_log "Cron queue run time for $DOMAIN_NAME"
+for JOB_RUN_SITE_TIME in "${JOB_RUN_SITES_TIME[@]}"; do
+    _log "$JOB_RUN_SITE_TIME"
+done
+_log "==================================================================================================="
 
 _log ""
 _log "===================================================================================================
-== Cron job completed in $TIME_SPENT seconds with $CPU_USAGE% CPU usage.
-== Cron job End Time - $(echo $END_TIME | date +"%Y-%m-%d_%H:%M:%S")
+== Cron run completed in $TIME_SPENT seconds with $CPU_USAGE% CPU usage.
+== Cron run End Time - $(echo $END_TIME | date +"%Y-%m-%d_%H:%M:%S")
 ==================================================================================================="

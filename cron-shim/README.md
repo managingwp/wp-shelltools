@@ -14,13 +14,13 @@ I've created a guide on how to use this script on my blog: [https://managingwp.i
 * * * * * /path/to/cron-shim.sh
 ```
 
-## Configuration
+## Configuration (Cron-shim.conf)
 The script can be configured to with the following options, either by editing the script or passing in via environment variables or creating cron-shim.conf in the same directory as the script.
 
 ```
 WP_CLI="/usr/local/bin/wp" # - Location of wp-cli
 WP_ROOT="" # - Path to WordPress, blank will try common directories.
-CRON_CMD="$WP_CLI cron event run --due-now" # - Command to run
+CRON_CMD_SETTINGS="$WP_CLI cron event run --due-now" # - Command to run
 HEARTBEAT_URL="" # - Heartbeat monitoring URL, example https://uptime.betterstack.com/api/v1/heartbeat/23v123v123c12312 leave blank to disable or pass in via environment variable
 POST_CRON_CMD="" # - Command to run after cron completes
 MONITOR_RUN="0" # - Monitor the script run and don't execute again if existing PID exists or process is still running.
@@ -33,6 +33,13 @@ LOG_FILE="cron-shim.log" # Location for WordPress cron log file if LOG_TO_FILE="
 ```
 
 # Changelog
+## 1.2.0
+* Implemented multisite detection and running of cron for all sites.
+* Implemented queue for running cronjobs to support multisite.
+* Implemented tracking queue runs for each site in a multisite.
+* Improved logging of cron jobs to include errors and separation of errors and output.
+* Show execution time per site on multisite.
+
 ## 1.1.0
 * Improved detection of WordPress root directory.
 * Created _log function and revamped logging to occur in realtime.
