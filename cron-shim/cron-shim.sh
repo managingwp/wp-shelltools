@@ -13,7 +13,7 @@
 # Example: */5 * * * * /home/systemuser/cron-shim.sh
 
 # -- Variables
-VERSION="1.2.1"
+VERSION="1.2.2"
 PID_FILE="/tmp/cron-shim.pid"
 SCRIPT_NAME=$(basename "$0") # - Name of this script
 declare -A SITE_MAP # - Map of sites to run cron on
@@ -34,7 +34,7 @@ SCRIPT_DIR=$(dirname "$(realpath "$0")") # - Directory of this script
 [[ -z $LOG_TO_STDOUT ]] && LOG_TO_STDOUT="1" # - Log to stdout? 0 = no, 1 = yes
 [[ -z $LOG_TO_SYSLOG ]] && LOG_TO_SYSLOG="1" # - Log to syslog? 0 = no, 1 = yes
 [[ -z $LOG_TO_FILE ]] && LOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
-[[ -z $LOG_FILE ]] && LOG_FILE="cron-shim.log" # Location for WordPress cron log file if LOG_TO_FILE="1", if left blank then cron-shim.log"
+[[ -z $LOG_FILE ]] && LOG_FILE="$SCRIPT_DIR/cron-shim.log" # Location for WordPress cron log file if LOG_TO_FILE="1", if left blank then cron-shim.log"
 
 # -- _log $message
 function _log () {
