@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # -- Created by Jordan - hello@managingwp.io - https://managingwp.io
 #
 # Purpose: Run WordPress crons via wp-cli and log the output to stdout, syslog, or a file.
@@ -13,15 +13,16 @@
 # Example: */5 * * * * /home/systemuser/cron-shim.sh
 
 # -- Variables
-VERSION="1.2.2"
+VERSION="1.3.0"
 PID_FILE="/tmp/cron-shim.pid"
 SCRIPT_NAME=$(basename "$0") # - Name of this script
 declare -A SITE_MAP # - Map of sites to run cron on
-
-# -- Where are we?
 SCRIPT_DIR=$(dirname "$(realpath "$0")") # - Directory of this script
+START_TIME=$(date +%s.%N)
 
+# =====================================
 # -- Default Settings
+# =====================================
 [[ -z $WP_CLI ]] && WP_CLI="/usr/local/bin/wp" # - Location of wp-cli
 [[ -z $WP_ROOT ]] && WP_ROOT="" # - Path to WordPress, blank will try common directories.
 [[ -z $CRON_CMD_SETTINGS ]] && CRON_CMD_SETTINGS="cron event run --due-now" # - Command to run
@@ -30,14 +31,46 @@ SCRIPT_DIR=$(dirname "$(realpath "$0")") # - Directory of this script
 [[ -z $MONITOR_RUN ]] && MONITOR_RUN="0" # - Monitor the script run and don't execute again if existing PID exists or process is still running.
 [[ -z $MONITOR_RUN_TIMEOUT ]] && MONITOR_RUN_TIMEOUT="300" # - Time in seconds to consider script is stuck.
 
+# =====================================
 # -- Logging Settings
+# =====================================
 [[ -z $LOG_TO_STDOUT ]] && LOG_TO_STDOUT="1" # - Log to stdout? 0 = no, 1 = yes
 [[ -z $LOG_TO_SYSLOG ]] && LOG_TO_SYSLOG="1" # - Log to syslog? 0 = no, 1 = yes
 [[ -z $LOG_TO_FILE ]] && LOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
 [[ -z $LOG_FILE ]] && LOG_FILE="$SCRIPT_DIR/cron-shim.log" # Location for WordPress cron log file if LOG_TO_FILE="1", if left blank then cron-shim.log"
 
+# =====================================
+# -- WP-CLI Opcache Settings
+# =====================================
+[[ -z $PHP_BIN ]] && PHP_BIN=$(command -v php) # - PHP binary location
+[[ -z $WP_CLI_OPCACHE ]] && WP_CLI_OPCACHE="0" # - Enable opcache for wp-cli? 0 = no, 1 = yes
+[[ -z $WP_CLI_OPCACHE_DIR ]] && WP_CLI_OPCACHE_DIR="$SCRIPT_DIR/.opcache" # - Location for wp-cli opcache file cache
+
+
+# -- Check if cron-shim.conf exists and source it
+if [[ -f $SCRIPT_DIR/cron-shim.conf ]]; then    
+    source "$SCRIPT_DIR/cron-shim.conf"
+    CONF_LOADED="1"
+fi
+
+# =====================================
+# -- Debug settings
+# =====================================
+[[ -z $DEBUG ]] && DEBUG="0" # - Debug mode? 0 = no, 1 = yes
+[[ $DEBUG == 2 ]] && set -x
+
+# =====================================
+# -- _debug $message
+# =====================================
+function _debug () {
+    # Cyan
+    [[ $DEBUG -gt 0 ]] && _log "\033[0;36mDEBUG: ${*}\033[0m"
+}
+
+# =====================================
 # -- _log $message
-function _log () {
+# =====================================
+function _log () {    
     local MESSAGE="${*}"
     # -- Logging
     # Check if logging to stdout is enabled
@@ -46,9 +79,12 @@ function _log () {
     [[ $LOG_TO_SYSLOG == "1" ]] && { echo -e "$MESSAGE" | logger -t "wordpress-cron-$DOMAIN_NAME"; }
     # Check if logging to log file is enabled
     [[ $LOG_TO_FILE == "1" ]] && { echo -e "$MESSAGE" >> $LOG_FILE; }
+    
 }
 
+# =====================================
 # -- _time_spent $START_TIME $END_TIME
+# =====================================
 function _time_spent () {
     local START_TIME=$1
     local END_TIME=$2
@@ -61,99 +97,129 @@ function _time_spent () {
     echo "$TIME_SPENT"
 }
 
+# =====================================
 # -- prune_old_logs
+# =====================================
 function prune_old_logs () {
     # -- Prune old logs
-    _log "Starting log pruning"
+    _log " ++ Starting log pruning"
     if [[ $LOG_TO_FILE == "1" ]]; then
         # -- Prune logs larger than 10MB
         if [[ $(stat -c %s "$LOG_FILE") -gt 10485760 ]]; then
-            _log "-- Pruning $LOG_FILE"
+            _log " ++ Pruning $LOG_FILE"
             truncate -s 1M "$LOG_FILE"
-            _log "-- Log file $LOG_FILE pruned"
+            _log " ++ Log file $LOG_FILE pruned"
         else
-            _log "-- Log file $LOG_FILE is less than 10MB"
+            _log " ++ Log file $LOG_FILE is less than 10MB"
         fi
     else
-        _log "-- Log file logging is disabled"
+        _log " ++ Log file logging is disabled"
     fi
 }
 
+# =====================================
+# -- seconds_to_human_readable $SECONDS
+# =====================================
 function seconds_to_human_readable (){
     local SECONDS HOURS MINUTES SECS
     local SECONDS_ARG=$1
-    SECONDS=$(printf "%.0f" $SECONDS_ARG)  # Round the input to the nearest integer        
+    SECONDS=$(printf "%.0f" $SECONDS_ARG)  # Round the input to the nearest integer
     HOURS=$((SECONDS/3600%24))
     MINUTES=$((SECONDS/60%60))
     SECS=$((SECONDS%60))
     printf "%02dh %02dm %02ds\n" $DAYS $HOURS $MINUTES $SECS
 }
 
-# -----------------------------------------------
-# -- Checks
-# -----------------------------------------------
+# =====================================
+# -- _wp_cli_opcache $@
+# =====================================
+function _wp_cli_opcache () {
+    _debug "$PHP_BIN -d opcache.file_cache=$WP_CLI_OPCACHE_DIR -d opcache.file_cache_only=1 $WP_CLI_REAL ${*}"
+    eval $PHP_BIN -d opcache.file_cache="$WP_CLI_OPCACHE_DIR" -d opcache.file_cache_only="1" "$WP_CLI_REAL" "${@}"
+}
 
-# Log the start time
-START_TIME=$(date +%s.%N)
-
-
+# =============================================================================
+# -- Main Script
+# =============================================================================
 
 # Log header
 _log "==================================================================================================="
-_log "== Cron Shim ${VERSION} - job start $(echo $START_TIME|date +"%Y-%m-%d_%H:%M:%S")"
+_log "== Cron Shim Start - Version ${VERSION} -  $(echo $START_TIME|date +"%Y-%m-%d_%H:%M:%S")"
+_log "== Starting $SCRIPT_NAME $VERSION in $SCRIPT_DIR on $(hostname)"
 _log "==================================================================================================="
 
-
-# -- Check if cron-shim.conf exists and source it
-if [[ -f $SCRIPT_DIR/cron-shim.conf ]]; then
-    _log "Found and sourcing $SCRIPT_DIR/cron-shim.conf"
-    source "$SCRIPT_DIR/cron-shim.conf"
-else
-    _log "No $SCRIPT_DIR/cron-shim.conf found."
-fi
+# Check if $CONF_LOADED is enabled
+[[ $CONF_LOADED == "1" ]] && _log " ++ Loaded configuration file $SCRIPT_DIR/cron-shim.conf"
 
 # Check if $LOG_TO_FILE is enabled and set the log file location
-[[ $LOG_TO_FILE == "1" ]] && _log "Logging to $LOG_FILE"
+[[ $LOG_TO_FILE == "1" ]] && _log " ++ Logging to $LOG_FILE"
 
 # Prune old logs
 prune_old_logs
 
-# -- Starting
-_log "Starting $SCRIPT_NAME $VERSION in $SCRIPT_DIR on $(hostname)"
-
 # -- Log where we're logging
-[[ $LOG_TO_STDOUT == "1" ]] && _log "Logging to - stdout"
-[[ $LOG_TO_SYSLOG == "1" ]] && _log "Logging to - syslog"
-[[ $LOG_TO_FILE == "1" ]] && _log "Logging to - $LOG_FILE"
+[[ $LOG_TO_STDOUT == "1" ]] && _log " ++ Logging to - stdout"
+[[ $LOG_TO_SYSLOG == "1" ]] && _log " ++ Logging to - syslog"
+[[ $LOG_TO_FILE == "1" ]] && _log " ++ Logging to - $LOG_FILE"
 
 # Check if the PID file exists
 if [ -f "$PID_FILE" ]; then
     PID=$(cat "$PID_FILE")
     if ps -p $PID > /dev/null 2>&1; then
-        _log "Error: Script is already running with PID $PID."        
+        _log "Error: Script is already running with PID $PID."
         exit 1
     else
-        _log "Warning: PID file exists but process is not running. Cleaning up and continuing."
+        _log " ++ Warning: PID file exists but process is not running. Cleaning up and continuing."
         rm -f "$PID_FILE"
     fi
 fi
 
 # Create a new PID file
 echo $$ > "$PID_FILE"
+_log " ++ PID file created at $PID_FILE"
 
 # Setup a trap to remove the PID file on script exit
 trap "rm -f '$PID_FILE'; exit" INT TERM EXIT
 
 # Check if running as root
 [ "$(id -u)" -eq 0 ] && { _log "Error: This script should not be run as root." >&2; exit 1; }
+_log " ++ Running as $(whoami)"
 
 # Check if wp-cli is installed
-[[ $(command -v $WP_CLI) ]]  || { _log 'Error: wp-cli is not installed.' >&2; exit 1; }
+[[ $(command -v $WP_CLI) ]]  || { _log "Error: wp-cli is not installed at $WP_CLI" >&2; exit 1; }
+_log " ++ wp-cli found at $WP_CLI"
+
+# Check if wp-cli opcache is enabled
+if [[ $WP_CLI_OPCACHE == 1 ]]; then
+    _log " ++ Setting up opcache for wp-cli"
+    if [[ -n $PHP_BIN ]]; then
+        [[ $(command -v $PHP_BIN) ]]  || { _log 'Error: PHP_BIN is not installed.' >&2; exit 1; }
+        _log " ++ PHP_BIN found at $PHP_BIN"
+        _log " ++ wp-cli wrapper setup with opcache"
+        WP_CLI_REAL="$WP_CLI"
+        WP_CLI="_wp_cli_opcache ${*}"        
+        _log " ++ wp-cli opcache enabled as $WP_CLI"
+        
+        # Clear opcache folder
+        if [[ -d $WP_CLI_OPCACHE_DIR ]]; then
+            _log " ++ Clearing opcache folder $WP_CLI_OPCACHE_DIR"
+            rm -rf "$WP_CLI_OPCACHE_DIR"            
+        fi
+        # Create opcache folder
+        if [[ ! -d $WP_CLI_OPCACHE_DIR ]]; then
+            _log " ++ Creating opcache folder $WP_CLI_OPCACHE_DIR"
+            mkdir -p "$WP_CLI_OPCACHE_DIR"
+        fi
+    else
+        _log "Error: PHP_BIN is not set." >&2
+        exit 1
+    fi
+fi
 
 # Check if $WP_ROOT exists and try common directories if it doesn't
 if [[ $WP_ROOT == "" ]]; then
     # -- $WP_ROOT Not Detected, Try Common Directories
-    _log "Warning: \$WP_ROOT not set, trying common directories."
+    _log " ++ Warning: \$WP_ROOT not set, trying common directories."
     WP_ROOT_CHECK=( "$SCRIPT_DIR/htdocs" "$SCRIPT_DIR/public_html")
     WP_ROOT_CHECK+=("../htdocs" "../public_html" "../../htdocs" "../../public_html" "../../../htdocs" "../../../public_html")
     WP_ROOT_CHECK+=("$HOME/htdocs" "$HOME/public_html" "$HOME/www")
@@ -173,27 +239,27 @@ if [[ $WP_ROOT == "" ]]; then
         fi
     fi
 fi
-
-_log "Success: \$WP_ROOT set to $WP_ROOT"
+_log " ++ \$WP_ROOT set to $WP_ROOT"
 
 # Check if $WP_ROOT contains a WordPress install
-WP_ROOT_INSTALL=$($WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes core is-installed  2> /dev/null)
+eval $WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes core is-installed  2> /dev/null
 WP_ROOT_INSTALL_EXIT=$?
 if [[ $WP_ROOT_INSTALL_EXIT == 0 ]]; then
-    _log "Success: $WP_ROOT is a WordPress install - $WP_ROOT_INSTALL - $WP_ROOT_INSTALL_EXIT"
-else 
-    _log "Error: $WP_ROOT is not a WordPress install - $WP_ROOT_INSTALL - $WP_ROOT_INSTALL_EXIT" >&2
+    _log " ++ $WP_ROOT is a WordPress install - $WP_ROOT_INSTALL_EXIT"
+else
+    _log "Error: $WP_ROOT is not a WordPress install - $WP_ROOT_INSTALL_EXIT"
     exit 1
 fi
 
 # -- Resolve $WP_ROOT to an absolute path
 WP_ROOT=$(realpath "$WP_ROOT")
+_log " ++ Resolved \$WP_ROOT to $WP_ROOT"
 
 # Get the domain name of the WordPress install
 DOMAIN_NAME=$($WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes option get siteurl 2> /dev/null | grep -oP '(?<=//)[^/]+')
 DOMAIN_NAME_EXIT=$?
 if [[ $DOMAIN_NAME_EXIT == 0 ]]; then
-    _log "Success: Domain name is $DOMAIN_NAME"
+    _log " ++ Domain name is $DOMAIN_NAME"
 else
     _log "Error: Could not get domain name: $DOMAIN_NAME" >&2
     exit 1
@@ -232,7 +298,7 @@ _log "==========================================================================
 _log "- Starting queue run for $DOMAIN_NAME"
 # Check if multi-site is enabled and run cron for all sites
 if [[ $WP_MULTISITE == "1" ]]; then
-    _log "-- Multi-site detected, running cron for all sites."        
+    _log "-- Multi-site detected, running cron for all sites."
     JOB_RUN="multi"
     MULTISITE_SITES=$($WP_CLI --path=$WP_ROOT site list --format=csv 2> /dev/null | tail -n +2)
     while IFS=, read -r SITE_ID SITE_URL _; do
@@ -241,10 +307,10 @@ if [[ $WP_MULTISITE == "1" ]]; then
         SITE_MAP[$SITE_URL]=$SITE_ID
     done <<< "$MULTISITE_SITES"
 else
-    _log "-- Single instance detected running $CRON_CMD"    
+    _log "-- Single instance detected running $CRON_CMD"
     JOB_RUN="single"
     JOB_RUN_COUNT=1
-    SITE_MAP[$DOMAIN_NAME]="1"    
+    SITE_MAP[$DOMAIN_NAME]="1"
 fi
 _log "==================================================================================================="
 _log ""
@@ -257,18 +323,18 @@ _log "==========================================================================
 for SITE in "${!SITE_MAP[@]}"; do
     COUNTER=$((COUNTER + 1))
     _log "==================================================================================================="
-    _log "- Running cron job $COUNTER/$JOB_RUN_COUNT for $DOMAIN_NAME - $SITE ${SITE_MAP[$site]}"
+    _log "- Running cron job $COUNTER/$JOB_RUN_COUNT for $DOMAIN_NAME - $SITE ${SITE_MAP[$SITE]}"
     _log "==================================================================================================="
     if [[ $JOB_RUN == "multi" ]]; then
         CRON_CMD="$WP_CLI --path=$WP_ROOT --url=$SITE $CRON_CMD_SETTINGS"
     else
-        CRON_CMD="$WP_CLI --path=$WP_ROOT $CRON_CMD_SETTINGS"        
+        CRON_CMD="$WP_CLI --path=$WP_ROOT $CRON_CMD_SETTINGS"
     fi
 
     QUEUE_START_TIME=$(date +%s.%N)
     _log "-- Starting $QUEUE_START_TIME"
     CRON_EXIT_CODE=""
-    
+
     if [[ $MONITOR_RUN == "1" ]]; then
         _log "-- Monitoring script run for $MONITOR_RUN_TIMEOUT seconds.\n"
         _log "-- timeout ${MONITOR_RUN_TIMEOUT} $CRON_CMD\n"
@@ -276,10 +342,10 @@ for SITE in "${!SITE_MAP[@]}"; do
         CRON_EXIT_CODE=$?
     else
         _log "-- Running $CRON_CMD"
-        # Log stdout and stderr to seperate variables and run the command        
+        # Log stdout and stderr to seperate variables and run the command
         CRON_STDOUT=$(mktemp)
         CRON_STDERR=$(mktemp)
-        
+
         $CRON_CMD >"$CRON_STDOUT" 2>"$CRON_STDERR"
         CRON_EXIT_CODE=$?
 
@@ -287,11 +353,11 @@ for SITE in "${!SITE_MAP[@]}"; do
         while IFS= read -r LINE; do
             CRON_OUTPUT+="    - $LINE\n"
         done < "$CRON_STDOUT"
-        
+
         while IFS= read -r LINE; do
             CRON_OUTPUT+="    !! $LINE\n"
         done < "$CRON_STDERR"
-        
+
         rm "$CRON_STDOUT" "$CRON_STDERR"
     fi
 
@@ -317,7 +383,7 @@ for SITE in "${!SITE_MAP[@]}"; do
         fi
     else
         _log "$CRON_OUTPUT"
-        # Log the end time and CPU usage        
+        # Log the end time and CPU usage
     fi
 
     # If $CRON_OUTPUT is empty, log the exit code
@@ -338,9 +404,13 @@ if [[ $CRON_ERROR == "1" ]]; then
     _log "Error: Cron job failed with $CRON_ERROR_COUNT errors."
 else
     _log "Success: Cron job completed with $CRON_ERROR_COUNT errors."
-    if [[ -n "$HEARTBEAT_URL" ]]; then        
-        curl -I -s "$HEARTBEAT_URL" > /dev/null
-        _log "\n==== Sent Heartbeat to $HEARTBEAT_URL"
+    if [[ -n "$HEARTBEAT_URL" ]]; then
+        CURL_RESPONSE=$(curl curl -o /dev/null -s -w "%{http_code}" "$HEARTBEAT_URL")
+        if [ "$CURL_RESPONSE" -eq 200 ]; then
+            _log "\n==== Sent Heartbeat to $HEARTBEAT_URL on $(echo $START_TIME|date +"%Y-%m-%d_%H:%M:%S") CODE: $CURL_RESPONSE"
+        else
+            _log "\n==== Error: Failed to send heartbeat to $HEARTBEAT_URL on $(echo $START_TIME|date +"%Y-%m-%d_%H:%M:%S") CODE: $CURL_RESPONSE"
+        fi
     fi
 fi
 
@@ -361,6 +431,7 @@ _log "==========================================================================
 _log ""
 _log "===================================================================================================
 == Cron run completed in $TIME_SPENT seconds / $(seconds_to_human_readable "$TIME_SPENT") / with $CPU_USAGE% CPU usage.
-== Cron Errors: $CRON_ERROR_COUNT Cron Timeouts: $CRON_TIMEOUT_COUNT 
-== Cron run End Time - $(echo $END_TIME | date +"%Y-%m-%d_%H:%M:%S")
+== Cron Errors: $CRON_ERROR_COUNT Cron Timeouts: $CRON_TIMEOUT_COUNT
+== Cron Shim Stop - Version ${VERSION} - $(echo $START_TIME|date +"%Y-%m-%d_%H:%M:%S")
 ==================================================================================================="
+[[ $DEBUG == "2" ]] && set +x

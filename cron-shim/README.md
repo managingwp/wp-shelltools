@@ -23,19 +23,40 @@ I've created a guide on how to use this script on my blog: [https://managingwp.i
 ## Configuration (Cron-shim.conf)
 The script can be configured to with the following options, either by editing the script or passing in via environment variables or creating cron-shim.conf in the same directory as the script.
 
-```
-WP_CLI="/usr/local/bin/wp" # - Location of wp-cli
-WP_ROOT="" # - Path to WordPress, blank will try common directories.
-CRON_CMD_SETTINGS="$WP_CLI cron event run --due-now" # - Command to run
-HEARTBEAT_URL="" # - Heartbeat monitoring URL, example https://uptime.betterstack.com/api/v1/heartbeat/23v123v123c12312 leave blank to disable or pass in via environment variable
-POST_CRON_CMD="" # - Command to run after cron completes
-MONITOR_RUN="0" # - Monitor the script run and don't execute again if existing PID exists or process is still running.
-MONITOR_RUN_TIMEOUT="300" # - Time in seconds to consider script is stuck.
+### Main Options
+| Option | Description | Default |
+| --- | --- | --- |
+| `WP_CLI` | Location of wp-cli | `/usr/local/bin/wp` |
+| `WP_ROOT` | Path to WordPress, blank will try common directories. | `""` |
+| `CRON_CMD_SETTINGS` | Command to run | `$WP_CLI cron event run --due-now` |
+| `HEARTBEAT_URL` | Heartbeat monitoring URL, example https://uptime.betterstack.com/api/v1/heartbeat/23v123v123c12312 leave blank to disable or pass in via environment variable | `""` |
+| `POST_CRON_CMD` | Command to run after cron completes | `""` |
+| `MONITOR_RUN` | Monitor the script run and don't execute again if existing PID exists or process is still running. | `0` |
+| `MONITOR_RUN_TIMEOUT` | Time in seconds to consider script is stuck. | `300` |
 
-LOG_TO_STDOUT="1" # - Log to stdout? 0 = no, 1 = yes
-LOG_TO_SYSLOG="1" # - Log to syslog? 0 = no, 1 = yes
-LOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
-LOG_FILE="cron-shim.log" # Location for WordPress cron log file if LOG_TO_FILE="1", if left blank then cron-shim.log"
+### Logging Options
+| Option | Description | Default |
+| --- | --- | --- |
+| `LOG_TO_STDOUT` | Log to stdout? 0 = no, 1 = yes | `1` |
+| `LOG_TO_SYSLOG` | Log to syslog? 0 = no, 1 = yes | `1` |
+| `LOG_TO_FILE` | Log to file? 0 = no, 1 = yes | `0` |
+| `LOG_FILE` | Location for WordPress cron log file if LOG_TO_FILE="1", if left blank then cron-shim.log | `$SCRIPT_DIR/cron-shim.log` |
+
+### wp-cli opcache options
+| Option | Description | Default |
+| --- | --- | --- |
+| `PHP_BIN` | PHP binary location | `/usr/bin/php` |
+| `WP_CLI_OPCACHE` | Enable opcache for wp-cli? 0 = no, 1 = yes | `0` |
+| `WP_CLI_OPCACHE_DIR` | Directory to store opcache files | `$SCRIPT_DIR/.opcache` |
+
+## Example Configuration
+```
+WP_CLI="/usr/local/bin/wp" 
+CRON_CMD_SETTINGS="$WP_CLI cron event run --due-now" 
+HEARTBEAT_URL="https://uptime.betterstack.com/api/v1/heartbeat/23v123v123c12312"
+
+LOG_TO_STDOUT="1"
+LOG_TO_SYSLOG="1"
 ```
 
 # Changelog
