@@ -15,7 +15,18 @@ This script is a shim between linux cron and WordPress, providing logging and mo
 I've created a guide on how to use this script on my blog: [https://managingwp.io/2021/08/27/replacing-wordpress-wp-cron-with-manual-cron-url-and-php-method/](https://managingwp.io/2021/08/27/replacing-wordpress-wp-cron-with-manual-cron-url-and-php-method/)
 ### Quick Start
 1. Copy the script to your server.
-2. Add to Cron
+```
+wget https://github.com/managingwp/wp-shelltools/raw/refs/heads/main/cron-shim/cron-shim.sh
+```
+2. Make the script executable.
+```
+chmod +x cron-shim.sh
+```
+3. Run the script.
+```
+./cron-shim.sh
+```
+4. Add to Cron
 ```
 * * * * * /path/to/cron-shim.sh
 ```
