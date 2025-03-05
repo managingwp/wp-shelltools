@@ -266,9 +266,9 @@ else
 fi
 
 # Check if site is a multisite
-MULTISITE=$($WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes wp config get MULTISITE 2> /dev/null)
+MULTISITE=$($WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes config get MULTISITE 2> /dev/null)
 MULTISITE_EXIT=$?
-if [[ $MULTISITE_EXIT ==  1 ]]; then
+if [[ $MULTISITE_EXIT ==  0 ]]; then
     WP_MULTISITE="1"
     _log "Success: Multi-site detected - $MULTISITE_EXIT - $MULTISITE"
 else
