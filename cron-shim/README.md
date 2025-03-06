@@ -42,7 +42,7 @@ The script can be configured to with the following options, either by editing th
 | `CRON_CMD_SETTINGS` | Command to run | `$WP_CLI cron event run --due-now` |
 | `HEARTBEAT_URL` | Heartbeat monitoring URL, example https://uptime.betterstack.com/api/v1/heartbeat/23v123v123c12312 leave blank to disable or pass in via environment variable | `""` |
 | `POST_CRON_CMD` | Command to run after cron completes | `""` |
-| `MONITOR_RUN` | Monitor the script run and don't execute again if existing PID exists or process is still running. | `0` |
+| `MONITOR_RUN` | Monitor the script run and kill after MONITOR_RUN_TIMEOUT | `0` |
 | `MONITOR_RUN_TIMEOUT` | Time in seconds to consider script is stuck. | `300` |
 
 ### Logging Options
@@ -56,7 +56,7 @@ The script can be configured to with the following options, either by editing th
 ### wp-cli opcache options
 | Option | Description | Default |
 | --- | --- | --- |
-| `PHP_BIN` | PHP binary location | `/usr/bin/php` |
+| `WP_CLI_OPCACHE_PHP_BIN` | PHP binary location | `/usr/bin/php` |
 | `WP_CLI_OPCACHE` | Enable opcache for wp-cli? 0 = no, 1 = yes | `0` |
 | `WP_CLI_OPCACHE_DIR` | Directory to store opcache files | `$SCRIPT_DIR/.opcache` |
 
