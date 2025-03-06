@@ -16,7 +16,7 @@ I've created a guide on how to use this script on my blog: [https://managingwp.i
 ### Quick Start
 1. Copy the script to your server.
 ```
-wget https://github.com/managingwp/wp-shelltools/raw/refs/heads/main/cron-shim/cron-shim.sh
+wget -O cron-shim.sh https://github.com/managingwp/wp-shelltools/raw/refs/heads/main/cron-shim/cron-shim.sh
 ```
 2. Make the script executable.
 ```

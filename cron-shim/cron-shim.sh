@@ -13,9 +13,9 @@
 # Example: */5 * * * * /home/systemuser/cron-shim.sh
 
 # -- Variables
-VERSION="1.3.0"
+VERSION="1.3.6"
 PID_FILE="/tmp/cron-shim.pid"
-SCRIPT_NAME=$(basename "$0") # - Name of this script
+SCRIPT_NAME=$(basename "$0") # -     Name of this script
 declare -A SITE_MAP # - Map of sites to run cron on
 SCRIPT_DIR=$(dirname "$(realpath "$0")") # - Directory of this script
 START_TIME=$(date +%s.%N)
@@ -52,12 +52,6 @@ if [[ -f $SCRIPT_DIR/cron-shim.conf ]]; then
     source "$SCRIPT_DIR/cron-shim.conf"
     CONF_LOADED="1"
 fi
-
-# =====================================
-# -- Debug settings
-# =====================================
-[[ -z $DEBUG ]] && DEBUG="0" # - Debug mode? 0 = no, 1 = yes
-[[ $DEBUG == 2 ]] && set -x
 
 # =====================================
 # -- _debug $message
@@ -141,6 +135,17 @@ function _wp_cli_opcache () {
 # =============================================================================
 # -- Main Script
 # =============================================================================
+
+# =====================================
+# -- Debug settings
+# =====================================
+if [[ -z $DEBUG ]]; then
+    DEBUG="0" # - Debug mode? 0 = no, 1 = yes
+    _log " ++ Debug mode not enabled, DEBUG = $DEBUG"
+else
+    _log " ++ Debug mode enabled, DEBUG = $DEBUG"
+fi
+[[ $DEBUG == 2 ]] && set -x
 
 # Log header
 _log "==================================================================================================="
@@ -270,10 +275,10 @@ MULTISITE=$($WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes config get MULT
 MULTISITE_EXIT=$?
 if [[ $MULTISITE_EXIT ==  0 ]]; then
     WP_MULTISITE="1"
-    _log "Success: Multi-site detected - $MULTISITE_EXIT - $MULTISITE"
+    _log " ++ Success: Multi-site detected - $MULTISITE_EXIT - $MULTISITE"
 else
     WP_MULTISITE="0"
-    _log "Success: Single site detected"
+    _log " ++ Success: Single site detected"
 fi
 
 # ===============================================
@@ -300,7 +305,13 @@ _log "- Starting queue run for $DOMAIN_NAME"
 if [[ $WP_MULTISITE == "1" ]]; then
     _log "-- Multi-site detected, running cron for all sites."
     JOB_RUN="multi"
-    MULTISITE_SITES=$($WP_CLI --path=$WP_ROOT site list --format=csv 2> /dev/null | tail -n +2)
+    MULTISITE_SITES_EXEC=$($WP_CLI --path=$WP_ROOT site list --format=csv 2> /dev/null)
+    MULTISITE_SITES_EXIT=$?
+    MULTISITE_SITES=$(echo "$MULTISITE_SITES_EXEC" | tail -n +2)
+    if [[ $MULTISITE_SITES_EXIT -ne 0 ]]; then
+        _log "Error: Could not get multi-site list: $MULTISITE_SITES" >&2
+        exit 1
+    fi
     while IFS=, read -r SITE_ID SITE_URL _; do
         _log "  - Processing site ID: $SITE_ID, URL: $SITE_URL"
         JOB_RUN_COUNT=$((JOB_RUN_COUNT+1))
@@ -341,7 +352,7 @@ for SITE in "${!SITE_MAP[@]}"; do
         CRON_OUTPUT="$(timeout ${MONITOR_RUN_TIMEOUT} $CRON_CMD 2>&1)"
         CRON_EXIT_CODE=$?
     else
-        _log "-- Running $CRON_CMD"
+        _log "-- Running $CRON_CMD"g
         # Log stdout and stderr to seperate variables and run the command
         CRON_STDOUT=$(mktemp)
         CRON_STDERR=$(mktemp)
