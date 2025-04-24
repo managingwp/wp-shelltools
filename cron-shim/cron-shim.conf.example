@@ -1,5 +1,6 @@
 # The following is an example configuration file. The below options are configured with the defaults.
 #WP_CLI=/usr/local/bin/wp
+#PHP_BIN=/usr/bin/php
 #WP_ROOT=""
 #CRON_CMD_SETTINGS="$WP_CLI cron event run --due-now"
 #HEARTBEAT_URL=""
@@ -12,6 +13,5 @@
 #LOG_TO_FILE=0
 #LOG_FILE="$SCRIPT_DIR/cron-shim.log"
 
-#WP_CLI_OPCACHE_PHP_BIN="/usr/bin/php"
 #WP_CLI_OPCACHE=0
 #WP_CLI_OPCACHE_DIR="$SCRIPT_DIR/.opcache"

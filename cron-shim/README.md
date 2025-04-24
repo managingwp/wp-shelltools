@@ -1,10 +1,4 @@
-# Donate
-If you like any of the scripts or tools, please consider donating to help support the development of these tools.
-
-[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://ko-fi.com/jordantrask)
-[![ManagingWP](https://i.imgur.com/x5SjITX.png)](https://managingwp.io/sponsor)
-
-# cron-shim.sh
+## cron-shim.sh
 A shim between linux cron and WordPress.
 
 ## Description
@@ -38,6 +32,7 @@ The script can be configured to with the following options, either by editing th
 | Option | Description | Default |
 | --- | --- | --- |
 | `WP_CLI` | Location of wp-cli | `/usr/local/bin/wp` |
+| `PHP_BIN` | Location of PHP binary | `/usr/bin/php` |
 | `WP_ROOT` | Path to WordPress, blank will try common directories. | `""` |
 | `CRON_CMD_SETTINGS` | Command to run | `$WP_CLI cron event run --due-now` |
 | `HEARTBEAT_URL` | Heartbeat monitoring URL, example https://uptime.betterstack.com/api/v1/heartbeat/23v123v123c12312 leave blank to disable or pass in via environment variable | `""` |
@@ -56,7 +51,6 @@ The script can be configured to with the following options, either by editing th
 ### wp-cli opcache options
 | Option | Description | Default |
 | --- | --- | --- |
-| `WP_CLI_OPCACHE_PHP_BIN` | PHP binary location | `/usr/bin/php` |
 | `WP_CLI_OPCACHE` | Enable opcache for wp-cli? 0 = no, 1 = yes | `0` |
 | `WP_CLI_OPCACHE_DIR` | Directory to store opcache files | `$SCRIPT_DIR/.opcache` |
 
@@ -69,6 +63,13 @@ HEARTBEAT_URL="https://uptime.betterstack.com/api/v1/heartbeat/23v123v123c12312"
 LOG_TO_STDOUT="1"
 LOG_TO_SYSLOG="1"
 ```
+
+# Donate
+If you like any of the scripts or tools, please consider donating to help support the development of these tools.
+
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://ko-fi.com/jordantrask)
+[![ManagingWP](https://i.imgur.com/x5SjITX.png)](https://managingwp.io/sponsor)
+
 
 # Changelog
 ## 1.2.1
