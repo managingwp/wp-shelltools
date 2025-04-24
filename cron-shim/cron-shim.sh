@@ -24,6 +24,7 @@ START_TIME=$(date +%s.%N)
 # -- Default Settings
 # =====================================
 [[ -z $WP_CLI ]] && WP_CLI="/usr/local/bin/wp" # - Location of wp-cli
+[[ -z $PHP_BIN ]] && PHP_BIN=$(command -v php) # - Location of PHP binary
 [[ -z $WP_ROOT ]] && WP_ROOT="" # - Path to WordPress, blank will try common directories.
 [[ -z $CRON_CMD_SETTINGS ]] && CRON_CMD_SETTINGS="cron event run --due-now" # - Command to run
 [[ -z $HEARTBEAT_URL ]] && HEARTBEAT_URL="" # - Heartbeat monitoring URL, example https://uptime.betterstack.com/api/v1/heartbeat/23v123v123c12312 leave blank to disable or pass in via environment variable
@@ -42,7 +43,6 @@ START_TIME=$(date +%s.%N)
 # =====================================
 # -- WP-CLI Opcache Settings
 # =====================================
-[[ -z $WP_CLI_OPCACHE_PHP_BIN ]] && WP_CLI_OPCACHE_PHP_BIN=$(command -v php) # - PHP binary location
 [[ -z $WP_CLI_OPCACHE ]] && WP_CLI_OPCACHE="0" # - Enable opcache for wp-cli? 0 = no, 1 = yes
 [[ -z $WP_CLI_OPCACHE_DIR ]] && WP_CLI_OPCACHE_DIR="$SCRIPT_DIR/.opcache" # - Location for wp-cli opcache file cache
 
@@ -128,8 +128,8 @@ function seconds_to_human_readable (){
 # -- _wp_cli_opcache $@
 # =====================================
 function _wp_cli_opcache () {
-    _debug "$WP_CLI_OPCACHE_PHP_BIN -d opcache.file_cache=$WP_CLI_OPCACHE_DIR -d opcache.file_cache_only=1 $WP_CLI_REAL ${*}"
-    eval $WP_CLI_OPCACHE_PHP_BIN -d opcache.file_cache="$WP_CLI_OPCACHE_DIR" -d opcache.file_cache_only="1" "$WP_CLI_REAL" "${@}"
+    _debug "$PHP_BIN -d opcache.file_cache=$WP_CLI_OPCACHE_DIR -d opcache.file_cache_only=1 $WP_CLI_REAL ${*}"
+    eval $PHP_BIN -d opcache.file_cache="$WP_CLI_OPCACHE_DIR" -d opcache.file_cache_only="1" "$WP_CLI_REAL" "${@}"
 }
 
 # =============================================================================
@@ -197,9 +197,9 @@ _log " ++ wp-cli found at $WP_CLI"
 # Check if wp-cli opcache is enabled
 if [[ $WP_CLI_OPCACHE == 1 ]]; then
     _log " ++ Setting up opcache for wp-cli"
-    if [[ -n $WP_CLI_OPCACHE_PHP_BIN ]]; then
-        [[ $(command -v $WP_CLI_OPCACHE_PHP_BIN) ]]  || { _log 'Error: PHP_BIN is not installed.' >&2; exit 1; }
-        _log " ++ PHP_BIN found at $WP_CLI_OPCACHE_PHP_BIN"
+    if [[ -n $PHP_BIN ]]; then
+        [[ $(command -v $PHP_BIN) ]]  || { _log 'Error: \$PHP_BIN is not installed.' >&2; exit 1; }
+        _log " ++ \$PHP_BIN found at $PHP_BIN"
         _log " ++ wp-cli wrapper setup with opcache"
         WP_CLI_REAL="$WP_CLI"
         WP_CLI="_wp_cli_opcache ${*}"        
@@ -216,7 +216,7 @@ if [[ $WP_CLI_OPCACHE == 1 ]]; then
             mkdir -p "$WP_CLI_OPCACHE_DIR"
         fi
     else
-        _log "Error: WP_CLI_OPCACHE_PHP_BIN is not set." >&2
+        _log "Error: \$PHP_BIN is not set." >&2
         exit 1
     fi
 fi

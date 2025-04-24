@@ -3,10 +3,13 @@ Table of Contents
 =================
 
 - [Table of Contents](#table-of-contents)
-- [Donate](#donate)
 - [wp-shelltools](#wp-shelltools)
+- [Donate](#donate)
 - [Install](#install)
   - [Requirements](#requirements)
+  - [1 - Clone Repository](#1---clone-repository)
+  - [2 - Add to PATH](#2---add-to-path)
+  - [3 - Run the script](#3---run-the-script)
 - [Help](#help)
 - [Directories](#directories)
 - [Advanced Documentation](#advanced-documentation)
@@ -16,27 +19,37 @@ Table of Contents
 - [Resources](#resources)
 <!--te--> 
 
+# wp-shelltools
+The goal of this project is to make it easy to manage and maintain WordPress servers using shell scripting. This repository was original named gp-tools, but decided to make it provider agnostic
+
+You might find that there are still tools and functions that have gridpane or gp in their name. This will change when it becomes a priority.
+
 # Donate
 If you like any of the scripts or tools, please consider donating to help support the development of these tools.
 
 [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://ko-fi.com/jordantrask)
 [![ManagingWP](https://i.imgur.com/x5SjITX.png)](https://managingwp.io/sponsor)
 
-
-# wp-shelltools
-The goal of this project is to make it easy to manage and maintain WordPress servers using shell scripting. This repository was original named gp-tools, but decided to make it provider agnostic
-
-You might find that there are still tools and functions that have gridpane or gp in their name. This will change when it becomes a priority.
-
 # Install
 ## Requirements
 * You need root, otherwise this makes no sense.
 * You need git (apt-get install git)
 
-It's simple, make sure you have git installed (apt-get install git) and then run the following
+## 1 - Clone Repository
+You want to clone the repository somewhere on your server or local machine. I recommend using your home directory under /bin as typical shells such as bash and zsh will look for executables in this directory.
 ```
-git clone https://github.com/jordantrizz/gpcli.git ~/gpcli;~/gpcli/gpcli -c install
+git clone https://github.com/managingwp/wp-shelltools $HOME/bin/wp-shelltools
+```
+## 2 - Add to PATH
+If you're not installing it in a location that your shell looks for executables, you will need to add the path you chose to your PATH variable. You can do this by adding the following line to your ~/.bashrc or ~/.zshrc file etc.
+```
+export PATH=$PATH:$HOME/bin/wp-shelltools
+```
 
+## 3 - Run the script
+You can run the script by typing `wpst.sh` or `wpst` in your terminal.
+```
+wpst.sh
 ```
 
 # Help
