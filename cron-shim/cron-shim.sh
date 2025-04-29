@@ -13,7 +13,7 @@
 # Example: */5 * * * * /home/systemuser/cron-shim.sh
 
 # -- Variables
-VERSION="1.3.6"
+VERSION="1.3.7"
 PID_FILE="/tmp/cron-shim.pid"
 SCRIPT_NAME=$(basename "$0") # -     Name of this script
 declare -A SITE_MAP # - Map of sites to run cron on
@@ -352,7 +352,7 @@ for SITE in "${!SITE_MAP[@]}"; do
         CRON_OUTPUT="$(timeout ${MONITOR_RUN_TIMEOUT} $CRON_CMD 2>&1)"
         CRON_EXIT_CODE=$?
     else
-        _log "-- Running $CRON_CMD"g
+        _log "-- Running $CRON_CMD"
         # Log stdout and stderr to seperate variables and run the command
         CRON_STDOUT=$(mktemp)
         CRON_STDERR=$(mktemp)
