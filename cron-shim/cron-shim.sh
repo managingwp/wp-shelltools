@@ -13,7 +13,7 @@
 # Example: */5 * * * * /home/systemuser/cron-shim.sh
 
 # -- Variables
-VERSION="1.3.7"
+VERSION="1.4.0"
 PID_FILE="/tmp/cron-shim.pid"
 SCRIPT_NAME=$(basename "$0") # -     Name of this script
 declare -A SITE_MAP # - Map of sites to run cron on
@@ -49,8 +49,12 @@ START_TIME=$(date +%s.%N)
 
 # -- Check if cron-shim.conf exists and source it
 if [[ -f $SCRIPT_DIR/cron-shim.conf ]]; then    
+    # Store original WP_CLI value to detect if it was changed by config
+    WP_CLI_ORIGINAL="$WP_CLI"
     source "$SCRIPT_DIR/cron-shim.conf"
     CONF_LOADED="1"
+    # Check if WP_CLI was modified by the config file
+    [[ "$WP_CLI" != "$WP_CLI_ORIGINAL" ]] && WP_CLI_FROM_CONFIG="1"
 fi
 
 # =====================================
@@ -191,8 +195,33 @@ trap "rm -f '$PID_FILE'; exit" INT TERM EXIT
 _log " ++ Running as $(whoami)"
 
 # Check if wp-cli is installed
-[[ $(command -v $WP_CLI) ]]  || { _log "Error: wp-cli is not installed at $WP_CLI" >&2; exit 1; }
-_log " ++ wp-cli found at $WP_CLI"
+if [[ $(command -v $WP_CLI) ]]; then
+    _log " ++ wp-cli found at $WP_CLI"
+else
+    # If WP_CLI wasn't set via config, try alternative paths
+    if [[ $CONF_LOADED != "1" ]] || [[ -z ${WP_CLI_FROM_CONFIG:-} ]]; then
+        _log " ++ wp-cli not found at $WP_CLI, searching alternative paths..."
+        WP_CLI_PATHS=("/usr/bin/wp" "/usr/local/bin/wp" "/opt/wp-cli/wp" "$HOME/.composer/vendor/bin/wp" "/usr/share/wp-cli/wp")
+        WP_CLI_FOUND=""
+        
+        for WP_PATH in "${WP_CLI_PATHS[@]}"; do
+            if [[ -x "$WP_PATH" ]]; then
+                WP_CLI="$WP_PATH"
+                WP_CLI_FOUND="1"
+                _log " ++ wp-cli found at alternative path: $WP_CLI"
+                break
+            fi
+        done
+        
+        if [[ -z $WP_CLI_FOUND ]]; then
+            _log "Error: wp-cli not found in any of the following paths: ${WP_CLI_PATHS[*]}" >&2
+            exit 1
+        fi
+    else
+        _log "Error: wp-cli is not installed at $WP_CLI (configured path)" >&2
+        exit 1
+    fi
+fi
 
 # Check if wp-cli opcache is enabled
 if [[ $WP_CLI_OPCACHE == 1 ]]; then

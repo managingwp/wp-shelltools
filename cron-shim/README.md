@@ -28,10 +28,22 @@ chmod +x cron-shim.sh
 ## Configuration (Cron-shim.conf)
 The script can be configured to with the following options, either by editing the script or passing in via environment variables or creating cron-shim.conf in the same directory as the script.
 
+### wp-cli Detection
+The script includes enhanced wp-cli detection that automatically searches for wp-cli in common installation paths if it's not found at the configured location. This only applies when `WP_CLI` is not explicitly set in the configuration file.
+
+**Search paths include:**
+- `/usr/bin/wp`
+- `/usr/local/bin/wp` 
+- `/opt/wp-cli/wp`
+- `$HOME/.composer/vendor/bin/wp`
+- `/usr/share/wp-cli/wp`
+
+**Note:** If you explicitly set `WP_CLI` in your `cron-shim.conf` file, the script will only use that path and will not search alternatives.
+
 ### Main Options
 | Option | Description | Default |
 | --- | --- | --- |
-| `WP_CLI` | Location of wp-cli | `/usr/local/bin/wp` |
+| `WP_CLI` | Location of wp-cli. If not found, script will search common paths like /usr/bin/wp, /usr/local/bin/wp, etc. | `/usr/local/bin/wp` |
 | `PHP_BIN` | Location of PHP binary | `/usr/bin/php` |
 | `WP_ROOT` | Path to WordPress, blank will try common directories. | `""` |
 | `CRON_CMD_SETTINGS` | Command to run | `$WP_CLI cron event run --due-now` |
@@ -72,6 +84,13 @@ If you like any of the scripts or tools, please consider donating to help suppor
 
 
 # Changelog
+## 1.4.0
+* (cron-shim) Enhanced wp-cli detection to automatically search common installation paths when wp-cli is not found at the configured location.
+* (cron-shim) Only searches alternative paths if WP_CLI wasn't explicitly set via configuration file.
+* (cron-shim) Improved error messages for wp-cli detection failures.
+
+## 1.3.9
+* fix(cron-shim): Fixed issue with wp-cli using opcache and double php binaries.
 ## 1.2.1
 * Added human readable time to log output at end of run.
 * Added log pruning to keep log files below 10MB
