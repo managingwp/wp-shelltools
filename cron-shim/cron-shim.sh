@@ -39,6 +39,7 @@ START_TIME=$(date +%s.%N)
 [[ -z $LOG_TO_SYSLOG ]] && LOG_TO_SYSLOG="1" # - Log to syslog? 0 = no, 1 = yes
 [[ -z $LOG_TO_FILE ]] && LOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
 [[ -z $LOG_FILE ]] && LOG_FILE="$SCRIPT_DIR/cron-shim.log" # Location for WordPress cron log file if LOG_TO_FILE="1", if left blank then cron-shim.log"
+[[ -z $LOG_PRUNE_SIZE_MB ]] && LOG_PRUNE_SIZE_MB="10" # - Size in MB to prune log files when they exceed this size
 
 # =====================================
 # -- WP-CLI Opcache Settings
@@ -102,13 +103,15 @@ function prune_old_logs () {
     # -- Prune old logs
     _log " ++ Starting log pruning"
     if [[ $LOG_TO_FILE == "1" ]]; then
-        # -- Prune logs larger than 10MB
-        if [[ $(stat -c %s "$LOG_FILE") -gt 10485760 ]]; then
-            _log " ++ Pruning $LOG_FILE"
+        # Convert MB to bytes (MB * 1024 * 1024)
+        LOG_PRUNE_SIZE_BYTES=$((LOG_PRUNE_SIZE_MB * 1024 * 1024))
+        # -- Prune logs larger than configured size
+        if [[ $(stat -c %s "$LOG_FILE") -gt $LOG_PRUNE_SIZE_BYTES ]]; then
+            _log " ++ Pruning $LOG_FILE (larger than ${LOG_PRUNE_SIZE_MB}MB)"
             truncate -s 1M "$LOG_FILE"
             _log " ++ Log file $LOG_FILE pruned"
         else
-            _log " ++ Log file $LOG_FILE is less than 10MB"
+            _log " ++ Log file $LOG_FILE is less than ${LOG_PRUNE_SIZE_MB}MB"
         fi
     else
         _log " ++ Log file logging is disabled"

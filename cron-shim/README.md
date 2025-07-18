@@ -84,6 +84,9 @@ If you like any of the scripts or tools, please consider donating to help suppor
 
 
 # Changelog
+## 1.4.1
+* (cron-shim) Added support to set LOG_PRUNE_SIZE_MB in configuration file to control log file size.
+
 ## 1.4.0
 * (cron-shim) Enhanced wp-cli detection to automatically search common installation paths when wp-cli is not found at the configured location.
 * (cron-shim) Only searches alternative paths if WP_CLI wasn't explicitly set via configuration file.
