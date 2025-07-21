@@ -13,7 +13,7 @@
 # Example: */5 * * * * /home/systemuser/cron-shim.sh
 
 # -- Variables
-VERSION="1.4.0"
+VERSION="1.4.2"
 PID_FILE="/tmp/cron-shim.pid"
 SCRIPT_NAME=$(basename "$0") # -     Name of this script
 declare -A SITE_MAP # - Map of sites to run cron on
@@ -31,6 +31,9 @@ START_TIME=$(date +%s.%N)
 [[ -z $POST_CRON_CMD ]] && POST_CRON_CMD="" # - Command to run after cron completes
 [[ -z $MONITOR_RUN ]] && MONITOR_RUN="0" # - Monitor the script run and don't execute again if existing PID exists or process is still running.
 [[ -z $MONITOR_RUN_TIMEOUT ]] && MONITOR_RUN_TIMEOUT="300" # - Time in seconds to consider script is stuck.
+[[ -z $CHECK_LOAD_AVERAGE ]] && CHECK_LOAD_AVERAGE="1" # - Check server load average before running? 0 = no, 1 = yes
+[[ -z $MAX_LOAD_AVERAGE ]] && MAX_LOAD_AVERAGE="5.0" # - Maximum load average threshold. Don't run if load is above this value.
+[[ -z $SCRIPT_ENABLED ]] && SCRIPT_ENABLED="1" # - Enable script execution? 0 = disabled, 1 = enabled
 
 # =====================================
 # -- Logging Settings
@@ -132,11 +135,37 @@ function seconds_to_human_readable (){
 }
 
 # =====================================
+# =====================================
 # -- _wp_cli_opcache $@
 # =====================================
 function _wp_cli_opcache () {
     _debug "$PHP_BIN -d opcache.file_cache=$WP_CLI_OPCACHE_DIR -d opcache.file_cache_only=1 $WP_CLI_REAL ${*}"
     eval $PHP_BIN -d opcache.file_cache="$WP_CLI_OPCACHE_DIR" -d opcache.file_cache_only="1" "$WP_CLI_REAL" "${@}"
+}
+
+# =====================================
+# -- check_load_average
+# =====================================
+function check_load_average () {
+    if [[ $CHECK_LOAD_AVERAGE == "1" ]]; then
+        # Get 1-minute load average
+        local LOAD_AVERAGE=$(uptime | awk -F'load average:' '{print $2}' | awk -F',' '{print $1}' | sed 's/^ *//')
+        _log " ++ Current 1-minute load average: $LOAD_AVERAGE"
+        
+        # Compare load average with threshold using awk for floating point comparison
+        local LOAD_CHECK=$(echo "$LOAD_AVERAGE $MAX_LOAD_AVERAGE" | awk '{if ($1 > $2) print "high"; else print "ok"}')
+        
+        if [[ $LOAD_CHECK == "high" ]]; then
+            _log "Warning: Server load average ($LOAD_AVERAGE) is above threshold ($MAX_LOAD_AVERAGE). Skipping cron execution."
+            return 1
+        else
+            _log " ++ Server load average ($LOAD_AVERAGE) is within acceptable range (threshold: $MAX_LOAD_AVERAGE)"
+            return 0
+        fi
+    else
+        _log " ++ Load average checking is disabled"
+        return 0
+    fi
 }
 
 # =============================================================================
@@ -162,6 +191,12 @@ _log "==========================================================================
 
 # Check if $CONF_LOADED is enabled
 [[ $CONF_LOADED == "1" ]] && _log " ++ Loaded configuration file $SCRIPT_DIR/cron-shim.conf"
+
+# Check if script is enabled
+if [[ $SCRIPT_ENABLED != "1" ]]; then
+    _log "Script is disabled (SCRIPT_ENABLED=$SCRIPT_ENABLED). Exiting without running cron."
+    exit 0
+fi
 
 # Check if $LOG_TO_FILE is enabled and set the log file location
 [[ $LOG_TO_FILE == "1" ]] && _log " ++ Logging to $LOG_FILE"
@@ -224,6 +259,12 @@ else
         _log "Error: wp-cli is not installed at $WP_CLI (configured path)" >&2
         exit 1
     fi
+fi
+
+# Check server load average before proceeding
+if ! check_load_average; then
+    _log "Exiting due to high server load. Cron execution skipped."
+    exit 0
 fi
 
 # Check if wp-cli opcache is enabled
@@ -317,7 +358,7 @@ fi
 # --- Start Cron Job Queue
 # ===============================================
 
-_log "==================================================================================================="
+_log "=================================================="
 _log ""
 
 # Gather cron run data.
@@ -331,7 +372,7 @@ SITE_ID=""
 MULTISITE_SITES=""
 COUNTER=0
 
-_log "==================================================================================================="
+_log "=================================================="
 _log "- Starting queue run for $DOMAIN_NAME"
 # Check if multi-site is enabled and run cron for all sites
 if [[ $WP_MULTISITE == "1" ]]; then
@@ -355,19 +396,19 @@ else
     JOB_RUN_COUNT=1
     SITE_MAP[$DOMAIN_NAME]="1"
 fi
-_log "==================================================================================================="
+_log "=================================================="
 _log ""
 
 # Run $CRON_CMD queue
-_log "==================================================================================================="
+_log "=================================================="
 _log "Cron queue type:$JOB_RUN count: $JOB_RUN_COUNT"
-_log "==================================================================================================="
+_log "=================================================="
 
 for SITE in "${!SITE_MAP[@]}"; do
     COUNTER=$((COUNTER + 1))
-    _log "==================================================================================================="
+    _log "=================================================="
     _log "- Running cron job $COUNTER/$JOB_RUN_COUNT for $DOMAIN_NAME - $SITE ${SITE_MAP[$SITE]}"
-    _log "==================================================================================================="
+    _log "=================================================="
     if [[ $JOB_RUN == "multi" ]]; then
         CRON_CMD="$WP_CLI --path=$WP_ROOT --url=$SITE $CRON_CMD_SETTINGS"
     else
@@ -464,12 +505,12 @@ fi
 TIME_SPENT="$(_time_spent $START_TIME $END_TIME)"
 
 # -- Print out the time spent on the each queue item.
-_log "==================================================================================================="
+_log "=================================================="
 _log "Cron queue run time for $DOMAIN_NAME"
 for JOB_RUN_SITE_TIME in "${JOB_RUN_SITES_TIME[@]}"; do
     _log "$JOB_RUN_SITE_TIME"
 done
-_log "==================================================================================================="
+_log "=================================================="
 
 _log ""
 _log "===================================================================================================

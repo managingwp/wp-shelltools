@@ -1,4 +1,7 @@
 # The following is an example configuration file. The below options are configured with the defaults.
+# Script control
+#SCRIPT_ENABLED="1"
+
 #WP_CLI=/usr/local/bin/wp
 #PHP_BIN=/usr/bin/php
 #WP_ROOT=""
@@ -8,11 +11,17 @@
 #MONITOR_RUN="0"
 #MONITOR_RUN_TIMEOUT=300
 
+# Load average monitoring
+#CHECK_LOAD_AVERAGE="1"
+#MAX_LOAD_AVERAGE="5.0"
+
+# Logging options
 #LOG_TO_STDOUT=1
 #LOG_TO_SYSLOG=1
 #LOG_TO_FILE=0
 #LOG_FILE="$SCRIPT_DIR/cron-shim.log"
 #LOG_PRUNE_SIZE_MB=10
 
+# wp-cli opcache options
 #WP_CLI_OPCACHE=0
 #WP_CLI_OPCACHE_DIR="$SCRIPT_DIR/.opcache"

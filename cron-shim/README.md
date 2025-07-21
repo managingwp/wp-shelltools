@@ -84,6 +84,12 @@ If you like any of the scripts or tools, please consider donating to help suppor
 
 
 # Changelog
+
+## 1.4.2
+* (cron-shim) Added support for checking server load average before running cron jobs.
+* (cron-shim) Introduced `CHECK_LOAD_AVERAGE` and `MAX_LOAD_AVERAGE` configuration options to control load average checks.
+* (cron-shim) Added `SCRIPT_ENABLED` configuration option to enable or disable script execution.
+
 ## 1.4.1
 * (cron-shim) Added support to set LOG_PRUNE_SIZE_MB in configuration file to control log file size.
 
