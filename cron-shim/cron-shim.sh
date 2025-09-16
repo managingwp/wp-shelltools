@@ -13,7 +13,7 @@
 # Example: */5 * * * * /home/systemuser/cron-shim.sh
 
 # -- Variables
-VERSION="1.4.2"
+VERSION="1.4.3"
 PID_FILE="/tmp/cron-shim.pid"
 SCRIPT_NAME=$(basename "$0") # -     Name of this script
 declare -A SITE_MAP # - Map of sites to run cron on
@@ -489,11 +489,14 @@ if [[ $CRON_ERROR == "1" ]]; then
 else
     _log "Success: Cron job completed with $CRON_ERROR_COUNT errors."
     if [[ -n "$HEARTBEAT_URL" ]]; then
-        CURL_RESPONSE=$(curl curl -o /dev/null -s -w "%{http_code}" "$HEARTBEAT_URL")
-        if [ "$CURL_RESPONSE" -eq 200 ]; then
-            _log "\n==== Sent Heartbeat to $HEARTBEAT_URL on $(echo $START_TIME|date +"%Y-%m-%d_%H:%M:%S") CODE: $CURL_RESPONSE"
+        # Send heartbeat to Uptime Kuma or similar services.
+        # -sS: silent but show errors, -o: discard body, -w: print only HTTP code
+        CURL_HTTP_CODE=$(curl -sS -o /dev/null -w "%{http_code}" "$HEARTBEAT_URL" 2>/dev/null || echo "000")
+        # Treat any 2xx as success
+        if [[ "$CURL_HTTP_CODE" =~ ^2[0-9]{2}$ ]]; then
+            _log "\n==== Sent Heartbeat to $HEARTBEAT_URL on $(echo $START_TIME|date +"%Y-%m-%d_%H:%M:%S") CODE: $CURL_HTTP_CODE"
         else
-            _log "\n==== Error: Failed to send heartbeat to $HEARTBEAT_URL on $(echo $START_TIME|date +"%Y-%m-%d_%H:%M:%S") CODE: $CURL_RESPONSE"
+            _log "\n==== Error: Failed to send heartbeat to $HEARTBEAT_URL on $(echo $START_TIME|date +"%Y-%m-%d_%H:%M:%S") CODE: $CURL_HTTP_CODE"
         fi
     fi
 fi
