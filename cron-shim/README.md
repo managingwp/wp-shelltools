@@ -66,6 +66,23 @@ The script includes enhanced wp-cli detection that automatically searches for wp
 | `WP_CLI_OPCACHE` | Enable opcache for wp-cli? 0 = no, 1 = yes | `0` |
 | `WP_CLI_OPCACHE_DIR` | Directory to store opcache files | `$SCRIPT_DIR/.opcache` |
 
+### Multisite resume (state file)
+When running on a multisite network, the script can resume from the last processed site if a previous run ended early. By default, it stores the last processed site in a state file at:
+
+- `$SCRIPT_DIR/.cron-shim.${DOMAIN_NAME}.state`
+
+You can override this path via `CRON_SHIM_STATE_FILE` in your config:
+
+```
+# In cron-shim.conf
+CRON_SHIM_STATE_FILE="$SCRIPT_DIR/.cron-shim.state"
+```
+
+Behavior:
+- On each site completion, the state file is updated with that site’s URL.
+- At the end of a full pass (reaching the end of the list), the state file is removed.
+- If the last recorded site was the final one, the next run starts from the beginning and clears state.
+
 ## Example Configuration
 ```
 WP_CLI="/usr/local/bin/wp" 

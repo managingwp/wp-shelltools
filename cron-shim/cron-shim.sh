@@ -65,8 +65,18 @@ fi
 # -- _debug $message
 # =====================================
 function _debug () {
-    # Cyan
-    [[ $DEBUG -gt 0 ]] && _log "\033[0;36mDEBUG: ${*}\033[0m"
+    # Write debug messages to stderr only, to avoid polluting stdout or file/syslog logs
+    if [[ $DEBUG -gt 0 ]]; then
+        local MSG
+        MSG="\033[0;36mDEBUG: ${*}\033[0m"
+        # Always to stderr
+        echo -e "$MSG" >&2
+        # Mirror to file only when enabled (never syslog/stdout)
+        if [[ $LOG_TO_FILE == "1" && -n "$LOG_FILE" ]]; then
+            # Strip color codes for file for readability
+            echo -e "DEBUG: ${*}" >> "$LOG_FILE"
+        fi
+    fi
 }
 
 # =====================================
@@ -139,8 +149,10 @@ function seconds_to_human_readable (){
 # -- _wp_cli_opcache $@
 # =====================================
 function _wp_cli_opcache () {
+    # Use unified debug handler (stderr + optional file mirror)
     _debug "$PHP_BIN -d opcache.file_cache=$WP_CLI_OPCACHE_DIR -d opcache.file_cache_only=1 $WP_CLI_REAL ${*}"
-    eval $PHP_BIN -d opcache.file_cache="$WP_CLI_OPCACHE_DIR" -d opcache.file_cache_only="1" "$WP_CLI_REAL" "${@}"
+    # Execute without eval to avoid argument injection surprises
+    $PHP_BIN -d opcache.file_cache="$WP_CLI_OPCACHE_DIR" -d opcache.file_cache_only="1" "$WP_CLI_REAL" "$@"
 }
 
 # =====================================
@@ -149,11 +161,13 @@ function _wp_cli_opcache () {
 function check_load_average () {
     if [[ $CHECK_LOAD_AVERAGE == "1" ]]; then
         # Get 1-minute load average
-        local LOAD_AVERAGE=$(uptime | awk -F'load average:' '{print $2}' | awk -F',' '{print $1}' | sed 's/^ *//')
+    local LOAD_AVERAGE
+    LOAD_AVERAGE=$(uptime | awk -F'load average:' '{print $2}' | awk -F',' '{print $1}' | sed 's/^ *//')
         _log " ++ Current 1-minute load average: $LOAD_AVERAGE"
         
         # Compare load average with threshold using awk for floating point comparison
-        local LOAD_CHECK=$(echo "$LOAD_AVERAGE $MAX_LOAD_AVERAGE" | awk '{if ($1 > $2) print "high"; else print "ok"}')
+    local LOAD_CHECK
+    LOAD_CHECK=$(echo "$LOAD_AVERAGE $MAX_LOAD_AVERAGE" | awk '{if ($1 > $2) print "high"; else print "ok"}')
         
         if [[ $LOAD_CHECK == "high" ]]; then
             _log "Warning: Server load average ($LOAD_AVERAGE) is above threshold ($MAX_LOAD_AVERAGE). Skipping cron execution."
@@ -226,7 +240,8 @@ echo $$ > "$PID_FILE"
 _log " ++ PID file created at $PID_FILE"
 
 # Setup a trap to remove the PID file on script exit
-trap "rm -f '$PID_FILE'; exit" INT TERM EXIT
+# Use single quotes so variables are expanded when the trap executes, not now
+trap 'rm -f "$PID_FILE"; exit' INT TERM EXIT
 
 # Check if running as root
 [ "$(id -u)" -eq 0 ] && { _log "Error: This script should not be run as root." >&2; exit 1; }
@@ -274,9 +289,10 @@ if [[ $WP_CLI_OPCACHE == 1 ]]; then
         [[ $(command -v $PHP_BIN) ]]  || { _log 'Error: \$PHP_BIN is not installed.' >&2; exit 1; }
         _log " ++ \$PHP_BIN found at $PHP_BIN"
         _log " ++ wp-cli wrapper setup with opcache"
-        WP_CLI_REAL="$WP_CLI"
-        WP_CLI="_wp_cli_opcache ${*}"        
-        _log " ++ wp-cli opcache enabled as $WP_CLI"
+    WP_CLI_REAL="$WP_CLI"
+    # Do not splice script args into the wrapper; it can inject stray tokens like /dev/null
+    WP_CLI="_wp_cli_opcache"
+    _log " ++ wp-cli opcache enabled as $WP_CLI"
         
         # Clear opcache folder
         if [[ -d $WP_CLI_OPCACHE_DIR ]]; then
@@ -320,7 +336,7 @@ fi
 _log " ++ \$WP_ROOT set to $WP_ROOT"
 
 # Check if $WP_ROOT contains a WordPress install
-eval $WP_CLI --path=$WP_ROOT --skip-plugins --skip-themes core is-installed  2> /dev/null
+$WP_CLI --path="$WP_ROOT" --skip-plugins --skip-themes core is-installed 2>/dev/null
 WP_ROOT_INSTALL_EXIT=$?
 if [[ $WP_ROOT_INSTALL_EXIT == 0 ]]; then
     _log " ++ $WP_ROOT is a WordPress install - $WP_ROOT_INSTALL_EXIT"
@@ -378,17 +394,25 @@ _log "- Starting queue run for $DOMAIN_NAME"
 if [[ $WP_MULTISITE == "1" ]]; then
     _log "-- Multi-site detected, running cron for all sites."
     JOB_RUN="multi"
-    MULTISITE_SITES_EXEC=$($WP_CLI --path=$WP_ROOT site list --format=csv 2> /dev/null)
+    # Request only the fields we need to simplify parsing
+    MULTISITE_SITES_EXEC=$($WP_CLI --path=$WP_ROOT site list --fields=blog_id,url --format=csv 2> /dev/null)
     MULTISITE_SITES_EXIT=$?
-    MULTISITE_SITES=$(echo "$MULTISITE_SITES_EXEC" | tail -n +2)
+    # Strip header row if present (WP-CLI CSV output typically includes it)
+    MULTISITE_SITES=$(echo "$MULTISITE_SITES_EXEC" \
+        | sed '/^DEBUG:/d' \
+        | awk 'NR==1 && $0 ~ /^blog_id,?url/ {next} {print}')
     if [[ $MULTISITE_SITES_EXIT -ne 0 ]]; then
         _log "Error: Could not get multi-site list: $MULTISITE_SITES" >&2
         exit 1
     fi
-    while IFS=, read -r SITE_ID SITE_URL _; do
+    while IFS=, read -r SITE_ID SITE_URL; do
+        # Skip header/blank lines just in case
+        [[ -z "$SITE_ID" || "$SITE_ID" == "blog_id" ]] && continue
         _log "  - Processing site ID: $SITE_ID, URL: $SITE_URL"
         JOB_RUN_COUNT=$((JOB_RUN_COUNT+1))
         SITE_MAP[$SITE_URL]=$SITE_ID
+        # Preserve order for deterministic processing and resume support
+        SITE_LIST+=("$SITE_URL")
     done <<< "$MULTISITE_SITES"
 else
     _log "-- Single instance detected running $CRON_CMD"
@@ -404,7 +428,43 @@ _log "=================================================="
 _log "Cron queue type:$JOB_RUN count: $JOB_RUN_COUNT"
 _log "=================================================="
 
-for SITE in "${!SITE_MAP[@]}"; do
+# Build ordered iteration list and resume position
+ITERATION_SITES=()
+if [[ $JOB_RUN == "multi" ]]; then
+    # State file location (can be overridden via CRON_SHIM_STATE_FILE env var)
+    STATE_FILE_DEFAULT="$SCRIPT_DIR/.cron-shim.${DOMAIN_NAME}.state"
+    STATE_FILE="${CRON_SHIM_STATE_FILE:-$STATE_FILE_DEFAULT}"
+
+    START_INDEX=0
+    if [[ -f "$STATE_FILE" ]]; then
+        LAST_SITE=$(cat "$STATE_FILE" 2>/dev/null)
+        if [[ -n "$LAST_SITE" ]]; then
+            for i in "${!SITE_LIST[@]}"; do
+                if [[ "${SITE_LIST[$i]}" == "$LAST_SITE" ]]; then
+                    START_INDEX=$((i+1))
+                    break
+                fi
+            done
+            # If last site was the final element, start fresh and clear state
+            if [[ $START_INDEX -ge ${#SITE_LIST[@]} ]]; then
+                _log " ++ State indicates previous run finished at end of list. Clearing state and starting from beginning."
+                rm -f "$STATE_FILE"
+                START_INDEX=0
+            else
+                _log " ++ Resuming multisite processing from index $START_INDEX (after $LAST_SITE)"
+            fi
+        fi
+    fi
+    # Slice the list from START_INDEX to end
+    if [[ ${#SITE_LIST[@]} -gt 0 ]]; then
+        ITERATION_SITES=("${SITE_LIST[@]:$START_INDEX}")
+    fi
+else
+    # Single site processing
+    ITERATION_SITES=("$DOMAIN_NAME")
+fi
+
+for SITE in "${ITERATION_SITES[@]}"; do
     COUNTER=$((COUNTER + 1))
     _log "=================================================="
     _log "- Running cron job $COUNTER/$JOB_RUN_COUNT for $DOMAIN_NAME - $SITE ${SITE_MAP[$SITE]}"
@@ -480,6 +540,10 @@ for SITE in "${!SITE_MAP[@]}"; do
     QUEUE_CPU_USAGE=$(ps -p $$ -o %cpu | tail -n 1)
     _log ">>>> Cron job completed in $QUEUE_TIME_SPENT seconds with $QUEUE_CPU_USAGE% CPU usage."
     JOB_RUN_SITES_TIME+=("- $DOMAIN_NAME - $CRON = Time:$QUEUE_TIME_SPENT CPU: $QUEUE_CPU_USAGE")
+    # Update state to the last processed site (multisite only)
+    if [[ $JOB_RUN == "multi" ]]; then
+        echo "$SITE" > "$STATE_FILE"
+    fi
 done
 END_TIME=$(date +%s.%N)
 
@@ -499,6 +563,11 @@ else
             _log "\n==== Error: Failed to send heartbeat to $HEARTBEAT_URL on $(echo $START_TIME|date +"%Y-%m-%d_%H:%M:%S") CODE: $CURL_HTTP_CODE"
         fi
     fi
+fi
+
+# If multisite and we processed through the end of the list this run, clear the state file
+if [[ $JOB_RUN == "multi" && ${#ITERATION_SITES[@]} -gt 0 ]]; then
+    rm -f "$STATE_FILE" 2>/dev/null || true
 fi
 
 # POST_CRON_CMD

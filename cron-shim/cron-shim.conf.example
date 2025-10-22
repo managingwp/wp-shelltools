@@ -22,6 +22,11 @@
 #LOG_FILE="$SCRIPT_DIR/cron-shim.log"
 #LOG_PRUNE_SIZE_MB=10
 
+# Resume options (multisite)
+# Path to state file used to resume multisite processing from the last processed site.
+# If unset, defaults to "$SCRIPT_DIR/.cron-shim.${DOMAIN_NAME}.state" at runtime.
+#CRON_SHIM_STATE_FILE="$SCRIPT_DIR/.cron-shim.state"
+
 # wp-cli opcache options
 #WP_CLI_OPCACHE=0
 #WP_CLI_OPCACHE_DIR="$SCRIPT_DIR/.opcache"
