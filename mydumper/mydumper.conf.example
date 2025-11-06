@@ -1,0 +1,25 @@
+# mydumper.conf - Configuration file for mydumper.sh
+# Copy this file to mydumper.conf and update with your settings
+
+# Output directory for database dumps
+# Default: $HOME/migration/wpdb-export
+#OUTDIR="$HOME/migration/wpdb-export"
+
+# Database name (required)
+#DB_NAME="wordpress"
+
+# Database user (required)
+#DB_USER="root"
+
+# Database password (optional - will be prompted if not set)
+# Note: Setting password here is convenient but less secure
+# If not set, you will be prompted to enter it interactively
+#DB_PASS="your_password_here"
+
+# Tables to export (optional - comma-separated list)
+# If not set, all tables will be exported
+# You can specify just table names (will be prefixed with database name automatically):
+# Example: TABLES_LIST="wp_posts,wp_postmeta,wp_users,wp_usermeta"
+# Or use full DATABASE.TABLE format:
+# Example: TABLES_LIST="wordpress.wp_posts,wordpress.wp_users"
+#TABLES_LIST=""

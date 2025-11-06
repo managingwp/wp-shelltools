@@ -1,0 +1,36 @@
+# rsync.conf.example
+# Copy to rsync.conf and customize for your environment
+
+# Source path - exact directory to sync from
+#   - Local directory: /var/www/site
+#   - Remote path: user@host.com:/var/www/site
+SRC_PATH="/var/www/site"
+
+# Destination path - exact directory to sync to
+#   - Local directory: /backup/destination
+#   - Remote path: user@host.com:/home/user/site
+DEST_PATH="user@example.com:/home/remoteuser/site"
+
+# SSH settings (used when source or destination is remote)
+SSH_PORT="22"
+SSH_KEY="$HOME/.ssh/id_rsa"
+
+# ===========================
+# Example Configurations
+# ===========================
+
+# Remote to local (pull):
+# SRC_PATH="user@host.com:/var/www/site"
+# DEST_PATH="/local/backup/site"
+
+# Local to remote (push):
+# SRC_PATH="/var/www/site"
+# DEST_PATH="user@host.com:/home/user/site"
+
+# Remote to remote (through local):
+# SRC_PATH="user1@host1.com:/src/dir"
+# DEST_PATH="user2@host2.com:/dst/dir"
+
+# Local to local (copy):
+# SRC_PATH="/source/path"
+# DEST_PATH="/dest/path"

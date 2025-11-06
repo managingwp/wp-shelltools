@@ -1,0 +1,16 @@
+# myloader.conf - Configuration file for myloader.sh
+# Copy this file to myloader.conf and update with your settings
+
+# Input directory containing the dump files (required)
+#INPUT_DIR="/home/user/migration/wpdb-export"
+
+# Database name (required)
+#DB_NAME="wordpress"
+
+# Database user (required)
+#DB_USER="root"
+
+# Database password (optional - will be prompted if not set)
+# Note: Setting password here is convenient but less secure
+# If not set, you will be prompted to enter it interactively
+#DB_PASS="your_password_here"
