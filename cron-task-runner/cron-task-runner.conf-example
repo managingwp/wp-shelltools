@@ -1,0 +1,54 @@
+# =============================================================================
+# Cron Task Runner Configuration File
+# =============================================================================
+# Copy this file to one of the following locations:
+#   - ./cron-task-runner.conf (current directory)
+#   - <script_dir>/cron-task-runner.conf (same directory as script)
+#   - /etc/cron-task-runner.conf
+#   - ~/.config/cron-task-runner.conf
+#
+# Or specify a custom path with: cron-task-runner.sh -c /path/to/config.conf
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# GENERAL SETTINGS
+# -----------------------------------------------------------------------------
+
+# Log file path
+LOG_FILE="task_runner.log"
+
+# Lock file path (prevents concurrent runs)
+LOCK_FILE="task_runner.lock"
+
+# -----------------------------------------------------------------------------
+# WEBHOOK CONFIGURATION
+# -----------------------------------------------------------------------------
+
+# Enable webhook notifications (true/false)
+WEBHOOK_ENABLED=false
+
+# Webhook URL for notifications
+WEBHOOK_URL=""
+
+# -----------------------------------------------------------------------------
+# TASKS CONFIGURATION
+# -----------------------------------------------------------------------------
+# Format: "description|command"
+# Each task should be on its own line within the TASKS array
+# The description will be shown in logs and the command will be executed
+#
+# Example tasks:
+# TASKS=(
+#     "Task Name|command to run"
+#     "Another Task|another command"
+# )
+# -----------------------------------------------------------------------------
+
+TASKS=(
+    # Example tasks - uncomment and modify as needed:
+    # "WP Import Processing|curl --request GET 'https://example.com/wp-load.php?import_key=xxxxx&import_id=9&action=processing'"
+    # "WP Import Trigger|curl --request GET 'https://example.com/wp-load.php?import_key=xxxxx&import_id=9&action=trigger'"
+    # "Fix Cache|/usr/local/bin/gp fix cache example.com"
+    # "Database Backup|mysqldump -u user -p database > /backups/db.sql"
+    # "Clear Temp Files|find /tmp -type f -mtime +7 -delete"
+)

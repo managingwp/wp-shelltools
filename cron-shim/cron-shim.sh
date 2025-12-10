@@ -13,7 +13,7 @@
 # Example: */5 * * * * /home/systemuser/cron-shim.sh
 
 # -- Variables
-VERSION="1.4.3"
+VERSION="1.4.7"
 PID_FILE="/tmp/cron-shim.pid"
 SCRIPT_NAME=$(basename "$0") # -     Name of this script
 declare -A SITE_MAP # - Map of sites to run cron on
